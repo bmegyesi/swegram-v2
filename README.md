@@ -1,2 +1,2 @@
 # swegram
-SWEGRAM: Annotation and Analysis of English and Swedish Texts
+SWEGRAM: Annotation and Analysis of English and Swedish Texts!
