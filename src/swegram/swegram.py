@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 
-
+from src.swegram.version import VERSION
 
 # part 1: pipeline 
 
@@ -38,7 +38,6 @@ def _parse_arguments():
     parser.add_argument(
         '-f',
         '--filename',
-        required=True,
         dest='filename',
         help='The path to input file name'
     )
@@ -105,6 +104,9 @@ def _parse_arguments():
 def main():
     if len(sys.argv) < 2:
         sys.argv.append('--help')
+    if sys.argv[1] == '--version':
+        print(VERSION)
+        sys.exit()
     parser = _parse_arguments()
     args = parser.parse_args(sys.argv[1:])
     

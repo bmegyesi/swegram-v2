@@ -1,7 +1,7 @@
 """Swegram setup"""
 from setuptools import setup, find_packages
 from pathlib import Path
-from src.swegram.swegram import VERSION
+from src.swegram.version import VERSION
 
 BASE_PATH = Path.cwd()
 
