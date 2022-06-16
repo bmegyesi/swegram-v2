@@ -1,3 +1,5 @@
 Cython
+invoke
 jellyfish
 Levenshtein
+wheel
