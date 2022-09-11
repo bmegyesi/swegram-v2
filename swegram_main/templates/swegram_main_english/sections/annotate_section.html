@@ -1,0 +1,30 @@
+<h2 class="ui block medium header">
+  Annotate new text
+</h2>
+
+<iframe name="hidden-iframe" style="display:none;" id="hidden-iframe"></iframe>
+
+
+<div id="upload_annotate_main">
+  To annotate a new text, you can either
+  <div class="ui bulleted list">
+    <div class="item">upload one or several text files (.doc, .docx, .odt and .rtf files are automatically converted to plain text), or</div>
+    <div class="item">paste a text.</div>
+  </div>
+
+  <br><br><br>
+
+  <center>
+    <button onclick="show_upload_section();" class="big ui basic icon button">
+      <i class="icon upload"></i> Upload a text file
+    </button>
+
+    <button onclick="show_paste_section();" class="big basic ui icon button">
+      <i class="icon paste"></i> Paste a text
+    </button>
+  </center>
+
+
+</div>
+
+{% include "swegram_main_english/sections/subsections/upload_annotate.html" %}

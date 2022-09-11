@@ -1,0 +1,25 @@
+<h2 class="ui block medium header">
+  Upload annotated text
+</h2>
+
+<iframe name="hidden-iframe2" style="display:none;" id="hidden-iframe2"></iframe>
+
+<div class="ui"><br>
+  <form enctype="multipart/form-data" method="POST" target="hidden-iframe" id="analyze_form">
+    {% csrf_token %}
+  <center>
+
+    <label style="width:auto; min-width:150px;" id="upload_select_label" for="file_to_analyze" class="basic ui big icon button">
+      <i class="attach icon"></i>
+      <span id="choose_file_label_analyze">Choose file</span></label>
+
+      <label id="analyze_submit_label" style="width:150px;" for="analyze_submit" class=" disabled ui big icon button">
+        <i class="upload icon"></i>
+        Upload</label>
+
+        <input type="file" style="display:none" name="file_to_analyze" id="file_to_analyze">
+        <button type="submit" style="display:none" class="ui huge icon button" id="analyze_submit"></button>
+      </center>
+</form>
+
+</div>

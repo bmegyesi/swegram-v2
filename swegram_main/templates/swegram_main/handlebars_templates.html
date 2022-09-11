@@ -1,0 +1,918 @@
+{% verbatim myblock %}
+  <script id="n_loaded_texts_template" type="x-tmpl-mustache">
+  <h3>{{texts_selected}}/{{text_n}} texter valda</h3>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="visualise_template" type="x-tmpl-mustache">
+  <h2 class="ui block header">
+    {{metadata}}
+  </h2>
+
+
+
+  <div class="ui one column grid">
+    <div class="two column row">
+      <div class="ui segment">
+        <div class="ui fluid icon input">
+          <input onkeyup="token_search()" id="search_token" type="text" placeholder="Sök token...">
+            <i class="search icon"></i>
+        </div><br>
+
+        <div class="ui compact menu">
+          <div class="ui simple dropdown item">
+            <span id="mark_pos_label">Markera ordklass</span>
+            <i class="dropdown icon"></i>
+            <div class="menu">
+            <br>
+              {{#pos_list}}
+              <span class="ui checked slider checkbox">
+              <input id="pos_{{this}}_slider" onclick="toggle_visualise_pos('{{this}}');" type="checkbox"><label>{{this}}</label>
+              </span><br><br>
+              {{/pos_list}}
+            </div>
+          </div>
+        </div><br><br>
+        <span class="ui checked slider checkbox">
+          <input id="visualise_slider" type="checkbox" onclick="toggle_visualise();" checked=""><label>Visa normaliserade tokens</label>
+        </span><br><br>
+
+        <span class="ui checked slider checkbox">
+          <input id="visualise_slider" type="checkbox" onclick="highlight_normalized();"><label>Markera normaliserade tokens</label>
+        </span><br>
+      </div>
+    </div>
+    <span id="edit_token_id" style="display:none;"></span>
+    <div class="column">
+
+    <div class="column">
+      <div class="ui list">
+        {{#sentences}}
+        <div class="ui divider"></div>
+        <div class="item">
+          {{#tokens}}
+          {{#this}}
+          <span id="form_{{id}}"
+            data-id="{{id}}"
+            data-form="{{form}}"
+            data-norm="{{norm}}"
+            data-lemma="{{lemma}}"
+            data-upos="{{upos}}"
+            data-xpos="{{xpos}}"
+            data-feats="{{feats}}"
+            data-ufeats="{{ufeats}}"
+            data-head="{{head}}"
+            data-deprel="{{deprel}}"
+            data-deps="{{deps}}"
+            data-misc="{{misc}}"
+            data-normalized="{{normalized}}"
+            data-dep-length="{{dep_length}}"
+            data-path="{{path}}"
+            onclick="highlight_token(this);"
+            class="token form {{#ifNotEquals form norm}}has_norm{{/ifNotEquals}}">{{form}}
+          </span>
+          {{#ifEquals compound_originals false}}
+          <span id="norm_{{id}}"
+            data-id="{{id}}"
+            data-form="{{form}}"
+            data-norm="{{norm}}"
+            data-lemma="{{lemma}}"
+            data-upos="{{upos}}"
+            data-xpos="{{xpos}}"
+            data-feats="{{feats}}"
+            data-ufeats="{{ufeats}}"
+            data-head="{{head}}"
+            data-deprel="{{deprel}}"
+            data-deps="{{deps}}"
+            data-misc="{{misc}}"
+            data-normalized="{{normalized}}"
+            data-dep-length="{{dep_length}}"
+            data-path="{{path}}"
+            onclick="highlight_token(this);"
+            class="token norm">{{norm}}
+          </span>
+          {{/ifEquals}}
+          {{/this}}
+          {{/tokens}}
+          <div class="ui accordion">
+            <div class="title">
+              <i class="dropdown icon"></i>
+              Syntactic Features
+            </div>
+            <div class="content" data-index="{{@index}}">
+              <div id="displacy_sent_{{@index}}" onclick="showDisplacyModal({{@index}})"></div>
+              <div class="ui segment">
+                <span> Genomsnittsdependenslängd: {{avg_dep_length}}</span><br>
+                <span> Mediandependenslängd: {{median_dep_length}}</span><br>
+                <span> Längsta dependenslängd: {{longest_length}}</span><br>
+                <span> Andel vänsterställda dependensbågar till huvudordet: {{left}}</span><br>
+                <span> Andel högerställda dependensbågar till huvudordet: {{right}}</span><br>
+                <span> Dependensbågar längre än 5: {{arc5plus}}</span><br>
+                <span> Variation av modifierare (INCSC): {{mod_incsc}}</span><br>
+                <span> Andel förställda modifierare (INCSC): {{pre_incsc}}</span></br>
+                <span> Andel efterställda modifierare (INCSC): {{post_incsc}}</span></br>
+                <span> Underordnade (INCSC): {{sub_incsc}}</span></br>
+                <span> Relativa bisatser (INCSC): {{rel_incsc}}</span></br>
+                <span> Prepositionskomplement (INCSC): {{pp_incsc}}</span></br>
+              </div>
+            </div>
+          </div>
+          <div class="ui fullscreen modal" id="displacy_modal_{{@index}}">
+            <div class="image content"></div>
+          </div>
+        </div>
+        {{/sentences}}
+      </div>
+    </div>
+
+    <div id="token_detail_info_popup" style="word-wrap: break-word;" class="ui popup hidden">
+      <h4>Markerad token</h4>
+      <i style="cursor:pointer;" onclick="edit_text('form', '{{text_id}}')" class="edit icon"></i> Form: <span id="marked_form"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('norm', '{{text_id}}')" class="edit icon"></i> Norm: <span id="marked_norm"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('lemma', '{{text_id}}')" class="edit icon"></i> Lemma: <span id="marked_lemma"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('upos', '{{text_id}}')" class="edit icon"></i> Upos: <span id="marked_upos"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('xpos', '{{text_id}}')" class="edit icon"></i> Xpos: <span id="marked_xpos"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('feats', '{{text_id}}')" class="edit icon"></i> Feats: <span id="marked_feats"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('ufeats', '{{text_id}}')" class="edit icon"></i> Ufeats: <span id="marked_ufeats"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('head', '{{text_id}}')" class="edit icon"></i> Head: <span id="marked_head"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('deprel', '{{text_id}}')" class="edit icon"></i> Deprel: <span id="marked_deprel"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('deps', '{{text_id}}')" class="edit icon"></i> Deps: <span id="marked_deps"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('misc', '{{text_id}}')" class="edit icon"></i> Misc: <span id="marked_misc"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('dep_length', '{{text_id}}" class="edit icon"></i> Dependenslängd: <span id="marked_dep_length"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('path', '{{text_id}}" class="edit icon"></i> Stig: <span id="marked_path"></span><br>
+    </div>
+
+  </div>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="readability_template" type="x-tmpl-mustache">
+
+  <table class="ui very basic table" id="table_readability" style="width:100%;">
+  <thead style="display:none;"><tr style="display:none;"><th>#Allmän statistik</th></tr></thead>
+
+    <thead>
+      <tr>
+
+      <th></th>
+      <th style="text-align:right;">Total<sup>1</sup></th>
+      <th style="text-align:right;">Median<sup>2</sup></th>
+    </tr></thead>
+
+
+
+    <tbody>
+      <tr>
+        <td>LIX (total)</td>
+        <td class="td_content" style="text-align:right;">{{lix_total}}</td>
+        <td class="td_content" style="text-align:right;">{{lix_median}}</td>
+      </tr>
+
+
+      <tr>
+        <td>OVIX (total)</td>
+        <td class="td_content" style="text-align:right;">{{ovix_total}}</td>
+        <td class="td_content" style="text-align:right;">{{ovix_median}}</td>
+      </tr>
+
+      <tr>
+        <td>Typ-token ratio</td>
+        <td class="td_content" style="text-align:right;">{{ttr_total}}</td>
+        <td class="td_content" style="text-align:right;">{{ttr_median}}</td>
+      </tr>
+
+      <tr>
+        <td>Full nominalkvot</td>
+        <td class="td_content" style="text-align:right;">{{nq_full_total}}</td>
+        <td class="td_content" style="text-align:right;">{{nq_full_median}}</td>
+      </tr>
+
+      <tr>
+        <td>Enkel nominalkvot</td>
+        <td class="td_content" style="text-align:right;">{{nq_simple_total}}</td>
+        <td class="td_content" style="text-align:right;">{{nq_simple_median}}</td>
+      </tr>
+
+    </tbody>
+
+  </thead>
+  </table>
+  <br>
+  <sup>1</sup> Behandlar alla texter som en text och beräknar läsbarhet utifrån det<br>
+  <sup>2</sup> Medianvärde för den valda gruppen enskilda texter
+
+  </script>
+{% endverbatim myblock %}
+
+
+
+
+{% verbatim myblock %}
+  <script id="lengths_template" type="x-tmpl-mustache">
+
+
+
+  <div class="ui buttons">
+    <button onclick="lengths_words_pos('words');" id="wl_words" class="wlbtn ui button">Ord</button>
+    <div id="pos_menu_button" class="ui floating dropdown icon button">
+      <span id="pos_menu_label">{{#ifEquals words_pos "Ord"}} Ordklass {{/ifEquals}}{{#ifNotEquals words_pos "Ord"}} {{words_pos}} {{/ifNotEquals}}</span> <i class="dropdown icon"></i>
+
+      <div class="menu">
+        <div class="ui search icon input">
+          <i class="search icon"></i>
+          <input type="text" name="search" placeholder="Sök...">
+        </div>
+        {{#each pos_list}}
+      <div id="menu_{{this}}" onclick="lengths_words_pos('{{this}}');" class="item">{{this}}</div>
+        {{/each}}
+      </div>
+    </div>
+  </div><br>
+
+
+  <table>
+    <table class="ui very basic table" id="table_lengths" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#Allmän statistik</th></tr></thead>
+
+      <tbody>
+        <tr>
+        <td id="morethan_label" style="width:20%;">
+        {{words_pos}} med fler än
+        </td>
+        <td>
+        <i onclick="update_lengths('morethan', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{morethan_n}} <i style="cursor:pointer;" onclick="update_lengths('morethan', 'plus');" class="plus square outline icon"></i> tecken
+        </td>
+        <td id="morethan_total" style="text-align:right;">
+        {{morethan_total}}
+        </td>
+        </tr>
+
+        <tr>
+        <td id="lessthan_label" style="width:20%;">
+        {{words_pos}} med färre än
+        </td>
+        <td style="text-align:left;">
+        <i onclick="update_lengths('lessthan', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{lessthan_n}} <i style="cursor:pointer;" onclick="update_lengths('lessthan', 'plus');" class="plus square outline icon"></i> tecken
+        </td>
+        <td id="lessthan_total" style="text-align:right;">
+        {{lessthan_total}}
+        </td>
+        </tr>
+
+        <tr>
+        <td id="equal_label" style="width:20%;">
+        {{words_pos}} med exakt
+        </td>
+        <td>
+        <i onclick="update_lengths('equal', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{equal_n}} <i style="cursor:pointer;" onclick="update_lengths('equal', 'plus');" class="plus square outline icon"></i> tecken
+        </td>
+        <td  id="equal_total" style="text-align:right;">
+        {{equal_total}}
+        </td>
+        </tr>
+      </tbody>
+    </table>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="general_stats_template" type="x-tmpl-mustache">
+
+  {{#if non_normalized_files}}
+  Följande filer inkluderas inte eftersom de inte är normaliserade:<br>
+  {{#each non_normalized_files}}
+      <b>{{this}}</b><br>
+  {{/each}}
+  {{/if}}
+
+  <table>
+    <table class="ui very basic table" id="table_general" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#Allmän statistik</th></tr></thead>
+      <thead>
+        <tr>
+
+        <th></th>
+        <th style="text-align:right;">Antal</th>
+        <th style="text-align:right;">Medelvärde</th>
+        <th style="text-align:right;">Median</th>
+      </tr></thead>
+      <tbody>
+
+      <tr>
+        <td>
+          Tokens
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_tokens}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_tokens}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_tokens}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Ord
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_words}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_words}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_words}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Felstavningar
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_misspells}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_misspells}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_misspells}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Särskrivningar
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_compounds}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_compounds}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_compounds}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Ordlängd
+        </td>
+        <td style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_word_len}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_word_len}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Meningar
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_sent}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_sent}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_sent}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Meningslängd (antal ord) <sup>1</sup>
+        </td>
+        <td style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_sent_len}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_sent_len}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Stycken
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_paragraphs}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_paragraphs}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_paragraphs}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Styckelängd (antal ord) <sup>1</sup>
+        </td>
+        <td class="td_content" style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_paragraph_length}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_paragraph_length}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Styckelängd (antal meningar)
+        </td>
+        <td class="td_content" style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_paragraph_sentence_length}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_paragraph_sentence_length}}
+        </td>
+      </tr>
+
+      <tr style="display:none;"><br></tr>
+      </tbody>
+    </table>
+    <br><sup>1</sup> Exklusive skiljetecken
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="text_menu_template" type="x-tmpl-mustache">
+  <div class="ui simple dropdown item">
+    <b>Visualisera text</b> <i class="dropdown icon"></i>
+
+
+    <div class="menu">
+    {{#texts}}
+      <div class="item">
+        <i class="dropdown icon"></i>
+        <span class="text">{{filename}}</span>
+        <div class="menu">
+          {{#texts_in_file}}
+            <div onclick="visualise_text('{{id}}');" class="item">{{meta}}</div>
+          {{/texts_in_file}}
+      </div>
+      </div>
+    {{/texts}}
+    </div>
+  </div>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="filter_template" type="x-tmpl-mustache">
+
+  <table class="ui table">
+    <thead>
+      <tr>
+        <th>Visa statistik för</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>
+
+    <select id="stats_type_dropdown" onchange="change_stats_type()" class="ui fluid dropdown">
+      <option value="all_texts">Alla texter</option>
+      {{#each text_ids}}
+        <option value="{{this.[0]}}">{{this.[1]}}</option>
+      {{/each}}
+    </select>
+
+    </td>
+    </tr>
+    </tbody>
+  </table>
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="metadata_template" type="x-tmpl-mustache">
+
+  <table class="ui table">
+    <thead>
+      <tr>
+        <th>Metadata</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    <br><br>
+
+    {{#each metadata}}
+      <tr>
+        <td>
+          <div style="cursor:pointer;" onclick="fade_down('meta_{{@key}}')" class="sixteen wide column">
+            <i class="tag icon"></i>
+            {{@key}}
+            <i id="arrow_meta_{{@key}}" style="float:right;" class="angle double down icon"></i>
+          </div>
+
+          <div id='meta_{{@key}}' class="text_faded sixteen wide column transition hidden"><hr>
+            {{#each this}}
+            <div>
+              {{@key}}
+
+              <span style="float:right; left:20px;" class="ui checked slider checkbox">
+
+              <input class="meta_checkbox" type="checkbox" onclick="toggle_metadata('{{@../key}}_{{@key}}');"
+              {{#if this.[0]}} checked=""{{/if}}
+              >
+              <label>&nbsp;</label>
+
+              </span>
+              </div>
+              {{#unless @last}}
+              <br>
+              {{/unless}}
+            {{/each}}
+          </div>
+        </td>
+      </tr>
+    {{/each}}
+
+
+    </tbody>
+  </table>
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="syntactic_template" type="x-tmpl-mustache">
+    <table class="ui very basic table" id="table_syntactic" style="width:100%;">
+      <thead>
+        <tr>
+          <th></th>
+          <th style="text-align:right;">Amount</th>
+          <th style="text-align:right;">Average</th>
+          <th style="text-align:right;">Median</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dependenslängd</td>
+          <td class="td_content" style="text-align:right;">{{n_dep_length}}</td>
+          <td class="td_content" style="text-align:right;">{{avg_dep_length}}</td>
+          <td class="td_content" style="text-align:right;">{{median_dep_length}}</td>
+        </tr>
+
+        <tr>
+          <td>Dependensbågar längre än 5</td>
+          <td class="td_content" style="text-align:right;">{{arc5plus}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr>
+          <td>Längsta dependenslängd</td>
+          <td class="td_content" style="text-align:right;">{{long_length}}</td>
+          <td></td>
+          <td></td>
+        </tr>
+
+        <tr>
+          <td>Andel högerställda dependensbågar</td>
+          <td class="td_content" style="text-align:right;">{{n_dep_right}}</td>
+          <td class="td_content" style="text-align:right;">{{right_dep_ratio}}</td>
+          <td class="td_content" style="text-align:right;">{{median_dep_right}}</td>
+        </tr>
+
+        <tr>
+          <td>Andel vänsterställda dependensbågar</td>
+          <td class="td_content" style="text-align:right;">{{n_dep_left}}</td>
+          <td class="td_content" style="text-align:right;">{{left_dep_ratio}}</td>
+          <td class="td_content" style="text-align:right;">{{median_dep_left}}</td>
+        </tr>
+
+        <tr>
+          <td>Variation av modifierare (INCSC)</td>
+          <td></td>
+          <td class="td_content" style="text-align:right;">{{mean_mod_incsc}}</td>
+          <td class="td_content" style="text-align:right;">{{median_mod_incsc}}</td>
+        </tr>
+
+        <tr>
+          <td>Andel förställda modifierare (INCSC)</td>
+          <td></td>
+          <td class="td_content" style="text-align:right;">{{mean_pre_incsc}}</td>
+          <td class="td_content" style="text-align:right;">{{median_pre_incsc}}</td>
+        </tr>
+
+        <tr>
+          <td>Andel efterställda modifierare (INCSC)</td>
+          <td></td>
+          <td class="td_content" style="text-align:right;">{{mean_post_incsc}}</td>
+          <td class="td_content" style="text-align:right;">{{median_post_incsc}}</td>
+        </tr>
+
+        <tr>
+          <td>Underordnade (INCSC)</td>
+          <td></td>
+          <td class="td_content" style="text-align:right;">{{mean_sub_incsc}}</td>
+          <td class="td_content" style="text-align:right;">{{median_sub_incsc}}</td>
+        </tr>
+
+        <tr>
+          <td>Relativa bisatser (INCSC)</td>
+          <td></td>
+          <td class="td_content" style="text-align:right;">{{mean_relative_incsc}}</td>
+          <td class="td_content" style="text-align:right;">{{median_relative_incsc}}</td>
+        </tr>
+
+        <tr>
+          <td>Prepositionskomplement (INCSC)</td>
+          <td></td>
+          <td class="td_content" style="text-align:right;">{{mean_prep_incsc}}</td>
+          <td class="td_content" style="text-align:right;">{{median_prep_incsc}}</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </br>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="morph_template" type="x-tmpl-mustache">
+    <table class="ui very basic table" id="table_morph" style="width:100%;">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Antal</th>
+          <th>Genomsnitt</th>
+          <th>Median</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </script>
+{% endverbatim myblock %}
+
+
+{% verbatim myblock %}
+  <script id="loaded_texts_template" type="x-tmpl-mustache">
+
+
+  <table class="ui table">
+    <thead>
+      <tr>
+          <th>Inlästa filer</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    {{#each loaded_files}}
+      <tr>
+        <td>
+          <div class="sixteen wide column">
+            <i style="cursor:pointer;" class="edit text outline icon" onclick="filename_popup({{this.[1]}}, '{{this.[0]}}');"></i>
+            <span style="cursor:pointer;" onclick="fade_down({{this.[1]}})">
+            {{#if this.[7]}}
+            <span id="span_{{this.[1]}}">
+                {{this.[0]}}
+                </span>
+            {{else}}
+              <span class="grey_text" id="span_{{this.[1]}}">
+                {{this.[0]}}
+              </span>
+            {{/if}}
+            <i id="arrow_{{this.[1]}}" style="float:right;" class="angle double down icon"></i>
+            </span>
+          </div>
+
+          <div id="{{this.[1]}}" class="text_faded sixteen wide column transition hidden">
+          <br>
+            Använd<span style="float:right; left:20px;" class="ui checked slider checkbox">
+            <input type="checkbox" onclick="change_file_state({{this.[1]}});" {{#unless this.[6]}} disabled="disabled"{{/unless}}
+            {{#if this.[7]}}checked=""{{/if}}><label>&nbsp;</label></span><br>
+
+            <div style="margin-top:2px;">Storlek<span style="float:right;">{{this.[2]}}</span></div>
+            Texter<span style="float:right;">{{this.[3]}}</span> <br>
+            {{#if this.[5]}}
+              Har metadata<span style="float:right;">Ja</span><br>
+            {{else}}
+              Har metadata<span style="float:right;">Nej</span><br>
+            {{/if}}
+            {{#if this.[6]}}
+              Kan analyseras<span style="float:right;">Ja</span><br>
+            {{else}}
+              Kan analyseras<span style="float:right;">Nej</span><br>
+            {{/if}}
+            {{#if this.[8]}}
+              Normaliserad<span style="float:right;">Ja</span><br>
+            {{else}}
+              Normaliserad<span style="float:right;">Nej</span><br>
+            {{/if}}
+
+            Uppladdad<span style="float:right;">{{this.[4]}}</span><br>
+            <hr>
+            <a style="" href="/swegram/dl/{{this.[1]}}">
+              <i class="download icon"></i>
+              Ladda ned
+            </a>
+
+           <a style="color:red; float:right" href="#" onclick="update_sidebar({{this.[1]}});">
+              <i class="remove icon"></i>
+              Ta bort
+           </a>
+
+
+
+          </div>
+        </td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+
+
+
+
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+<script id="freq_header_template" type="x-tmpl-mustache">
+
+<div class="ui">
+  <div class="inline fields">
+
+    <div class="field">
+        <input type="radio" onclick="toggle_freq('form');" {{#ifEquals freq_type "form"}} checked {{/ifEquals}} class="freq_radio" name="freq_radio" value="form" tabindex="0" class="hidden">
+        <label>Form</label>
+    </div>
+    <div class="field">
+      <input type="radio" onclick="toggle_freq('norm');" {{#ifEquals freq_type "norm"}} checked {{/ifEquals}} class="freq_radio" name="freq_radio" value="norm" tabindex="0" class="hidden">
+      <label>Norm</label>
+    </div>
+    <div class="field">
+      <input type="radio" onclick="toggle_freq('lemma');" {{#ifEquals freq_type "lemma"}} checked {{/ifEquals}} class="freq_radio" name="freq_radio" value="lemma" tabindex="0" class="hidden">
+      <label>Lemma</label>
+    </div>
+  </div>
+</div>
+<button class="ui basic button" onclick="update_freq_pos('deselect_all')">Välj bort alla ordklasser</button><br><br>
+<div id='freq_pos_list' class="ui grid text_faded sixteen wide column transition">
+
+
+
+{{#each freq_pos_list}}
+  <div class="five wide column"><span class="ui checked slider checkbox">
+  <input type="checkbox" {{#if this.[1]}}checked="" {{/if}}onclick="update_freq_pos('{{this.[0]}}')"><label>{{this.[0]}}</label>
+  </span></div>
+{{/each}}
+
+{{#each disabled_pos_list}}
+  <div class="five wide column"><span class="ui slider checkbox">
+  <label><strike>{{this}}</strike></label>
+  </span></div>
+{{/each}}
+
+</div>
+
+<br>
+</script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+<script id="freq_template" type="x-tmpl-mustache">
+{{#if non_normalized_files}}
+Följande filer inkluderas inte eftersom de inte är normaliserade:<br>
+  {{#each non_normalized_files}}
+  <b>{{this}}</b><br>
+  {{/each}}<br>
+{{/if}}
+<table>
+  <table class="ui very basic table" id="table_freq" style="width:100%;">
+  <thead style="display:none;"><tr style="display:none;"><th>#Frekvenser</th></tr></thead>
+    <thead>
+      <tr>
+
+      <th width="10%;">Index</th>
+      <th width="50%;">Token</th>
+      <th width="10%;">Ordklass</th>
+      <th width="15%;" style="text-align:right;">Förekomster</th>
+      <th width="15%;" style="text-align:right;">Andel</th>
+    </tr></thead>
+    <tbody>
+    {{#each freq_list}}
+    <tr>
+      <td class="td_content">{{this.[0]}}
+      </td>
+      <td class="td_content">{{this.[1]}}
+      </td>
+      <td class="td_content">{{this.[2]}}
+      </td>
+      <td class="td_content" style="text-align:right;">{{this.[3]}}
+      </td>
+      <td class="td_content" style="text-align:right;">{{this.[4]}}
+      </td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+
+
+</table>
+</script>
+{% endverbatim myblock %}
+
+
+
+{% verbatim myblock %}
+<script id="pos_list_template" type="x-tmpl-mustache">
+
+
+<button class="ui basic button" onclick="update_pos('deselect_all')">Välj bort alla ordklasser</button><br><br>
+
+
+<div id='pos_list' class="ui grid text_faded sixteen wide column transition">
+
+{{#each pos_list}}
+  <div class="five wide column"><span class="ui checked slider checkbox">
+  <input type="checkbox" {{#if this.[1]}}checked="" {{/if}}onclick="update_pos('{{this.[0]}}')"><label>{{this.[0]}}</label>
+  </span></div>
+{{/each}}
+
+{{#each disabled_pos_list}}
+  <div class="five wide column"><span class="ui slider checkbox">
+  <label><strike>{{this}}</strike></label>
+  </span></div>
+{{/each}}
+
+</div>
+</script>
+{% endverbatim myblock %}
+
+
+{% verbatim myblock %}
+<script id="pos_template" type="x-tmpl-mustache">
+
+  <table>
+    <table class="ui very basic table" id="table_pos" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#Ordklasstatistik</th></tr></thead>
+      <thead>
+        <tr>
+
+        <th>Ordklass</th>
+        <th style="text-align:right;">Antal</th>
+        <th style="text-align:right;">Andel</th>
+      </tr></thead>
+      <tbody>
+
+      {{#each pos_counts}}
+        <tr>
+        {{#each this}}
+
+          {{#if @first}}
+            <td class="td_content" style="text-align:left;">{{this}}</td>
+          {{/if}}
+
+          {{#unless @first}}
+            {{#each this}}
+              <td class="td_content" style="text-align:right;">{{this}}</td>
+            {{/each}}
+          {{/unless}}
+
+        {{/each}}
+
+          </tr>
+      {{/each}}
+      <tr style="display:none;"><br></tr>
+      </tbody>
+    </table>
+
+
+  </table>
+  </div>
+  </script>
+{% endverbatim myblock %}

@@ -1,0 +1,31 @@
+<h2 class="ui block medium header">
+  Annotera ny text
+</h2>
+
+<iframe name="hidden-iframe" style="display:none;" id="hidden-iframe"></iframe>
+
+
+<div id="upload_annotate_main">
+  För att annotera en ny text kan du antingen
+  <div class="ui bulleted list">
+    <div class="item">ladda upp en eller flera textfiler (texter i format .doc, docx, .odt och .rtf konverteras automatiskt till ren text), eller</div>
+    <div class="item">klistra in en text.</div>
+  </div>
+
+  För information om hantering av metadata, se <i>hjälp</i> i menyn.
+  <br><br><br>
+
+  <center>
+    <button onclick="show_upload_section();" class="big ui basic icon button">
+      <i class="icon upload"></i> Ladda upp textfil
+    </button>
+
+    <button onclick="show_paste_section();" class="big basic ui icon button">
+      <i class="icon paste"></i> Klistra in text
+    </button>
+  </center>
+
+
+</div>
+
+{% include "swegram_main/sections/subsections/upload_annotate.html" %}

@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "assets": {
+    "fonts/element-icons.535877f5.woff": {
+      "name": "fonts/element-icons.535877f5.woff",
+      "path": "/home/rruan1/swegram/frontend/dist/fonts/element-icons.535877f5.woff",
+      "publicPath": "http://0.0.0.0:8000/static/fonts/element-icons.535877f5.woff"
+    },
+    "fonts/element-icons.732389de.ttf": {
+      "name": "fonts/element-icons.732389de.ttf",
+      "path": "/home/rruan1/swegram/frontend/dist/fonts/element-icons.732389de.ttf",
+      "publicPath": "http://0.0.0.0:8000/static/fonts/element-icons.732389de.ttf"
+    },
+    "img/swe-clarin-logo.6a0e99ef.png": {
+      "name": "img/swe-clarin-logo.6a0e99ef.png",
+      "path": "/home/rruan1/swegram/frontend/dist/img/swe-clarin-logo.6a0e99ef.png",
+      "publicPath": "http://0.0.0.0:8000/static/img/swe-clarin-logo.6a0e99ef.png"
+    },
+    "img/UU_logo_sv_84_transparent.a0393307.png": {
+      "name": "img/UU_logo_sv_84_transparent.a0393307.png",
+      "path": "/home/rruan1/swegram/frontend/dist/img/UU_logo_sv_84_transparent.a0393307.png",
+      "publicPath": "http://0.0.0.0:8000/static/img/UU_logo_sv_84_transparent.a0393307.png"
+    },
+    "bundle.css": {
+      "name": "bundle.css",
+      "path": "/home/rruan1/swegram/frontend/dist/bundle.css",
+      "publicPath": "http://0.0.0.0:8000/static/bundle.css"
+    },
+    "bundle.js": {
+      "name": "bundle.js",
+      "path": "/home/rruan1/swegram/frontend/dist/bundle.js",
+      "publicPath": "http://0.0.0.0:8000/static/bundle.js"
+    },
+    "index.html": {
+      "name": "index.html",
+      "path": "/home/rruan1/swegram/frontend/dist/index.html",
+      "publicPath": "http://0.0.0.0:8000/static/index.html"
+    },
+    "favicon.ico": {
+      "name": "favicon.ico",
+      "path": "/home/rruan1/swegram/frontend/dist/favicon.ico",
+      "publicPath": "http://0.0.0.0:8000/static/favicon.ico"
+    }
+  },
+  "chunks": {
+    "app": [
+      "bundle.css",
+      "bundle.js"
+    ]
+  },
+  "publicPath": "http://0.0.0.0:8000/static/"
+}

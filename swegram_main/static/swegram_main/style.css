@@ -1,0 +1,96 @@
+.sidebar{
+  word-wrap: break-word;
+  background:rgb(240,240,240);
+  margin-top:18px;
+  min-height:100%;
+}
+
+.left_col{
+  margin-top:33px;
+  background:white;
+}
+
+body{
+  background:rgb(240,240,240);
+}
+
+.underlined {
+  text-decoration: underline;
+}
+
+.grey_text{
+  color:grey;
+}
+
+.token{
+  cursor: pointer;
+}
+
+.token:hover{
+  color: green;
+}
+
+
+.sentence:hover{
+  background-color: orange;
+}
+.sentence{
+  background-color:orange;
+}
+
+
+.sentence_hidden{
+  display:none;
+}
+
+.token_hidden{
+  display:none;
+}
+
+.token_strikethru{
+  text-decoration: line-through;
+}
+
+.highlighted{
+  font-weight: bold;
+  color: white;
+  background-color: black;
+}
+
+.highlighted:hover{
+  background-color: green;
+}
+
+.token.highlighted:hover{
+  color: white;
+}
+
+.disableddiv {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.popup {
+    overflow-y: auto;
+}
+
+[id^="displacy_sent_"] {
+  position: relative;
+  height: 0;
+  width: 100%;
+  padding: 0;
+  padding-bottom: 28%;
+}
+
+[id^="displacy_sent_"] > .displacy {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  left: 0;
+  top: 0;
+  cursor: pointer;
+}
+
+[id^="displacy_modal_"] > .image.content {
+  width: 300%;
+}

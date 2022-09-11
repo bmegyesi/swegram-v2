@@ -1,0 +1,54 @@
+<h2 class="ui block medium header">
+  Exportera statistik
+</h2>
+
+
+Markerad statistik kommer att inkluderas och exporteras som tabbseparerad csv.<br><br>
+
+<div class="ui checkbox">
+  <input type="checkbox" id="chk_general_stats" checked name="example">
+  <label style="cursor:default;" for="chk_word_stats">Allmän statistik</label>
+</div><br>
+<div class="ui checkbox">
+  <input type="checkbox" id="chk_readability_stats" checked name="example">
+  <label style="cursor:default;" for="chk_pos_stats">Läsbarhet</label>
+</div><br>
+<div class="ui checkbox">
+  <input type="checkbox" id="chk_pos_stats" checked name="example">
+  <label style="cursor:default;" for="chk_readability_stats">Ordklasstatistik</label>
+</div><br>
+<div class="ui checkbox">
+  <input type="checkbox" id="chk_freq_stats" checked name="example">
+  <label style="cursor:default;" for="chk_word_len_stats">Frekvensordlista</label>
+</div>
+<br>
+<div class="ui checkbox" style="left:10px;">
+  <input type="checkbox" id="chk_freq_limit" checked name="example">
+  <label style="cursor:default;" for="chk_freq_limit">Begränsa frekvensordlista till
+    <input style="width:50px;" id="freq_limit_n" min="1" type="number" placeholder=""> tokens
+
+  </label>
+</div>
+
+<br><br>
+Decimalavgränsare
+<div class="ui form" name="separator_form">
+  <div class="inline fields">
+
+    <div class="field">
+        <input type="radio" checked class="freq_radio" name="freq_radio" value="period" tabindex="0" class="hidden">
+        <label>Punkt</label>
+    </div>
+ <span></span>
+    <div class="field">
+      <input type="radio" class="freq_radio" name="freq_radio" value="comma" tabindex="0" class="hidden">
+      <label>Komma</label>
+    </div>
+
+  </div>
+</div>
+
+<br><br>
+
+<button class="ui button" id="exportbtn">Exportera sammanfattande statistik</button>
+<button class="ui button" id="export_separated">Exportera statistik för varje enskild text</button>
