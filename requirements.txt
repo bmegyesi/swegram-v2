@@ -1,8 +1,0 @@
-Cython
-django
-invoke
-jellyfish
-Levenshtein
-psycopg2
-pytz
-wheel
