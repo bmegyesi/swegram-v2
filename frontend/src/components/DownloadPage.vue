@@ -1,10 +1,6 @@
 <template>
-  <el-container
-    v-loading="loadingTextSelection"
-  >
-    <el-main
-      class="download-type"
-    >
+  <el-container v-loading="loadingTextSelection">
+    <el-main class="download-type">
       <h5>Export</h5>
       <el-checkbox-group v-model="downloadType">
         <el-checkbox label="texts">
@@ -17,52 +13,32 @@
     </el-main>
 
     <el-header height="auto">
-      <text-selector
-        :show-tagset-selector="false"
-        :show-query-search="false"
-        @textidchange="handleTextIdsChange"
-        @pageLoading="handlePageLoading"
-      />
+      <text-selector :show-tagset-selector="false" :show-query-search="false" @textidchange="handleTextIdsChange"
+        @pageLoading="handlePageLoading" />
     </el-header>
 
-    <el-main
-      v-show="showStatisticsArgs"
-    >
+    <el-main v-show="showStatisticsArgs">
       <el-card class="box-card">
-        <div
-          slot="header"
-          class="clearfix"
-        >
+        <div slot="header" class="clearfix">
           Overview & Detail
         </div>
         <el-checkbox-group v-model="overviewOrDetail">
-          <el-checkbox
-            label="overview"
-          >
+          <el-checkbox label="overview">
             Overview
           </el-checkbox>
-          <el-checkbox
-            label="detail"
-          >
+          <el-checkbox label="detail">
             Detail
           </el-checkbox>
         </el-checkbox-group>
       </el-card>
     </el-main>
 
-    <el-main
-      v-show="showStatisticsArgs"
-    >
+    <el-main v-show="showStatisticsArgs">
       <el-card class="box-card">
-        <div
-          slot="header"
-          class="clearfix"
-        >
+        <div slot="header" class="clearfix">
           Choose level(s)
         </div>
-        <el-checkbox-group
-          v-model="levels"
-        >
+        <el-checkbox-group v-model="levels">
           <el-checkbox label="text">
             Text
           </el-checkbox>
@@ -76,61 +52,32 @@
       </el-card>
     </el-main>
 
-    <el-main
-      v-show="showStatisticsArgs"
-      class="feature-container"
-    >
+    <el-main v-show="showStatisticsArgs" class="feature-container">
       <h5>Specify features to be exported.</h5>
-      <el-cascader
-        ref="feature-selection"
-        v-model="chosenFeatures"
-        :options="featureList.options"
-        :props="{ multiple: true }"
-        placeholder="Select features"
-        collapse-tags
-        filterable
-      >
-        <template
-          slot-scope="{ node, data }"
-        >
+      <el-cascader ref="feature-selection" v-model="chosenFeatures" :options="featureList.options"
+        :props="{ multiple: true }" placeholder="Select features" collapse-tags filterable>
+        <template slot-scope="{ node, data }">
           <span>{{ $t(`features.${getFeatureName(data.label)}`) }}</span>
           <span v-if="!node.isLeaf"> ({{ data.children.length }}) </span>
         </template>
       </el-cascader>
     </el-main>
 
-    <el-main
-      class="download-type"
-    >
+    <el-main class="download-type">
       <h5>Output form</h5>
       <el-radio-group v-model="outputForm">
-        <el-radio
-          label=".txt"
-        />
-        <el-radio
-          label=".csv"
-        />
-        <el-radio
-          label=".xlsx"
-        />
+        <el-radio label=".txt" />
+        <el-radio label=".csv" />
+        <el-radio label=".xlsx" />
       </el-radio-group>
     </el-main>
 
     <el-main>
-      <el-tooltip
-        :disabled="tooltipDisabled"
-        class="item"
-        effect="light"
-        placement="left-start"
-      >
+      <el-tooltip :disabled="tooltipDisabled" class="item" effect="light" placement="left-start">
         <div slot="content">
           {{ tooltipMsg }}
         </div>
-        <el-button
-          :disabled="downloadDisabled"
-          class="download-button"
-          @click="handleDownloadEvent"
-        >
+        <el-button :disabled="downloadDisabled" class="download-button" @click="handleDownloadEvent">
           <span>Download</span>
           <i class="el-icon-download" />
         </el-button>
@@ -314,37 +261,39 @@ export default {
 </script>
 
 <style scoped>
-  .download-type {
-    margin: 20px;
-    border: 1px solid #DCDFE6;
-  }
-  .feature-container {
-    margin: 20px;
-    border: 1px solid #DCDFE6;
-  }
-  .el-alert {
-    margin-top: 100px;
-    height: 60vh;
-    justify-content: center;
-    background: #FFF;
-    border: 1px solid #DCDFE6;
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
-    padding-right: 60px;
+.download-type {
+  margin: 20px;
+  border: 1px solid #DCDFE6;
+}
 
-  }
-  .download-button {
-    border: 1px solid #DCDFE6;
-    float: right;
-  }
+.feature-container {
+  margin: 20px;
+  border: 1px solid #DCDFE6;
+}
 
-  .download-setting {
-    margin-top: 130px;
-  }
+.el-alert {
+  margin-top: 100px;
+  height: 60vh;
+  justify-content: center;
+  background: #FFF;
+  border: 1px solid #DCDFE6;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  padding-right: 60px;
 
-  .el-cascader {
-    margin-top: 20px;
-  }
+}
 
+.download-button {
+  border: 1px solid #DCDFE6;
+  float: right;
+}
+
+.download-setting {
+  margin-top: 130px;
+}
+
+.el-cascader {
+  margin-top: 20px;
+}
 </style>

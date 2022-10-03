@@ -3,43 +3,24 @@
     <div class="left-container">
       <div class="text-selectors-section">
         <h5>Select text</h5>
-        <el-row
-          class="text-selectors-container"
-        >
-          <el-select
-            class="text-selector"
-            placeholder="Select text"
-            multiple
-            collapse-tags
-            :value="chosenTextIds"
-            @change="handleTextIdSelectionChange"
-          >
-            <el-option
-              v-for="textId in textIDs"
-              :key="textId[0]"
-              :label="textId[1].split('.').slice(0, textId[1].split('.').length-1).join('.')"
-              :value="textId[0]"
-            >
+        <el-row class="text-selectors-container">
+          <el-select class="text-selector" placeholder="Select text" multiple collapse-tags :value="chosenTextIds"
+            @change="handleTextIdSelectionChange">
+            <el-option v-for="textId in textIDs" :key="textId[0]"
+              :label="textId[1].split('.').slice(0, textId[1].split('.').length-1).join('.')" :value="textId[0]">
               <div class="textid-row-container">
                 <span>
                   {{ textId[1]
-                    .split('.')
-                    .slice(0, textId[1].split('.').length-1).join('.')
+                  .split('.')
+                  .slice(0, textId[1].split('.').length-1).join('.')
                   }}
                 </span>
-                <i
-                  v-if="textId[0] !== SPECIAL_TEXTID_ALL_TEXT"
-                  class="el-icon-delete"
-                  size="mini"
-                  circle="true"
-                  @click="handleTextDeleteClick(textId[0])"
-                />
+                <i v-if="textId[0] !== SPECIAL_TEXTID_ALL_TEXT" class="el-icon-delete" size="mini" circle="true"
+                  @click="handleTextDeleteClick(textId[0])" />
               </div>
             </el-option>
           </el-select>
-          <span
-            v-show="metaData.length > 0"
-          >
+          <span v-show="metaData.length > 0">
             OR
           </span>
           <!-- there is a bug with clearable from element-ui
@@ -47,47 +28,27 @@
           therefore, we do not implement attribute 'clearable'
           for cascader for now.
           -->
-          <el-cascader
-            :key="cascaderKey"
-            v-show="metaData.length > 0"
-            ref="metadata"
-            v-model="chosenMetaData"
-            class="text-selector"
-            :options="options"
-            :props="metaDataSelectorProps"
-            placeholder="Select meta data"
-            collapse-tags
-            filterable
-          >
-            <template
-              slot-scope="{ node, data }"
-            >
+          <el-cascader :key="cascaderKey" v-show="metaData.length > 0" ref="metadata" v-model="chosenMetaData"
+            class="text-selector" :options="options" :props="metaDataSelectorProps" placeholder="Select meta data"
+            collapse-tags filterable>
+            <template slot-scope="{ node, data }">
               <span v-if="!node.isLeaf"> {{ data.label }}({{ data.children.length }}) </span>
               <span v-else>
                 {{ data.label.split('.')
-                  .slice(0, data.label.split('.').length-1)
-                  .join('.')
+                .slice(0, data.label.split('.').length-1)
+                .join('.')
                 }}
               </span>
             </template>
           </el-cascader>
         </el-row>
       </div>
-      <pos-type-selector
-        v-if="showTagsetSelector"
-        @tagSetChange="handleTagSetChange"
-        @typeSetChange="handleTypeSetChange"
-      />
+      <pos-type-selector v-if="showTagsetSelector" @tagSetChange="handleTagSetChange"
+        @typeSetChange="handleTypeSetChange" />
     </div>
-    <div
-      v-if="showQuerySearch"
-      class="left-container"
-    >
+    <div v-if="showQuerySearch" class="left-container">
       <h5>Search</h5>
-      <highlight-token
-        :tokens="tokens"
-        @searchQuery="highlightTokens"
-      />
+      <highlight-token :tokens="tokens" @searchQuery="highlightTokens" />
     </div>
     <!-- <div v-show="chosenTextIds.length > 0" /> -->
   </div>
@@ -150,7 +111,7 @@ export default {
           .filter((value) => !values.includes(JSON.stringify(value)))
           .map((valueId) => valueId[2]);
         this.chosenTextIds = [...new Set(this.chosenTextIds.concat(addedTextIds))];
-      // if nodes are deleted from the cascader
+        // if nodes are deleted from the cascader
       } else if (newValues.length < oldValues.length) {
         const values = newValues.map((value) => JSON.stringify(value));
         const removedTextIds = oldValues
@@ -234,7 +195,7 @@ export default {
       this.options = filteredOptions;
     },
     async handleTextDeleteClick(textId) {
-      await axios.delete(`/api/text/${textId}`);
+      await axios.delete(`/api/delete_text/${textId}`);
       this.textIDs = this.textIDs.filter((text) => text[0] !== textId);
       this.chosenTextIds = this.chosenTextIds.filter((text) => text !== textId);
       this.metaData = this.metaData.filter((meta) => meta[2] !== textId);
@@ -253,7 +214,7 @@ export default {
         localStorage.setItem('metadata', JSON.stringify({ en: {}, sv: {} }));
       }
       axios
-        .put('/update_texts/', {
+        .put('/api/update_texts/', {
           texts: JSON.parse(localStorage.textList)[lang],
           metadata: JSON.parse(localStorage.metadata)[lang],
         })
@@ -294,7 +255,7 @@ export default {
         .filter((textId) => textId[0] !== -10000)
         .map((i) => [i[0], this.chosenTextIds.includes(i[0])]);
       axios
-        .put('/api/updatestates', {
+        .put('/api/update_states', {
           textStates: Object.fromEntries(entries),
           texts: JSON.parse(localStorage.textList)[lang],
         });

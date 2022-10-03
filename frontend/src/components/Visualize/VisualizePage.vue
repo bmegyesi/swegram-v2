@@ -1,45 +1,18 @@
 <template>
-  <el-container
-    v-loading="loadingTextSelection"
-  >
+  <el-container v-loading="loadingTextSelection">
     <el-header height="auto">
-      <text-selector
-        :tokens="tokens"
-        :show-tagset-selector="false"
-        @textidchange="handleTextIdsChange"
-        @querySearch="highlightTokens"
-        @pageLoading="handlePageLoading"
-      />
+      <text-selector :tokens="tokens" :show-tagset-selector="false" @textidchange="handleTextIdsChange"
+        @querySearch="highlightTokens" @pageLoading="handlePageLoading" />
     </el-header>
     <el-main>
-      <el-tabs
-        v-model="currentText"
-        type="card"
-      >
-        <el-tab-pane
-          v-for="item in selectedTextIds"
-          :key="item[0]"
-          :label="item[1].split('.')[0]"
-          :name="item[0].toString()"
-        >
-          <el-card
-            v-loading="loadingCurrentSentences"
-          >
-            <snippet-panel
-              :snippets="currentSentences"
-              :meta-data="textMetadata"
-              :text-name="item[1]"
-              :page-size="pageSize"
-              :page-index="currentPage"
-              :parsed="currentTextParsed"
-            />
-            <el-pagination
-              :hide-on-single-page="true"
-              :current-page.sync="currentPage"
-              :page-size="10"
-              layout="prev, pager, next, jumper"
-              :total="totalItems"
-            />
+      <el-tabs v-model="currentText" type="card">
+        <el-tab-pane v-for="item in selectedTextIds" :key="item[0]" :label="item[1].split('.')[0]"
+          :name="item[0].toString()">
+          <el-card v-loading="loadingCurrentSentences">
+            <snippet-panel :snippets="currentSentences" :meta-data="textMetadata" :text-name="item[1]"
+              :page-size="pageSize" :page-index="currentPage" :parsed="currentTextParsed" />
+            <el-pagination :hide-on-single-page="true" :current-page.sync="currentPage" :page-size="10"
+              layout="prev, pager, next, jumper" :total="totalItems" />
           </el-card>
         </el-tab-pane>
       </el-tabs>
@@ -93,7 +66,7 @@ export default {
     checkCurrentTextParsed(newValue) {
       if (newValue !== '0' && newValue) {
         axios
-          .get(`/api/text/${newValue}`)
+          .get(`/api/get_text/${newValue}`)
           .then((response) => {
             this.currentTextParsed = JSON.parse(response.data)[0].fields.parsed;
           })
@@ -155,7 +128,6 @@ export default {
 </script>
 
 <style scoped>
-
 .tooltips {
   margin-right: 30px;
   color: #909399;
@@ -164,5 +136,4 @@ export default {
 .el-container {
   display: block;
 }
-
 </style>
