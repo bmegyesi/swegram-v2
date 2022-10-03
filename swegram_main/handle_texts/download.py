@@ -31,18 +31,25 @@ text_list:
     labels
 """
 
-from django.http import FileResponse
-import os
-from datetime import datetime
 import csv
+import logging
+import json
+import os
+import re
+import codecs
+from django.http import FileResponse
+from datetime import datetime
 from ..config import METADATA_DELIMITER_LEBAL, METADATA_DELIMITER_TAG, METADATA_FINAL, METADATA_INITIAL 
 from ..config import OUTPUT_DIR, OUT_FILE, OUT_STATS_FILE, COLUMN_DELIMITER
 from .helpers import eval_str
 from .features import get_overview_features, get_detail_features
-import json
 from .statistics import get_text_list
 import pandas as pd
-import re
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def get_text_comments(text, index):
     comments = """\n\n# Name: %s\n# Size: %s\n# Tokenized: %s\n# Normalized: %s\n# PoS tagged: %s\n\n""" % \
@@ -51,27 +58,32 @@ def get_text_comments(text, index):
         return '<>\n' + comments.lstrip() # add text delimiter when the text does not contain metadata
     return comments
 
+
 def get_file_commments(lang, now):
     return """# Swegram \n# Time: %s \n# Language: %s""" % (now, lang)
 
 
 def download_texts(request):
+    logger.info("Download text")
     body = json.loads(request.body)
     text_list = get_text_list(request)
     output_format = body['outputForm']
     lang = body['lang']
     return download_text_file(text_list, lang, output_format)
-    
+
+
 def create_file_for_text_txt(text_list, lang, out_file_name, now):
-    with open(out_file_name, 'w') as out_f:
+    with codecs.open(out_file_name, 'w', encoding='utf-8') as out_f:
         out_f.write(get_file_commments(lang, now))
         for index, text in enumerate(text_list):
             out_f.write(get_text_comments(text, index))
-            text_conent = open(os.path.join(OUTPUT_DIR, text.filename)).readlines()
-            out_f.writelines(text_conent)
+            with codecs.open(os.path.join(OUTPUT_DIR, text.filename), 'r', encoding='utf-8') as text:
+                out_f.writelines(text.readlines())
+
 
 def remove_extention(filename):
     return '.'.join(filename.split('.')[:-1])
+
 
 def _csv_comment_format(line, text_writer):
     line_elements = line.split(':')
@@ -84,7 +96,7 @@ def _csv_comment_format(line, text_writer):
     return text_writer
 
 def create_file_for_text_csv(text_list, lang, out_file_name, now):
-    with open(out_file_name, 'w', newline='') as csvfile:
+    with codecs.open(out_file_name, 'w', newline='') as csvfile:
         text_writer = csv.writer(
           csvfile, 
           delimiter=COLUMN_DELIMITER, 
@@ -97,7 +109,7 @@ def create_file_for_text_csv(text_list, lang, out_file_name, now):
             for comment in text_comments.split('\n'):
                 if comment.strip():
                     text_writer = _csv_comment_format(comment, text_writer)
-            text_lines = open(os.path.join(OUTPUT_DIR, text.filename)).readlines()
+            text_lines = codecs.open(os.path.join(OUTPUT_DIR, text.filename)).readlines()
             for text_line in text_lines:
                 if text_line.strip():
                     text_writer.writerow(text_line.strip().split('\t'))
@@ -130,7 +142,7 @@ def create_file_for_text_xlsx(text_list, lang, out_file_name, now):
               index=['Name', 'Size', 'Tokenized', 'Normalized', 'PoS tagged', 'Metadata'],
             )
             text_comment.to_excel(writer, header=False, sheet_name='Setting ' + remove_extention(text.filename))
-            with open(os.path.join(OUTPUT_DIR, text.filename), mode='r', encoding='UTF-8-sig') as f:
+            with codecs.open(os.path.join(OUTPUT_DIR, text.filename), mode='r', encoding='UTF-8-sig') as f:
                 # specify encoding to remove byte-order mark BOM from the beginning of the file
                 text_lines = f.readlines()
             texts = []
@@ -155,7 +167,8 @@ def create_file_for_text_xlsx(text_list, lang, out_file_name, now):
                 texts.append(tabs)
             content = pd.DataFrame(texts, columns=columns)
             content.to_excel(writer, index=False, sheet_name=remove_extention(text.filename))
-                
+
+            
 def get_out_file_name(file_path, file_name, time_stamp, output_format):
     return ''.join([
       os.path.join(file_path, file_name),
@@ -163,7 +176,8 @@ def get_out_file_name(file_path, file_name, time_stamp, output_format):
       time_stamp,
       output_format
     ])
-    
+
+
 def download_text_file(text_list, lang, output_format):
     now = datetime.now().strftime('%Y-%m-%d %H%M')
     
@@ -178,6 +192,7 @@ def download_text_file(text_list, lang, output_format):
     os.remove(out_file_name)
     return response
 
+
 def get_full_level_name(level):
     if level == 'para':
         return 'paragraph'
@@ -185,6 +200,7 @@ def get_full_level_name(level):
         return 'sentence'
     else:
         return level
+
 
 def get_stats_comments(texts, overview_and_detail, levels, output_form, time, lang):
     title = "Swegram Statistics"
@@ -212,7 +228,7 @@ def get_stats_block_comments(isOverview, level):
 def create_file_for_stats(out_file_name, texts, overview_and_detail, levels, output_form, time, lang):
     # create a file
     stats_comments = get_stats_comments(texts, overview_and_detail, levels, output_form, time, lang)
-    with open(out_file_name, 'w') as f:
+    with codecs.open(out_file_name, 'w') as f:
         f.write(stats_comments)
 
 def features2csv(features, csv_writer):
@@ -278,7 +294,7 @@ def features2file(feature_dict, filename):
     def feature_writer(feature, file):
         file.write('%s\t%s\t%s\t%s' % (feature['name'], feature.get('scalar', '-'), feature.get('mean', '-'), feature.get('median', '-')))
         file.write('\n')
-    with open(filename, 'a+') as f:
+    with codecs.open(filename, 'a+') as f:
         if 'content' in feature_dict:
             f.write('Content: %s' % feature_dict['content'])
             f.write('\n')
@@ -303,7 +319,7 @@ def features2file(feature_dict, filename):
             
 
 def write_features2file(features, filename, detail=False):
-    with open(filename, 'a+') as f:
+    with codecs.open(filename, 'a+') as f:
         if detail:
             for feature_dict in features:
                 features2file(feature_dict, filename)
@@ -368,7 +384,7 @@ def download_stats_file(request, *args, **kwargs):
             for level in levels:
                 write_stats_for_created_file(out_file_name, lang, text_list, isOverview, level, removed_features)
     elif output_format == '.csv':
-        with open(out_file_name, 'w', newline="") as csvfile:
+        with codecs.open(out_file_name, 'w', newline="") as csvfile:
             stats_writer = csv.writer(
               csvfile, 
               delimiter=";",

@@ -2,18 +2,23 @@
 # -*- coding: utf-8 -*-
 
 
-from django.http.response import HttpResponse
-from django.http import JsonResponse
-from django.utils.encoding import smart_str
-from datetime import datetime
-import pytz
-import os
 import json
+import logging
+import os
+import pytz
+from django.http.response import HttpResponse
+from datetime import datetime
 
 from .. import config
 from ..models import TextStats
 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 upload_location = config.UPLOAD_LOCATION
+
 
 def eval_str(s):
     if isinstance(s, str):
@@ -23,10 +28,12 @@ def eval_str(s):
             pass
     return s
 
+
 def get_text_names():
     return list(set([
       text.filename for text in TextStats.objects.all()
     ]))
+
 
 def delete_old_texts():
     max_live_time = config.MAX_LIVE_TIME
@@ -40,7 +47,7 @@ def delete_old_texts():
                     os.remove(os.path.join(config.OUTPUT_DIR, text.filename))
                 except:
                     pass
-                  
+
 def automatic_delete(request):
     time_step = config.CLEANUP_TIME_STEP
     # print(
@@ -101,8 +108,10 @@ def rm_blanks(text_list):
             break
     return text_list
 
+
 def checkbox_to_bool(s):
     return True if s == "on" else False
+
 
 def get_md5(file):
     import hashlib
@@ -134,60 +143,4 @@ def get_md5(file):
     except:
         return None
     return hash_md5.hexdigest()
-
-
-def update_texts(request):
-    # provide API to demonstrate the text names, ids in the session and texts' states of activity from the database
-    # since the selection of texts depends on the choice of language, we take lang as a parameter
-    data = {
-      'text_ids': [],            # work with text selection 
-      'selected_text_ids': [],  # work with text selection 
-      'name':'label',            # work with metadata
-      'options': [],             # work with metadata
-      'texts_with_metadata': []  # work with metadata
-    }
-    text_list = json.loads(request.body)['texts']
-    # text_list = [ t for t in request.session.get('text_list', []) if t.lang == lang ]
-    data['text_ids'] = [ (t['fields']['text_id'], t['fields']['filename']) for t in text_list]
-    selected_text_ids = []
-    for text in text_list:
-        try:
-            t = TextStats.objects.get(pk=text['pk'])
-            if t.activated:
-                selected_text_ids.append(t.text_id)
-        except Exception:
-            text_list.remove(text)
-    data['selected_text_ids'] = selected_text_ids
-    metadata = json.loads(request.body)['metadata']
-    # metadata = request.session.get('metadata_%s' % lang, dict())
-    value = 1
-    text_ids = [ i for (i, _) in data['text_ids'] ]
-    texts_with_metadata = set()
-    if metadata:
-        for label, value_dict in metadata.items():
-            has_values = [False] * len(value_dict.keys())
-            for index, key in enumerate(value_dict.keys()):
-                for i, (text_id, _) in enumerate(value_dict[key]):
-                    if text_id in text_ids:
-                        has_values[index] = True
-                        texts_with_metadata.add(text_id)
-                    else:
-                        del value_dict[key][i]
-            # print('value_dict', value_dict)
-            values = [
-              {
-                'label':key,
-                'value': value + index,
-                'children':[
-                  {
-                  'value': v, 
-                  'label': l
-                  } for v,l in value_dict[key]
-                ]
-              } for index, key in enumerate(value_dict.keys(), 1) if has_values[index-1]]
-            if values:
-                data['options'].append({'value':value, 'label':label, 'children': values})
-                value += len(value_dict) + 1
-    data['texts_with_metadata'] = list(texts_with_metadata)    
-    return JsonResponse(data)
    

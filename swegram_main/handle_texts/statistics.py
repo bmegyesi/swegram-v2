@@ -1,28 +1,39 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from django.http import JsonResponse
-from .. import config
-from ..models import TextStats
 import json
+import logging
+from django.http import JsonResponse
+from swegram_main import config
+from swegram_main.models import TextStats
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
 
 def get_text_list(request, category=False):
-    payload = json.loads(request.body)
-    lang = payload['lang']
-    text_list = []
-    for t in payload.get('texts', {}).get(lang, []):
-        try:
-            t = TextStats.objects.get(pk=t['pk'])
-            text_list.append(t)
-        except Exception:
-            pass
-    if category:
-        if category == 'normalized' or category == 'norm':
-            text_list = [ text for text in text_list if text.normalized ]
-        elif category == 'parsed' or category == 'lemma':
-            text_list = [ text for text in text_list if text.parsed ]
+    if request.body:
+        payload = json.loads(request.body)
+        lang = payload.get('lang')
+        text_list = []
+        for t in payload.get('texts', {}).get(lang, []):
+            try:
+                t = TextStats.objects.get(pk=t['pk'])
+                if t.activated:
+                    text_list.append(t)
+            except Exception as err:
+                logger.error(f"Failed to get text list: {str(err)}")
+        if category:
+            if category == 'normalized' or category == 'norm':
+                text_list = [ text for text in text_list if text.normalized ]
+            elif category == 'parsed' or category == 'lemma':
+                text_list = [ text for text in text_list if text.parsed ]
+        
+        return text_list
+    return []
     
-    return text_list
+
 
 def fetch_current_sentences(request, text_id, page):
     """
