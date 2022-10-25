@@ -95,6 +95,7 @@ def _csv_comment_format(line, text_writer):
         text_writer.writerow([head])
     return text_writer
 
+
 def create_file_for_text_csv(text_list, lang, out_file_name, now):
     with codecs.open(out_file_name, 'w', newline='') as csvfile:
         text_writer = csv.writer(
@@ -113,6 +114,7 @@ def create_file_for_text_csv(text_list, lang, out_file_name, now):
             for text_line in text_lines:
                 if text_line.strip():
                     text_writer.writerow(text_line.strip().split('\t'))
+z
 
 def create_file_for_text_xlsx(text_list, lang, out_file_name, now): 
     with pd.ExcelWriter(out_file_name) as writer:

@@ -59,17 +59,20 @@ def update_text(request):
     """
     _text_states = json.loads(request.body)['textStates']
     text_states = {int(key): value for key, value in _text_states.items()}
-    matched_texts = TextStats.objects.filter(
-      reduce(
-        operator.or_, 
-        (
-          Q(text_id__exact=x) for x in text_states.keys()
+    try:
+        matched_texts = TextStats.objects.filter(
+        reduce(
+            operator.or_, 
+            (
+            Q(text_id__exact=x) for x in text_states.keys()
+            )
         )
-      )
-    )
-    for text in matched_texts:
-        text.activated = text_states.get(text.text_id)
-        text.save()
+        )
+        for text in matched_texts:
+            text.activated = text_states.get(text.text_id)
+            text.save()
+    except TypeError as err:
+        logger.warning(err)
     return JsonResponse(text_states, safe=False)
 
 
