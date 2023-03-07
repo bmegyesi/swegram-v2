@@ -17,7 +17,7 @@ from swegram_main.pipeline.lib.normalize import normalize as normalize_
 from swegram_main.pipeline.lib.parse import parse as parse_
 from swegram_main.pipeline.lib.tokenize import tokenize as tokenize_
 from swegram_main.pipeline.lib.tag import tag as tag_
-from swegram_main.pipeline.lib.utils import cut, read, change_suffix
+from swegram_main.lib.utils import cut, read, change_suffix
 
 
 class PipelineError(Exception):
