@@ -4,7 +4,6 @@ swegram_main/handle_texts/pipeline/nlp/udpipe/*
 swegram_main/handle_texts/pipeline/tmp/*
 swegram_main/handle_texts/pipeline/output/*
 swegram_main/handle_texts/output/*
-swegram/settings/__init__.py
 *.db
 test.txt
 
@@ -40,7 +39,6 @@ develop-eggs/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -64,6 +62,8 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+tests/integrations/*.txt
+tests/integrations/sv-en
 htmlcov/
 .tox/
 .nox/
