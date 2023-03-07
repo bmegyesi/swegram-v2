@@ -12,6 +12,9 @@ class ConllFormatError(Exception):
     """conll format error"""
 
 
+class AnnotationError(Exception):
+    """Annotation error"""
+
 
 def get_md5(filepath: Path) -> str:
     """Get md5 value"""
