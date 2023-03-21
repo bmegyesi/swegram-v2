@@ -23,3 +23,12 @@ In order to build dependencies, run
 ```
 ./build_dependencies/install.sh
 ```
+
+## Setup PYTHONPATH
+```
+export PYTHONPATH="$PYTHONPATH:$(pwd)"
+
+#export EFSELABPATH in PYTHONPATH
+EFSELABPATH=$REPO_PATH/tools/efselab
+export PYTHONPATH="$PYTHONPATH:$(EFSELABPATH)"
+```
