@@ -1,25 +1,25 @@
-### Installing
+# Swegram
 
-There are two modules that need to be aquired separately:
+## Introduction
 
-`UDpipe` (http://ufal.mff.cuni.cz/udpipe), where the executable should be available in swegram_main/handle_texts/pipeline/nlp/udpipe/udpipe. It makes use of an English model, the default path is nlp/udpipe/en/english-ud-2.0-170801.udpipe.
+Swegram is a tool that offers the ability to annotate and analyse Swedish and English texts. You can upload one or more texts and have them linguistically analysed with morphological and syntactic features. These linguistically annotated texts can then be used to perform quantitative linguistic text analysis; for example, the tool provides statistics about sentence lengths, total number of words, various readability metrics, part-of-speech (PoS) distribution, as well as frequency of lemmas, PoS, or misspelled words. The tool also visualize the syntactic relations between words in sentences and give detailed information about the distribution of various syntactic functions and relations in the text.
 
-`efselab` (https://github.com/robertostling/efselab), along with the Swedish annotation pipeline, for which instructions can be found in the readme for efselab. The swedish pipeline should be available in swegram_main/handle_texts/pipeline/nlp/efselab/swe_pipeline.py
 
-`unoconv` (https://github.com/unoconv/unoconv), which is used to convert `*.doc`, `*.docx` and many other formats into pure text file.
+## Dependencies
 
-`LibreOffice` (https://downloadarchive.documentfoundation.org/libreoffice/old/), which is required by `unoconv` to do the convertion. **NOTE If you are debugging on a MacOS computer, using versions from 3.6.0.1 to 4.3.x only.**
+* [udpipe](https://ufal.mff.cuni.cz/udpipe/1/install)
 
-### Configuring
+```
+g++ 4.7 or newer, clang 3.2 or newer, Visual C++ 2015 or newer
+make
+SWIG 3.0.8 or newer for language bindings other than C++
+```
 
-swegram/base.py contains settings that are typically shared between production and development environments. It then imports the appropriate configuration, either local.py or production.py. This is based on the system it's running on, if it's Linux, production.py will be imported, otherwise local.py, change this as needed. production.py is not included in the repository; just make a copy of local.py and change the appropriate settings (`DEBUG`, `PRODUCTION`, `SECRET_KEY` etc.). The paths in `swegram_main/config.py` also need to be changed. Also remember to add ALLOWED_HOSTS to production.py.
+* [efselab](https://github.com/robertostling/efselab)
+* [pandoc](https://pandoc.org)
 
-The templates, `swegram_main/templates/`, and `swegram_main/views.py` contain a few hardcoded URLs, the easiest way would be to search all of them for "swegram" and replace them.
+In order to build dependencies, run
 
-When running with PROTUCTION = True, unoconv (https://github.com/dagwieers/unoconv) is used to automatically convert some formats such as doc to txt (see the annotate_uploaded_file() function in upload_file.py, it's called using subprocess).
-
-A database is required, local.py is configured to use postgres.
-
-By default, LocMemCache is used for caching (for development purposes), but this should be changed to something like Redis or Memcached, or a database cache like postgres.
-
-Remember to check requirements.txt and install anything that's missing.
+```
+./build_dependencies/install.sh
+```
