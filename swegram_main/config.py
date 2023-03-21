@@ -1,17 +1,17 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import os
-from datetime import timedelta
+from pathlib import Path
 
 
-NLP = os.environ.get()          # "/home/rruan1/swegram_dev/swegram/swegram_main/handle_texts/pipeline/nlp"
-EFSELAB_DIR = os.environ.get()  # "/home/rruan1/swegram_dev/swegram/swegram_main/handle_texts/pipeline/nlp/efselab/swe_pipeline.py"
-UDPIPE_BASE = os.environ.get()  # "/home/rruan1/swegram_dev/swegram/swegram_main/handle_texts/pipeline/nlp/udpipe"
-UDPIPE = os.path.join(UDPIPE_BASE, "udpipe")
-UDPIPE_MODEL = os.path.join(UDPIPE_BASE, "en", "english-ud-2.0-170801.udpipe")
+BASE_DIR = Path(__file__).absolute().parent.parent
+TOOL_DIR = BASE_DIR.joinpath("tools")
+EFSELAB_DIR = TOOL_DIR.joinpath("efselab")
+EFSELAB = EFSELAB_DIR.joinpath("swe_pipeline.py")
+UDPIPE_BASE = TOOL_DIR.joinpath("udpipe")
+UDPIPE = UDPIPE_BASE.joinpath("udpipe")
+UDPIPE_MODEL = UDPIPE_BASE.joinpath("en", "english-ud-2.0-170801.udpipe")
 HISTNORM_EN = "histnorm"
-HISTNORM_SV = os.path.join(NLP, "HistNorm")
+HISTNORM_SV = TOOL_DIR.joinpath("HistNorm")
+
 
 # OUTPUT_DIR = settings.BASE_DIR + "/swegram_main/handle_texts/pipeline/output/" #need to be put into config.py
 OUT_FILE = "text_file"   
@@ -23,117 +23,44 @@ COLUMN_DELIMITER = "¥" # This will be used to separate different columns in upl
 METADATA_DELIMITER = ";"
 METADATA_INITIAL = "<"
 METADATA_FINAL = ">"
-METADATA_DELIMITER_LEBAL = " "
+METADATA_DELIMITER_LEBAL = ";"
 METADATA_DELIMITER_TAG = ":"
 
 NO_METADATA_STRING = "(ingen metadata)" # metadata is printed when there is, no prompt when the text does not contain metadata
 
-UD_TAGS = [
-            "ADJ",
-            "ADP",
-            "ADV",
-            "AUX",
-            "CCONJ",
-            "DET",
-            "INTJ",
-            "NOUN",
-            "NUM",
-            "PART",
-            "PRON",
-            "PROPN",
-            "PUNCT",
-            "SCONJ",
-            "SYM",
-            "VERB",
-            "X",
-]
+UD_TAGS = ["ADJ", "ADP", "ADV", "AUX", "CCONJ",
+           "DET", "INTJ", "NOUN", "NUM", "PART",
+           "PRON", "PROPN", "PUNCT", "SCONJ",
+           "SYM", "VERB", "X"]
 
-SUC_TAGS = [
-            "AB",
-            "DT",
-            "HA",
-            "HD",
-            "HP",
-            "HS",
-            "IE",
-            "IN",
-            "JJ",
-            "KN",
-            "NN",
-            "PC",
-            "PL",
-            "PM",
-            "PN",
-            "PP",
-            "PS",
-            "RG",
-            "RO",
-            "SN",
-            "UO",
-            "VB",
+SUC_TAGS = ["AB", "DT", "HA", "HD", "HP", "HS", "IE", "IN",
+            "JJ", "KN", "NN", "PC", "PL", "PM", "PN", "PP",
+            "PS", "RG", "RO", "SN", "UO", "VB",
             "MAD", #Why does these three tags not included in suc tags.
-            "MID",
-            "PAD"
-]
+            "MID", "PAD"]
 
 
 #Penn Treebank tagset is used as xpos for English.
 #We retreieve the tagset from the following link: https://ufal.mff.cuni.cz/pdt/Morphology_and_Tagging/Doc/PTTags.pdf
-PT_TAGS = [
-    "AFX", # see info from https://catalog.ldc.upenn.edu/docs/LDC2007T02/pos-guidelines-addenda.txt
-    "CC",
-    "CD",
-    "DT",
-    "EX",
-    "FW",
-    "HYPH",# see info from https://catalog.ldc.upenn.edu/docs/LDC2007T02/pos-guidelines-addenda.txt
-    "IN",
-    "JJ",
-    "JJR",
-    "JJS",
-    "LS",
-    "MD",
-    "NN",
-    "NNS",
-    "NNP",  # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-    "NNPS", # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-    "NP",
-    "NPS",
-    "PDT",
-    "POS",
-    "PRP",  # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-    "PRP$", # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
-    "PPS",  # unknown
-    "PP$",
-    "RB",
-    "RBR",
-    "RBS",
-    "RP",
-    "SYM",
-    "TO",
-    "UH",
-    "VB",
-    "VBD",
-    "VBG",
-    "VBN",
-    "VBP",
-    "VBZ",
-    "WDT",
-    "WP",
-    "WP$",
-    "WRB",
-    "#",
-    "$",
-    ".",
-    ",",
-    ":",
-    "(",
-    ")",
-    "\"",           #straight double quote
-    chr(8216),      #left open single quote
-    chr(8220),      #left open double quote
-    chr(8217),      #right close single quote
-    chr(8221)       #right close double quote
+PT_TAGS = ["AFX", # see info from https://catalog.ldc.upenn.edu/docs/LDC2007T02/pos-guidelines-addenda.txt
+           "CC", "CD", "DT", "EX", "FW",
+           "HYPH",  # see info from https://catalog.ldc.upenn.edu/docs/LDC2007T02/pos-guidelines-addenda.txt
+           "IN", "JJ", "JJR", "JJS", "LS",
+           "MD", "NN", "NNS",
+           "NNP",  # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+           "NNPS", # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+           "NP", "NPS", "PDT", "POS",
+           "PRP",  # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+           "PRP$", # see https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html
+           "PPS",  # unknown
+           "PP$", "RB", "RBR", "RBS", "RP", "SYM", "TO",
+           "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ",
+           "WDT", "WP", "WP$", "WRB", "#", "$", ".", ",",
+           ":", "(", ")", "\"",  #straight double quote
+           chr(8216),      #left open single quote
+           chr(8220),      #left open double quote
+           chr(8217),      #right close single quote
+           chr(8221)       #right close double quote
 ]
 
 
@@ -206,40 +133,10 @@ DEPRELS = [
 ]
 
 # the ufeats below are extracted from annotation of europarl corpus with previous 100M
-XFEATS = [
-    "-",
-    "AKT",
-    "AN",
-    "DEF",
-    "GEN",
-    "IMP",
-    "IND",
-    "IND/DEF",
-    "INF",
-    "KOM",
-    "KON",
-    "MAS",
-    "NEU",
-    "NOM",
-    "OBJ",
-    "PLU",
-    "POS",
-    "PRF",
-    "PRS",
-    "PRT",
-    "SFO",
-    "SIN",
-    "SIN/PLU",
-    "SMS",
-    "SUB",
-    "SUB/OBJ",
-    "SUP",
-    "SUV",
-    "UTR",
-    "UTR/NEU",
-    "_",
-]
-
+XFEATS = ["-", "AKT", "AN", "DEF", "GEN", "IMP", "IND", "IND/DEF", "INF",
+          "KOM", "KON", "MAS", "NEU", "NOM", "OBJ", "PLU", "POS", "PRF",
+          "PRS", "PRT", "SFO", "SIN", "SIN/PLU", "SMS", "SUB", "SUB/OBJ",
+          "SUP", "SUV", "UTR", "UTR/NEU", "_"]
 
 # the feats below are extacted from https://universaldependencies.org/u/feat/index.html
 FEATS = {
