@@ -8,9 +8,10 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from swegram_main.handle_texts.pipeline.nlp.efselab import tagger
+from tools.efselab import tagger
+# from swegram_main.handle_texts.pipeline.nlp.efselab import tagger
 from swegram_main.lib.utils import AnnotationError, change_suffix, cut, write
-from swegram_main.config import EFSELAB_DIR, UDPIPE, UDPIPE_MODEL
+from swegram_main.config import EFSELAB_DIR, EFSELAB, UDPIPE, UDPIPE_MODEL
 
 
 EFSELAB_MODEL = os.path.join(EFSELAB_DIR, "swe-pipeline")
@@ -86,8 +87,7 @@ def tag(tagger: str, filepath: Path) -> None:
     try:
         if tagger.lower() == "efselab":
             subprocess.run(
-                f"python3 {os.path.join(EFSELAB_DIR, 'swe_pipeline.py')} "\
-                "--lemmatized --tagged --skip-tokenization " \
+                f"python3 {EFSELAB} --lemmatized --tagged --skip-tokenization " \
                 f"-o {filepath.parent} {filepath}".split()
             )
             write_tagged_conll(change_suffix(filepath, "tag"))

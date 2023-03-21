@@ -52,11 +52,12 @@ class State:
         "tagged": 2,
         "parsed": 3
     }
+
     def __init__(self, state) -> None:
         self.state = state.lower()
         if self.state not in self.state_dict:
             raise StateError(f"Unknown state: {self.state}. Valid states are {''.join(self.state_dict.keys())}")
-    
+
     def __gt__(self, state1) -> bool:
         return self.state_dict[self.state] > self.state_dict[state1.state]
 
@@ -363,7 +364,6 @@ def restore_tagged_line(line: str, model: str, normalized: bool) -> str:
         raise PipelineError(f"Unknow model to restore tagged line: {model}")
 
 
-
 def restore(
     from_: str, filepath: Path, workspace: Path, model: str = "efselab",
     normalized: Optional[bool] = None
@@ -441,7 +441,7 @@ def _post_tok_file(
         word, *rest_columns = line.split("\t")
         if split_suc_tags:
             rest_columns.extend(["_"] * 8 + ["_\n"])
-        
+
         if normalized:
             return "\t".join([_get_next_token(tokens, model).strip(), word.strip(), *rest_columns])
         else:

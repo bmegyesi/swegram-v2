@@ -3,7 +3,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Tuple, List, Union, Iterator
 
-from swegram_main.pipeline.lib.utils import read
+from swegram_main.lib.utils import read
 from swegram_main.config import UD_TAGS, PT_TAGS, SUC_TAGS, DEPRELS, XFEATS, FEATS
 
 
