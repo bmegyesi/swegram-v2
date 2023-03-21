@@ -1,9 +1,13 @@
 #!/bin/bash
 
+set -x
+
 # Download and install pandoc
 python3 build_dependencies/install_pandoc.py
 
-# Download and install udpipe
+# Download and make udpipe
+./build_dependencies/install_udpipe.sh
+
 mkdir -p tools/udpipe
 touch tools/__init__.py
 cp -r build_dependencies/en/* tools/udpipe
@@ -28,6 +32,3 @@ python3 build_suc_ne.py --skip-generate --python --n-train-fields 4
 # Build and train the SUC-to-UD conversion model
 python3 build_udt_suc_sv.py --python --beam-size 1 --n-train-fields 4
 ./udt_suc_sv train data/sv-ud-train.tab data/sv-ud-dev.tab swe-pipeline/suc-ud.bin
-
-# Export efselab to the PYTHONPATH
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
