@@ -29,18 +29,31 @@ def main():
         logger.info(f"Normalization: {True if args.NORMALIZE else False}")
         pipeline = Pipeline(filepath=args.input_path, output_dir=args.output_dir)
         if args.NORMALIZE is True:
-            pipeline.normalize(f"histnorm_{args.language}")
-        if args.TAG is True:
-            logger.info(f"Annotation: tag")
-            pipeline.tag(ANNOTATION_PARSER[args.language])
+            if args.TAG or args.PARSE:
+                pipeline.normalize(f"histnorm_{args.language}")
+            else:
+                logger.info(f"Annotation: normalize")
+                pipeline.run(f"histnorm_{args.language}", "normalize")
+
+        if args.PARSE is True:
+            action = "parse"
+        elif args.TAG is True:
+            action = "tag"
         elif args.TOKENIZE is True and not args.NORMALIZE:
-            logger.info(f"Annotation: tokenize")
-            pipeline.tokenize(ANNOTATION_PARSER[args.language])
+            action = "tokenize"
+        elif args.NORMALIZE:
+            action = None
         else:
-            logger.info(f"Annotation: parse")
             # default session for annotation
-            pipeline.parse(ANNOTATION_PARSER[args.language])
+            action = "parse"
+        if action:
+            logger.info(f"Annotation: {action}")
+            pipeline.run(ANNOTATION_PARSER[args.language], action)
+
     elif args.command == "statistic":
         ...
     else:
         raise CommandLineError(f"Unknown command, {args.command}")
+
+if __name__ == "__main__":
+    main()

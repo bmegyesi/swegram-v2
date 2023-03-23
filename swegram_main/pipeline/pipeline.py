@@ -3,22 +3,24 @@
 
 Unclear how compound check performs
 """
-import logging
+
 import os
 import shutil
 import tempfile
 
 from pathlib import Path
 from typing import Dict, Optional, Iterator
-
 from swegram_main.pipeline.checker import check_text
 from swegram_main.pipeline.preprocess import FileContent
 from swegram_main.pipeline.lib.normalize import normalize as normalize_
 from swegram_main.pipeline.lib.parse import parse as parse_
 from swegram_main.pipeline.lib.tokenize import tokenize as tokenize_
 from swegram_main.pipeline.lib.tag import tag as tag_
+from swegram_main.lib.logger import get_logger
 from swegram_main.lib.utils import cut, read, change_suffix
 
+
+logger = get_logger(__name__)
 
 class PipelineError(Exception):
     """Pipeline Error"""
@@ -76,26 +78,37 @@ class State:
 
 class Pipeline:
 
-    def __init__(self, filepath: Path, to_update: bool = False, output_dir: Optional[Path] = None) -> None:
+    default_output_dir = "output"
+
+    def __init__(self, filepath: Path, output_dir: Optional[Path] = None) -> None:
         if not filepath.exists():
             raise FileNotFoundError(filepath)
-        if output_dir:
+
+        self.filepath = filepath
+        self.customized_output_dir = output_dir
+        if self.customized_output_dir:
             self.dir = output_dir
         else:
-            tempdir = tempfile.TemporaryDirectory()
-            self.dir = tempdir.name
-        self.filepath = filepath
-        shutil.copy(filepath, self.dir)
+            self.dir = filepath.absolute().parent.joinpath(self.default_output_dir)
+            if self.dir.exists():
+                shutil.rmtree(self.dir)
+            os.mkdir(str(self.dir))
+
+        try:
+            shutil.copy(filepath, self.dir)
+        except Exception:
+            pass
 
         self.texts = []
         self.text_index = 0
         self.preprocess()
+        logger.debug(f"directory: {self.dir}")
 
     def _not_empty_text(self, text: Text) -> bool:
         if os.path.getsize(text.filepath) == 0:
             return False
         if text.meta:
-            logging.debug(f"Empty text {text.filepath} contains metadata {text.meta}")
+            logger.debug(f"Empty text {text.filepath} contains metadata {text.meta}")
         return True
 
     def preprocess(self):
@@ -122,7 +135,7 @@ class Pipeline:
         except StopIteration:
             self.texts.append(text)
             self.texts = [text for text in self.texts if self._not_empty_text(text)]
-            logging.info("Preprocessing done.")
+            logger.info("Preprocessing done.")
 
     def tokenize(self, tokenizer: str) -> None:
         for text in self.texts:
@@ -185,6 +198,7 @@ class Pipeline:
 
     def load(self):
         """Extract the data and load into database"""
+
 
 
 def text_postprocess(text: Text, model: str):
