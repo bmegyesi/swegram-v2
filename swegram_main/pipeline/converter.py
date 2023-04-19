@@ -16,7 +16,9 @@ from itertools import chain
 from typing import Any
 from pathlib import Path
 
+
 PANDOC = os.environ.get("PANDOC_PATH")  # SET PANDOC PATH  e.g. PANDOC = "./lib/pandoc-2.19.2/bin/pandoc"
+CONLLU_FOMRAT = "conll"
 VALID_FORMATS = ["docx", "rft", "odt", "rst"]
 FORMAT_TYPES = ["Strong", "Emph", "MetaInlines"]
 
@@ -51,7 +53,7 @@ class Converter:
     def _convert(self):
         try:
             suffix = self.filepath.suffix.lstrip(".")
-            if suffix == "txt":
+            if suffix in ["txt", CONLLU_FOMRAT]:
                 return
             elif suffix not in VALID_FORMATS:
                 raise InvalidFormat

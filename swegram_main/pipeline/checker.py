@@ -11,11 +11,10 @@ class UploadedTextValidationError(Exception):
     """Uploaded text validation error"""
 
 
-class Checker:
-    """Check syntax from uploaded file"""
-
-    def __init__(self, filepath: Path):
-        context = read(filepath)
+def checker(filepath: Path, model: str) -> Tuple[bool, bool, bool]:
+    """check the status of uploaded text
+    """
+    return check_text(model, read(filepath))
 
 
 def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool, bool, bool, List[str]]:
@@ -23,11 +22,17 @@ def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool
     reference = f"[Line Reference: {text_index} {index}]"
     # split the columns given the model
     if model.lower() == "efselab":
-        ti, i, token, norm, _, upos_tag, xpos_tag, ud_features, suc_features, head, deprel, *_ = line.split('\t')
-    
+        try:
+            ti, i, token, norm, _, upos_tag, xpos_tag, ud_features, suc_features, head, deprel, _, _ = line.split("\t")
+        except ValueError:
+            errors.append(f"{reference} COLUMN_TAB_ERROR: Not enough tabs in {line}")
+            return None, None, None, -1, errors
     elif model.lower() == "udpipe":
-        ti, i, token, norm, _, upos_tag, xpos_tag, ud_features, head, deprel, *_ = line.split('\t')
-
+        try:
+            ti, i, token, norm, _, upos_tag, xpos_tag, ud_features, head, deprel, _, _ = line.split("\t")
+        except ValueError:
+            errors.append(f"{reference} COLUMN_TAB_ERROR: Not enough tabs in {line}")
+            return None, None, None, -1, errors
     else:
         raise UploadedTextValidationError(f"Unknown model: {model}")
 
@@ -37,27 +42,27 @@ def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool
     if i != index:
         errors.append(f"{reference} COLUMN_INDEX_ERROR: Expected to get {index}, but got {i}")
 
-    normalized = True if token == '_' or norm != '_' else False
+    normalized = True if token == "_" or norm != "_" else False
 
-    tagged = True if upos_tag != '_' and xpos_tag != '_' else False
+    tagged = True if upos_tag != "_" and xpos_tag != "_" else False
     if tagged:
-        parsed = True if head != '_' and deprel != '_' else False
+        parsed = True if head != "_" and deprel != "_" else False
         if upos_tag not in UD_TAGS:
             errors.append(f"{reference} COLUMN_UPOS_ERROR: Unknown upos {upos_tag}")
 
         if model.lower() == "efselab":
             if xpos_tag not in SUC_TAGS:
                 errors.append(f"{reference} COLUMN_XPOS_ERROR: Unknown xpos {xpos_tag}")
-            for suc_feat in suc_features.split('|'):
+            for suc_feat in suc_features.split("|"):
                 if suc_feat not in XFEATS:
                     errors.append(f"{reference} COLUMN_XFEAT_ERROR: Unknown xfeat: {suc_feat}")
         else:
             if xpos_tag not in PT_TAGS:
                 errors.append(f"{reference} COLUMN_XPOS_ERROR: Unknown xpos {xpos_tag}")
 
-        if ud_features != '_':
-            for ud_feat in ud_features.split('|'):
-                ud_feat_key, ud_feat_value = ud_feat.split('=', maxsplit=1)
+        if ud_features != "_":
+            for ud_feat in ud_features.split("|"):
+                ud_feat_key, ud_feat_value = ud_feat.split("=", maxsplit=1)
                 if ud_feat_key not in FEATS or ud_feat_value not in FEATS[ud_feat_key]:
                     errors.append(f"{reference} COLUMN_FEAT_ERROR: Unknown ufeat: {ud_feat_key}={ud_feat_value}")
 
@@ -103,7 +108,7 @@ def check_text(model: str, text: Iterator) -> None:
         while True:
             if line.strip():
                 sentence.append(line)
-            elif line == '\n':
+            elif line == "\n":
                 if sentence:
                     _normalized, _tagged, _parsed, _errors = check_sentence(model, sentence, f"{p_index}.{s_index}")
                     normalized.append(_normalized)
@@ -123,7 +128,7 @@ def check_text(model: str, text: Iterator) -> None:
         print("Process checking uploaded text done.")
 
     if errors:
-        raise UploadedTextValidationError('\n'.join(errors))
+        raise UploadedTextValidationError("\n".join(errors))
     return any(normalized), any(tagged), any(parsed)
 
 
@@ -147,5 +152,6 @@ def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
     return True
 
 
-# text_path = Path("/tmp/test/10-sv_0.conll")
-# check_text("efselab", read(text_path))
+if __name__ == "__main__":
+    t = checker(Path("10-sv.conll"), "efselab")
+    print(t)
