@@ -9,10 +9,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-from swegram_main.pipeline import pipeline
-from swegram_main.pipeline.pipeline import TD, Pipeline
-from swegram_main.pipeline.postprocess import postprocess
-from swegram_main.pipeline.preprocess import restore
+from swegram_main.pipeline.pipeline import Pipeline
 
 
 histnorm_model_sv = "histnorm_sv"
