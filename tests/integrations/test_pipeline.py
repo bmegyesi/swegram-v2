@@ -1,22 +1,27 @@
 
-sv_text = "/home/rruan1/swegram_dev/swegram/tests/integrations/10-sv.txt"
-en_text = "/home/rruan1/swegram_dev/swegram/tests/integrations/10-en.txt"
-
-import os
-import tempfile
 import hashlib
+import logging
+import os
 import shutil
+import sys
+import tempfile
 from pathlib import Path
 
 import pytest
 from swegram_main.pipeline.pipeline import Pipeline
 
+try:
+    workspace = os.environ["SWEGRAM_WORKSPACE"]
+except KeyError:
+    logging.error("SWEGRAM_WORKSPACE is not setup")
+    sys.exit(1)
+
+sv_text = os.path.join(workspace, "tests", "integrations", "10-sv.txt")
+en_text = os.path.join(workspace, "tests", "integrations", "10-en.txt")
 
 histnorm_model_sv = "histnorm_sv"
 histnorm_model_en = "histnorm_en"
-efselab = "efselab"
-udpipe = "udpipe"
-resources_path = Path("/home/rruan1/swegram_dev/swegram/tests/resources")
+resources_path = Path(f"{workspace}/tests/resources")
 sv_norm_conll = "10-sv-norm.conll"
 sv_norm_tag = "10-sv-norm.tag"
 sv_conll = "10-sv.conll"
