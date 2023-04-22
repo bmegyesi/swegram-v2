@@ -106,7 +106,7 @@ def check_text(model: str, text: Iterator) -> None:
     normalized, tagged, parsed, errors = [], [], [], []
     try:
         while True:
-            if line.strip():
+            if line.strip() and not line.startswith("#"):
                 sentence.append(line)
             elif line == "\n":
                 if sentence:
@@ -128,6 +128,7 @@ def check_text(model: str, text: Iterator) -> None:
         print("Process checking uploaded text done.")
 
     if errors:
+        import pdb; pdb.set_trace()
         raise UploadedTextValidationError("\n".join(errors))
     return any(normalized), any(tagged), any(parsed)
 

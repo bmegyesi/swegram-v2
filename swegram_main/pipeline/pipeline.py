@@ -32,7 +32,6 @@ class Pipeline:
     default_output_dir = "output"
 
     def __init__(self, input_path: Path, output_dir: Optional[Path] = None, language: str = "sv") -> None:
-
         if not input_path.exists():
             raise FileNotFoundError(input_path)
 
@@ -61,7 +60,7 @@ class Pipeline:
                 tokenize(self.model, text)
 
     def normalize(self) -> None:
-        normalizer = "udpipe" if self.model in ["histnorm_en", "udpipe"] else "efselab"
+        normalizer = "histnorm_en" if self.model in ["histnorm_en", "udpipe"] else "histnorm_sv"
         for text in self.texts:
             if not text.spell.exists():
                 normalize(normalizer, text)
@@ -131,6 +130,10 @@ def tag(tagger: str, text: TD) -> None:
     if not text.tok.exists() and not text.spell.exists():
         tokenize_(tagger, text.filepath)
     if text.spell.exists():
+        # workaround:
+        # in case the uploaded normalized texts
+        if not text.tok.exists():
+            shutil.copy(text.spell, text.tok)
         tag_(tagger, text.spell)
     else:
         tag_(tagger, text.tok)

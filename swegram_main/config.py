@@ -56,7 +56,7 @@ PT_TAGS = ["AFX", # see info from https://catalog.ldc.upenn.edu/docs/LDC2007T02/
            "PP$", "RB", "RBR", "RBS", "RP", "SYM", "TO",
            "UH", "VB", "VBD", "VBG", "VBN", "VBP", "VBZ",
            "WDT", "WP", "WP$", "WRB", "#", "$", ".", ",",
-           ":", "(", ")", "\"",  #straight double quote
+           ":", "(", "-LRB-", ")", "-RRB-", "''", "``", "\"",  #straight double quote
            chr(8216),      #left open single quote
            chr(8220),      #left open double quote
            chr(8217),      #right close single quote

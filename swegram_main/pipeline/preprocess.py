@@ -12,6 +12,7 @@ from swegram_main.pipeline.converter import Converter
 from swegram_main.data.metadata import parse_metadata
 from swegram_main.lib.utils import cut
 
+
 class RestoreFileError(Exception):
     """Restore file error"""
 
@@ -60,6 +61,7 @@ def preprocess(input_path: Path, output_dir: Path, model) -> List[TD]:
                         break
                     else:
                         raise MetaFormatError(f"Invalid format, got {type(component)}: {component}")
+                    component = next(file_content)
             text_instances.append(text)
             text_index += 1
             meta = component
@@ -67,7 +69,7 @@ def preprocess(input_path: Path, output_dir: Path, model) -> List[TD]:
     except StopIteration:
         text_instances.append(text)
 
-    restore_text = lambda text: text if input_path.suffix != ".conll" else restore(text.filepath, output_dir, model)
+    restore_text = lambda text: text if input_path.suffix != ".conll" else restore(text, output_dir, model)
     return [restore_text(text) for text in text_instances if os.path.getsize(text.filepath)]
 
 
@@ -145,6 +147,10 @@ def _restore(
                 restore_tokenized_line_helper, filepath,
                 output_path=workspace.joinpath(f"{filepath.stem}{os.path.extsep}tok")
             )
+            cut(
+                restore_normalized_line_helper, filepath,
+                output_path=workspace.joinpath(f"{filepath.stem}{os.path.extsep}spell")
+            )
         cut(
             lambda line: restore_tagged_line(line, model, normalized),
             filepath,
@@ -154,20 +160,21 @@ def _restore(
         raise RestoreFileError(f"Unknown state for annotation: {from_}")
 
 
-def restore(input_path: Path, output_dir: Path, model: str) -> None:
+def restore(text: TD, output_dir: Path, model: str) -> TD:
     """restore annotated text
     """
+    input_path = text.filepath
     temp_dir = tempfile.TemporaryDirectory()
     workspace = Path(temp_dir.name)
-
     normalized, tagged, parsed = checker(input_path, model)
     if parsed:
-        from_, suffix = "parsed", ".conll"
+        from_ = "parsed"
     elif tagged:
-        from_, suffix = "tagged", ".tag"
+        from_ = "tagged"
     elif normalized:
-        from_, suffix = "normalized", ".spell"
+        from_ = "normalized"
     else:
-        from_, suffix = "tokenized", ".tok"
+        from_= "tokenized"
     _restore(from_, input_path, workspace, model, normalized)
-    shutil.copy(workspace.join(input_path.name).with_suffix(suffix), output_dir)
+    shutil.copytree(workspace, output_dir, dirs_exist_ok=True)
+    return text 
