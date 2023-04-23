@@ -79,6 +79,7 @@ def sv_spell_md5_fixture():
 def sv_tok_md5_fixture():
     yield get_md5(resources_path.joinpath(sv_tok))
 
+
 ######################################################
 # md5 values for the given target texts (english)    #
 ######################################################
@@ -330,6 +331,7 @@ def en_tag_norm_path_fixture(temp):
     shutil.copy(resources_path.joinpath(en_norm_tag), en_tag_norm_path)
     yield en_tag_norm_path
 
+
 ######################################################
 #      Test cases: annotate from annotated text      #
 ######################################################
@@ -456,5 +458,3 @@ def test_update_from_normalized_to_tag_udpipe(temp, en_conll_norm_md5, en_tag_no
     pipeline = Pipeline(en_tag_norm_path, output_dir=Path(temp.name), language="en")
     pipeline.run("parse")
     assert en_conll_norm_md5 == get_md5_without_comments(pipeline.texts[0].conll)
-
-

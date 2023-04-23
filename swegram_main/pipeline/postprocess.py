@@ -1,6 +1,7 @@
 """Finalize the conll file after annotation
 
 """
+import os
 import shutil
 from pathlib import Path
 from typing import Iterator, Optional

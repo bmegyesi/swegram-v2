@@ -4,40 +4,15 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Dict, Iterator, Union, List, Optional
+from typing import List, Optional
 
 from swegram_main.data.texts import TextDirectory as TD
 from swegram_main.pipeline.checker import checker
-from swegram_main.pipeline.converter import Converter
-from swegram_main.data.metadata import parse_metadata
-from swegram_main.lib.utils import cut
+from swegram_main.lib.utils import cut, FileContent, MetaFormatError
 
 
 class RestoreFileError(Exception):
     """Restore file error"""
-
-
-class MetaFormatError(Exception):
-    """Meta format error"""
-
-
-class FileContent:
-
-    def __init__(self, filepath: Path) -> None:
-        self.filepath = filepath
-
-    def _convert(self):
-        yield from Converter(self.filepath).parse()
-
-    def get(self) -> Iterator[Union[Dict[str, str], str]]:
-        for line in self._convert():
-            if not line:
-                continue
-            metadata = parse_metadata(line)
-            if metadata is None:
-                yield line
-            else:
-                yield metadata
 
 
 def preprocess(input_path: Path, output_dir: Path, model) -> List[TD]:
@@ -177,4 +152,4 @@ def restore(text: TD, output_dir: Path, model: str) -> TD:
         from_= "tokenized"
     _restore(from_, input_path, workspace, model, normalized)
     shutil.copytree(workspace, output_dir, dirs_exist_ok=True)
-    return text 
+    return text
