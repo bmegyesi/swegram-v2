@@ -3,9 +3,10 @@ import logging
 import os
 import shutil
 import tempfile
-from typing import Callable, Dict, Generator, Iterator, List, Optional, TypeVar, Tuple, Union
+from collections import Counter
 from hashlib import md5
 from pathlib import Path
+from typing import Callable, Dict, Generator, Iterator, List, Optional, TypeVar, Tuple, Union
 
 from swegram_main.data.metadata import parse_metadata
 from swegram_main.lib.converter import Converter
@@ -208,3 +209,24 @@ def cut(
 
 def change_suffix(filepath: Path, suffix: str) -> Path:
     return filepath.parent.joinpath(f"{filepath.stem}{os.path.extsep}{suffix}")
+
+
+####################################################
+#    functions for statistics                      #
+####################################################
+def mean(numbers: Union[int, float]) -> float:
+    return round(sum(numbers)/max(len(numbers), 1), 2)
+
+
+def median(numbers: Union[int, float, Counter]) -> float:
+    if isinstance(numbers, Counter):
+        return median([key for key, value in numbers.items() for _ in range(value)])
+
+    if not numbers: return 0
+    numbers.sort()
+    if len(numbers) % 2 == 1:
+        return numbers[len(numbers) // 2]
+    index = len(numbers) // 2
+    a, b = numbers[index-1: index+1]
+    return round((a + b) / 2, 2)
+ 
