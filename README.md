@@ -26,9 +26,47 @@ In order to build dependencies, run
 
 ## Setup PYTHONPATH
 ```
-export PYTHONPATH="$PYTHONPATH:$(pwd)"
-
-#export EFSELABPATH in PYTHONPATH
-EFSELABPATH=$REPO_PATH/tools/efselab
-export PYTHONPATH="$PYTHONPATH:$(EFSELABPATH)"
+source setup.sh
 ```
+
+## Install swegram command line interface
+
+Before installation, it is strongly recommended to use a virtual environment
+```
+python3 -m venv venv
+source venv/bin/activate
+```
+
+Go to the root path where setup.py is located.
+
+```console
+pip install .
+```
+
+Check the usage of swegram cli
+```console
+(venv) ➜ swegram -h                                                               
+usage: SWGRAM 1.0 [-h] -l {en,sv} -i INPUT_PATH [-o OUTPUT_DIR] [--output-format {txt,xlsx,json,csv}] {annotate,statistic} ...
+
+Swegram command line interface description
+
+positional arguments:
+  {annotate,statistic}  Swegram subparser
+    annotate            Annotation parser help
+    statistic           Statistic parser help
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l {en,sv}, --language {en,sv}
+                        choose the language for annotation
+  -i INPUT_PATH, --input-path INPUT_PATH
+                        The input path to files/directory where working files are stored
+  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        The output directory where working files are stored
+  --output-format {txt,xlsx,json,csv}
+                        The output format
+```
+## to do
+
+1. Compounds
+2. Statistic features
