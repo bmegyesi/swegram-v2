@@ -6,7 +6,7 @@ from swegram_main.data.sentences import Sentence
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text
 from swegram_main.lib.utils import read_conll_file, get_content_md5
-
+from swegram_main.statistics.statistic import Statistic
 
 ST = TypeVar("ST", bound=List[str])  # Sentence Line Type
 PT = TypeVar("PT", bound=List[List[str]]) # Paragraph Line Type
@@ -19,33 +19,35 @@ def _load_token(text_index: str, token_index: str, form: str, norm: str, lemma: 
     upos=upos, xpos=xpos, feats=feats, ufeats=ufeats, head=head, deprel=deprel, deps=deps, misc=misc)
 
 
-def load_token(line: str) -> Token:
+def load_token(line: str, language: str) -> Token:
     """Load token"""
     args = line.strip().split("\t")
-    if len(args) == 12:
+    if language == "en":
         args.insert(8, None)
     return _load_token(*args)
 
 
-def load_sentence(text_id: str, lines: ST) -> Sentence:
+@Statistic
+def load_sentence(text_id: str, lines: ST, language: str) -> Sentence:
     """Load sentence from conll text"""
-    return Sentence(text_id=text_id, tokens=[load_token(line) for line in lines])
+    return Sentence(text_id=text_id, language=language, tokens=[load_token(line, language) for line in lines])
 
 
-def load_paragraph(text_id: str, lines: PT) -> Paragraph:
+@Statistic
+def load_paragraph(text_id: str, lines: PT, language: str) -> Paragraph:
     """Load paragraph from conll text"""
-    return Paragraph(text_id=text_id, sentences=[load_sentence(text_id, s) for s in lines])
+    return Paragraph(text_id=text_id, language=language, sentences=[load_sentence(text_id, s, language) for s in lines])
 
 
+@Statistic
 def load_text(text: TT, labels: Dict[str, str], language: str, filename: Path) -> Text:
     """Load text from conll text"""
     # p: paragraph, s: sentence, t: token
     text_id: str = get_content_md5("".join([t for p in text for s in p for t in s]).encode())
-    paragraphs: List[Paragraph] = [load_paragraph(text_id, p) for p in text]
+    paragraphs: List[Paragraph] = [load_paragraph(text_id, p, language) for p in text]
     return Text(paragraphs=paragraphs, text_id=text_id, language=language, filename=filename, labels=labels)
 
 
 def load_file(input_file: Path, language: str) -> List[Text]:
     """Load texts from conll file"""
     return [load_text(text, labels, language, input_file) for text, labels in read_conll_file(input_file)]
-   

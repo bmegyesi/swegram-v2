@@ -8,6 +8,7 @@ from swegram_main.data.sentences import Sentence
 class Paragraph:
 
     text_id: str
+    language: str
     sentences: List[Sentence]
 
     # statistics
@@ -24,4 +25,4 @@ class Paragraph:
     syntactic_average: Optional[Any]        = None
 
     def __str__(self):
-        return ' '.join([str(s) for s in self.sentences])
+        return " ".join([str(s) for s in self.sentences])

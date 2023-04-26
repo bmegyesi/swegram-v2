@@ -13,7 +13,7 @@ paragraph length (n sentences)
 
 import re
 from collections import Counter, OrderedDict, defaultdict
-from typing import Any, List, Tuple, TypeVar
+from typing import List, Tuple, TypeVar
 
 from swegram_main.data.tokens import Token
 from swegram_main.data.sentences import Sentence
@@ -35,7 +35,7 @@ B = TypeVar("B", Token, Sentence, Paragraph, Text)
 S = TypeVar(
     "S",
     bound=Tuple[
-        # scalars: chars, tokens, words, syllables, polysyllables, misspells, compounds, sents
+        # scalars: chars, token_count, words, syllables, polysyllables, misspells, compounds, sents
         int, int, int, int, int, int, int, int,
         # freq_<form|norm|lemma>_dict_<upos|xpos>
         D, D, D, D, D, D,
@@ -43,6 +43,7 @@ S = TypeVar(
         Counter, Counter, List[str]
     ]
 )
+
 
 def _syllable_count_en(word: str) -> int:
     word = word.lower()
@@ -136,7 +137,7 @@ def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
     for field in fields:
         counter = Counter()
         for block in blocks:
-            for key, value in getattr(block.general, field):
+            for key, value in getattr(block.general, field).items():
                 counter[key] += value
         counters.append(counter)
     return counters
@@ -145,7 +146,7 @@ def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
 def _union(blocks: List[B], field: str) -> List[str]:
     union = set()
     for block in blocks:
-        union = union.union(getattr(block, field))
+        union = union.union(getattr(block.general, field))
     return list(union)
 
 
@@ -155,12 +156,12 @@ def _serialize(blocks: List[B], lang: str) -> S:
     elif isinstance(blocks[0], Sentence):
         sents = len(blocks)
     elif isinstance(blocks[0], (Paragraph, Text)):
-        sents = sum([block.sent for block in blocks])
+        sents = sum([block.general.sents for block in blocks])
     else:
         raise SerializationError(f"Unknown block type: {type(blocks[0])}")
 
-    scalars = _sum(blocks, CountFeatures.SCALAR_FIELDS)
-    freqs = _merge_dicts(blocks, CountFeatures.FREQ_FIELDS)   
+    scalars = _sum(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
+    freqs = _merge_dicts(blocks, CountFeatures.FREQ_FIELDS)
     counters = _merge_counters(blocks, CountFeatures.COUNTER_FIELDS)
     types = _union(blocks, CountFeatures.UNION_FIELD)
 
@@ -170,7 +171,7 @@ def _serialize(blocks: List[B], lang: str) -> S:
 class CountFeatures:
 
     # Field Declaration
-    SCALAR_FIELDS = ["chars", "tokens", "words", "syllables", "polysyllables", "misspells", "compounds", "sents"] 
+    SCALAR_FIELDS = ["chars", "token_count", "words", "syllables", "polysyllables", "misspells", "compounds", "sents"] 
     FREQ_FIELDS = [
         "freq_form_dict_upos", "freq_norm_dict_upos", "freq_lemma_dict_upos",
         "freq_form_dict_xpos", "freq_norm_dict_xpos", "freq_lemma_dict_xpos"
@@ -189,18 +190,18 @@ class CountFeatures:
     _Paragraph_length_sentence = "Paragraph length (n sentences)"
     TEXT_FEATURES = [_Paragraphs, _Paragraph_length_word, _Paragraph_length_sentence]
 
-    def __init__(self, content: List[B], lang: str):
+    def __init__(self, content: List[B], lang: str) -> None:
         self.blocks = content
         self.lang = lang
         self._set_fields()
         self._set_feats()
 
-    def _set_fields(self):
+    def _set_fields(self) -> None:
         for key, value in zip(self.FIELDS, _serialize(self.blocks, self.lang)):
             setattr(self, key, value)
         self.type_count = len(self.types)
 
-    def _set_feats(self):
+    def _set_feats(self) -> None:
         self.feats = OrderedDict()
         self.average = OrderedDict()
         self._set_sentence_features()
@@ -209,35 +210,35 @@ class CountFeatures:
         if not isinstance(self.blocks[0], (Token, Sentence)):
             self._set_text_features()
 
-    def _set_sentence_features(self):
+    def _set_sentence_features(self) -> None:
         for feature_name, attribute in zip(
             self.SENTENCE_FEATURES,
-            ["tokens", "type_count", "misspells", "compounds"]
+            ["token_count", "type_count", "misspells", "compounds"]
         ):
             self.feats[feature_name] = getattr(self, attribute)
             if not isinstance(self.blocks[0], Token):
-                scalar_list = [getattr(block, feature_name) for block in self.blocks]
+                scalar_list = [getattr(block.general, attribute) for block in self.blocks]
                 self.average[feature_name] = {"mean": mean(scalar_list), "median": median(scalar_list)}
-        self.average["Word length"] = {"mean": _r2(self.chars, self.tokens), "median": median(self.token_length_list)}
+        self.average["Word length"] = {"mean": _r2(self.chars, self.token_count), "median": median(self.token_length_list)}
 
-    def _set_paragraph_features(self):
+    def _set_paragraph_features(self) -> None:
         self.feats[self._Sentences] = self.sents
         self.feats[self._Sentence_length] = {
-            "mean": _r2(self.tokens, self.sents),
+            "mean": _r2(self.token_count, self.sents),
             "median": median(self.sentence_length_list)
         }
         if not isinstance(self.blocks[0], (Token, Sentence)):
-            scalar_list = [getattr(block, self._Sentences) for block in self.blocks]
+            scalar_list = [block.general.sents for block in self.blocks]
             self.average[self._Sentences] = {"mean": mean(scalar_list), "median": median(scalar_list)}
 
-    def _set_text_features(self):
+    def _set_text_features(self) -> None:
         blocks = [p for t in self.blocks for p in t.paragraphs] if isinstance(self.blocks[0], Text) else self.blocks
-        token2paragraph = [b.tokens for b in blocks]
-        sent2paragraph = [b.sents for b in blocks]
+        token2paragraph = [b.general.token_count for b in blocks]
+        sent2paragraph = [b.general.sents for b in blocks]
         paragraph_length = len(blocks)
         self.feats[self._Paragraphs] = paragraph_length
         self.average[self._Paragraph_length_word] = {
-            "mean": _r2(self.tokens, paragraph_length),
+            "mean": _r2(self.token_count, paragraph_length),
             "median": median(token2paragraph)
         }
         self.average[self._Paragraph_length_sentence] = {

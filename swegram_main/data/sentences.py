@@ -12,6 +12,7 @@ from swegram_main.lib.tree import is_ud_tree
 class Sentence:
     """Data structure for sentence instance"""
     text_id: str
+    language: str
     tokens: List[Token]
 
     # statistics
@@ -24,7 +25,7 @@ class Sentence:
     @property
     def ud_tree(self) -> bool:
         try:
-            return is_ud_tree([int(token.head) for token in self.tokens]) is True
+            return is_ud_tree([int(token.head) for token in self.tokens])
         except ValueError:  # raised error when token.head is _
             return False
 
