@@ -3,7 +3,7 @@ import logging
 import os
 import shutil
 import tempfile
-from collections import Counter
+from collections import Counter, defaultdict
 from hashlib import md5
 from pathlib import Path
 from typing import Callable, Dict, Generator, Iterator, List, Optional, TypeVar, Tuple, Union
@@ -229,4 +229,23 @@ def median(numbers: Union[int, float, Counter]) -> float:
     index = len(numbers) // 2
     a, b = numbers[index-1: index+1]
     return round((a + b) / 2, 2)
+
+
+def r2(number: int, *args) -> float:
+    """keep two decimals"""
+    if not args:
+        return round(number, 2)
+    number2, *_ = args
+    return round(number / number2, 2)
+
+
+def merge_dicts(blocks: List[object], fields: List[str]) -> List[defaultdict]:
+    defaultdicts = [] 
+    for field in fields:
+        df = defaultdict(int)
+        for block in blocks:
+            for key, value in getattr(block.general, field).items():
+                df[key] += value
+        defaultdicts.append(df)
+    return defaultdicts
  

@@ -13,15 +13,16 @@ paragraph length (n sentences)
 
 import re
 from collections import Counter, OrderedDict, defaultdict
-from typing import List, Tuple, TypeVar
+from typing import List
 
 from swegram_main.data.tokens import Token
 from swegram_main.data.sentences import Sentence
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text
+from swegram_main.statistics.types import B, S
 
 
-from swegram_main.lib.utils import mean, median
+from swegram_main.lib.utils import mean, median, r2, merge_dicts
 
 
 class SerializationError(Exception):
@@ -30,19 +31,6 @@ class SerializationError(Exception):
 
 ENGLISH_VOWELS = "aoueiy"
 SWEDISH_VOWELS = f"{ENGLISH_VOWELS}åöä"
-D = List[defaultdict]
-B = TypeVar("B", Token, Sentence, Paragraph, Text)
-S = TypeVar(
-    "S",
-    bound=Tuple[
-        # scalars: chars, token_count, words, syllables, polysyllables, misspells, compounds, sents
-        int, int, int, int, int, int, int, int,
-        # freq_<form|norm|lemma>_dict_<upos|xpos>
-        D, D, D, D, D, D,
-        # counter for token|sentence length; a list of types
-        Counter, Counter, List[str]
-    ]
-)
 
 
 def _syllable_count_en(word: str) -> int:
@@ -75,6 +63,7 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
 
     freq_form_dict_upos, freq_norm_dict_upos, freq_lemma_dict_upos = [defaultdict(int) for _ in range(3)]
     freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos = [defaultdict(int) for _ in range(3)]
+    xpos_dict, word_dict = [defaultdict(int) for _ in range(2)]  # used for readability features
 
     token_length_list = [] # the length of each token
 
@@ -87,8 +76,10 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
         freq_form_dict_xpos[f"{form}_{xpos}"] += 1
         freq_norm_dict_xpos[f"{norm}_{xpos}"] += 1
         freq_lemma_dict_xpos[f"{lemma}_{xpos}"] += 1
+        xpos_dict[xpos] += 1
 
         word = norm if norm != "_" else form
+        word_dict[word] += 1
         syllable_length = _syllable_count(word)
         syllables += syllable_length
 
@@ -109,27 +100,12 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
 
     return  sum(token_length_list), len(tokens), words, syllables, polysyllables, misspells, compounds, 1, \
             freq_form_dict_upos, freq_norm_dict_upos, freq_lemma_dict_upos, \
-            freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos, \
+            freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos, xpos_dict, word_dict, \
             Counter(token_length_list), Counter([len(tokens)]), list(types)
 
 
 def _sum(blocks: List[B], fields: List[str]) -> List[int]:
     return [sum([getattr(block.general, field) for block in blocks]) for field in fields]
-
-
-def _r2(number1: int, number2: int) -> float:
-    return round(number1/number2, 2)
-
-
-def _merge_dicts(blocks: List[B], fields: List[defaultdict]) -> List[defaultdict]:
-    defaultdicts = [] 
-    for field in fields:
-        df = defaultdict(int)
-        for block in blocks:
-            for key, value in getattr(block.general, field).items():
-                df[key] += value
-        defaultdicts.append(df)
-    return defaultdicts
             
 
 def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
@@ -161,7 +137,7 @@ def _serialize(blocks: List[B], lang: str) -> S:
         raise SerializationError(f"Unknown block type: {type(blocks[0])}")
 
     scalars = _sum(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
-    freqs = _merge_dicts(blocks, CountFeatures.FREQ_FIELDS)
+    freqs = merge_dicts(blocks, CountFeatures.FREQ_FIELDS)
     counters = _merge_counters(blocks, CountFeatures.COUNTER_FIELDS)
     types = _union(blocks, CountFeatures.UNION_FIELD)
 
@@ -174,7 +150,7 @@ class CountFeatures:
     SCALAR_FIELDS = ["chars", "token_count", "words", "syllables", "polysyllables", "misspells", "compounds", "sents"] 
     FREQ_FIELDS = [
         "freq_form_dict_upos", "freq_norm_dict_upos", "freq_lemma_dict_upos",
-        "freq_form_dict_xpos", "freq_norm_dict_xpos", "freq_lemma_dict_xpos"
+        "freq_form_dict_xpos", "freq_norm_dict_xpos", "freq_lemma_dict_xpos", "xpos_dict", "word_dict"
     ]
     COUNTER_FIELDS = ["token_length_list", "sentence_length_list"]
     UNION_FIELD = "types"
@@ -219,12 +195,12 @@ class CountFeatures:
             if not isinstance(self.blocks[0], Token):
                 scalar_list = [getattr(block.general, attribute) for block in self.blocks]
                 self.average[feature_name] = {"mean": mean(scalar_list), "median": median(scalar_list)}
-        self.average["Word length"] = {"mean": _r2(self.chars, self.token_count), "median": median(self.token_length_list)}
+        self.average["Word length"] = {"mean": r2(self.chars, self.token_count), "median": median(self.token_length_list)}
 
     def _set_paragraph_features(self) -> None:
         self.feats[self._Sentences] = self.sents
         self.feats[self._Sentence_length] = {
-            "mean": _r2(self.token_count, self.sents),
+            "mean": r2(self.token_count, self.sents),
             "median": median(self.sentence_length_list)
         }
         if not isinstance(self.blocks[0], (Token, Sentence)):
@@ -238,10 +214,10 @@ class CountFeatures:
         paragraph_length = len(blocks)
         self.feats[self._Paragraphs] = paragraph_length
         self.average[self._Paragraph_length_word] = {
-            "mean": _r2(self.token_count, paragraph_length),
+            "mean": r2(self.token_count, paragraph_length),
             "median": median(token2paragraph)
         }
         self.average[self._Paragraph_length_sentence] = {
-            "mean": _r2(self.sents, paragraph_length),
+            "mean": r2(self.sents, paragraph_length),
             "median": median(sent2paragraph)
         }
