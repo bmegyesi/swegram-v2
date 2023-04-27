@@ -28,7 +28,6 @@ from swegram_main.lib.utils import mean, median, r2
 
 
 LONG_WORD_THRESHOLD = 6  # The threshold for being a long word
-A = TypeVar("A", int, float, Dict[str, int], defaultdict)  # args
 F = TypeVar("F", bound=Tuple[str, callable, Tuple[str, ...]])  # feature setting
 
 
