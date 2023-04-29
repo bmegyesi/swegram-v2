@@ -143,9 +143,9 @@ class ReadabilityFeatures:
         self.lang = lang
         self.feats = OrderedDict()
         self.sentence = sentence
+
         if not self.sentence:
             self.average = OrderedDict()
-        
 
         if lang == "en":
             self._set_english_feats()

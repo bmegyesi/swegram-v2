@@ -22,7 +22,7 @@ from swegram_main.data.texts import Text
 from swegram_main.statistics.types import B, S
 
 
-from swegram_main.lib.utils import mean, median, r2, merge_dicts
+from swegram_main.lib.utils import mean, median, r2, merge_dicts, get_sum_list_for_fields
 
 
 class SerializationError(Exception):
@@ -59,27 +59,54 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
 
     _syllable_count = _syllable_count_en if lang == "en" else _syllable_count_sv
     polysyllables, syllables, misspells, compounds, words = 0, 0, 0, 0, len(tokens)
+    # The following scalars are used for morphological feature calculation
+    _3sg_pron, neut_noun, s_verb, rel_pron, pres_verb, past_verb, sup_verb, pres_pc, past_pc = [0 for _ in range(9)]
     types = set()
 
     freq_form_dict_upos, freq_norm_dict_upos, freq_lemma_dict_upos = [defaultdict(int) for _ in range(3)]
     freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos = [defaultdict(int) for _ in range(3)]
-    xpos_dict, word_dict = [defaultdict(int) for _ in range(2)]  # used for readability features
+    upos_dict, xpos_dict, word_dict = [defaultdict(int) for _ in range(3)]  # used for readability features
 
     token_length_list = [] # the length of each token
 
     for token in tokens:
         form, norm, lemma = token.form.lower(), token.norm.lower(), token.lemma.lower()
-        upos, xpos = token.upos, token.xpos
+        upos, xpos, feats = token.upos, token.xpos, token.feats
         freq_form_dict_upos[f"{form}_{upos}"] += 1
         freq_norm_dict_upos[f"{norm}_{upos}"] += 1
         freq_lemma_dict_upos[f"{lemma}_{upos}"] += 1
         freq_form_dict_xpos[f"{form}_{xpos}"] += 1
         freq_norm_dict_xpos[f"{norm}_{xpos}"] += 1
         freq_lemma_dict_xpos[f"{lemma}_{xpos}"] += 1
+        upos_dict[upos] += 1
         xpos_dict[xpos] += 1
 
         word = norm if norm != "_" else form
         word_dict[word] += 1
+
+        if "Gender=Neut" in feats and upos == "NOUN":
+            neut_noun += 1
+        elif "Number=Sing" in feats and upos == "PRON":
+            _3sg_pron += 1
+        elif word.endswith("s") and upos == "VERB":
+            s_verb += 1
+
+        if "VerbForm=Part" in feats:
+            if "Tense=Pres" in feats:
+                pres_pc += 1
+            elif "Tense=Past" in feats:
+                past_pc += 1
+        elif "VerbForm=Fin" in feats:
+            if "Tense=Pres" in feats:
+                pres_verb += 1
+            elif "Tense=Past" in feats:
+                past_verb += 1
+        elif "VerbForm=Sup" in feats:
+            sup_verb += 1 
+
+        if "PronType=Int" in feats or "PronType=Rel" in feats:
+            rel_pron += 1
+
         syllable_length = _syllable_count(word)
         syllables += syllable_length
 
@@ -99,14 +126,12 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
             words -= 1
 
     return  sum(token_length_list), len(tokens), words, syllables, polysyllables, misspells, compounds, 1, \
+            _3sg_pron, neut_noun, s_verb, rel_pron, pres_verb, past_verb, sup_verb, pres_pc, past_pc, \
             freq_form_dict_upos, freq_norm_dict_upos, freq_lemma_dict_upos, \
-            freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos, xpos_dict, word_dict, \
+            freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos, \
+            upos_dict, xpos_dict, word_dict, \
             Counter(token_length_list), Counter([len(tokens)]), list(types)
 
-
-def _sum(blocks: List[B], fields: List[str]) -> List[int]:
-    return [sum([getattr(block.general, field) for block in blocks]) for field in fields]
-            
 
 def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
     counters = []
@@ -135,8 +160,7 @@ def _serialize(blocks: List[B], lang: str) -> S:
         sents = sum([block.general.sents for block in blocks])
     else:
         raise SerializationError(f"Unknown block type: {type(blocks[0])}")
-
-    scalars = _sum(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
+    scalars = get_sum_list_for_fields(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
     freqs = merge_dicts(blocks, CountFeatures.FREQ_FIELDS)
     counters = _merge_counters(blocks, CountFeatures.COUNTER_FIELDS)
     types = _union(blocks, CountFeatures.UNION_FIELD)
@@ -147,10 +171,15 @@ def _serialize(blocks: List[B], lang: str) -> S:
 class CountFeatures:
 
     # Field Declaration
-    SCALAR_FIELDS = ["chars", "token_count", "words", "syllables", "polysyllables", "misspells", "compounds", "sents"] 
+    SCALAR_FIELDS = [
+        "chars", "token_count", "words", "syllables", "polysyllables", "misspells", "compounds",
+        "_3sg_pron", "neut_noun", "s_verb", "rel_pron", "pres_verb", "past_verb", "sup_verb", "pres_pc", "past_pc",
+        "sents",
+    ]
     FREQ_FIELDS = [
         "freq_form_dict_upos", "freq_norm_dict_upos", "freq_lemma_dict_upos",
-        "freq_form_dict_xpos", "freq_norm_dict_xpos", "freq_lemma_dict_xpos", "xpos_dict", "word_dict"
+        "freq_form_dict_xpos", "freq_norm_dict_xpos", "freq_lemma_dict_xpos",
+        "upos_dict", "xpos_dict", "word_dict"
     ]
     COUNTER_FIELDS = ["token_length_list", "sentence_length_list"]
     UNION_FIELD = "types"

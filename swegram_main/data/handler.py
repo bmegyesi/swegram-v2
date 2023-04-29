@@ -51,3 +51,7 @@ def load_text(text: TT, labels: Dict[str, str], language: str, filename: Path) -
 def load_file(input_file: Path, language: str) -> List[Text]:
     """Load texts from conll file"""
     return [load_text(text, labels, language, input_file) for text, labels in read_conll_file(input_file)]
+
+sv = "tests/resources/10-sv.conll"
+texts = load_file(Path(sv), "sv")
+t1 = texts[0]

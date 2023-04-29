@@ -139,12 +139,12 @@ def read_conll_file(input_path: Path) -> T:
                             sentence.append(component)
                         elif newline == 2:
                             _append_paragraph()
-                            sentence = [component]
+                            sentences, sentence = [], [component]
                             newline = 0
                         elif newline == 1:
                             if sentence:
                                 sentences.append(sentence)
-                                sentences, sentence = [], [component]
+                                sentence = [component]
                                 newline = 0
                         else:
                             raise ConllFormatError(f"Too many blank lines, max 2 newlines , but got {newline}")
@@ -248,4 +248,8 @@ def merge_dicts(blocks: List[object], fields: List[str]) -> List[defaultdict]:
                 df[key] += value
         defaultdicts.append(df)
     return defaultdicts
+
+
+def get_sum_list_for_fields(blocks: List[object], fields: List[str]) -> List[int]:
+    return [sum([getattr(block.general, field) for block in blocks]) for field in fields]
  

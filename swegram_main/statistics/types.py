@@ -13,10 +13,14 @@ C = TypeVar("C", Token, Sentence, Paragraph, Text)  # Context
 S = TypeVar(
     "S",
     bound=Tuple[
-        # scalars: chars, token_count, words, syllables, polysyllables, misspells, compounds, sents
-        int, int, int, int, int, int, int, int,
-        # freq_<form|norm|lemma>_dict_<upos|xpos>
-        D, D, D, D, D, D,
+        # scalars: chars, token_count, words, syllables, polysyllables, misspells, compounds
+        int, int, int, int, int, int, int,
+        # sclars: 3sg_pron, neut_noun, s_verb, rel_pron, pres_verb, past_verb, sup_verb, pres_pc, past_pc
+        int, int, int, int, int, int, int, int, int,
+        # sents
+        int,
+        # freq_<form|norm|lemma>_dict_<upos|xpos>, xpos_dict, word_dict
+        D, D, D, D, D, D, D, D,
         # counter for token|sentence length; a list of types
         Counter, Counter, List[str]
     ]

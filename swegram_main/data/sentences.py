@@ -16,11 +16,11 @@ class Sentence:
     tokens: List[Token]
 
     # statistics
-    general: Optional[Any] = None
-    readability: Optional[Any] = None
-    morphological: Optional[Any] = None
-    lexical: Optional[Any] = None
-    syntactic: Optional[Any] = None
+    general: Optional[Any]       = None
+    readability: Optional[Any]   = None
+    morph: Optional[Any]         = None
+    lexical: Optional[Any]       = None
+    syntactic: Optional[Any]     = None
 
     @property
     def ud_tree(self) -> bool:

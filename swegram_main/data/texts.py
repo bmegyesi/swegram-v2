@@ -33,15 +33,9 @@ class Text:
     # statistics
     general: Optional[Any]                  = None
     readability: Optional[Any]              = None
-
-    morphological: Optional[Any]            = None
-    morphological_average: Optional[Any]    = None
-
+    morph: Optional[Any]                    = None
     lexical: Optional[Any]                  = None
-    lexical_average: Optional[Any]          = None
-
     syntactic: Optional[Any]                = None
-    syntactic_average: Optional[Any]        = None
 
     @property
     def states(self) -> State:
