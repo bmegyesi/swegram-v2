@@ -1,16 +1,34 @@
-import os
+import json
 from pathlib import Path
+from typing import Dict, TypeVar
+
+
+K = TypeVar("K", float, str)
+
+
+def _json_load(filename: Path) -> Dict[str, K]:
+    with open(filename, mode="r", encoding="utf-8") as json_file:
+        return json.load(json_file)
 
 
 BASE_DIR = Path(__file__).absolute().parent.parent
 TOOL_DIR = BASE_DIR.joinpath("tools")
+
 EFSELAB_DIR = TOOL_DIR.joinpath("efselab")
 EFSELAB = EFSELAB_DIR.joinpath("swe_pipeline.py")
+
 UDPIPE_BASE = TOOL_DIR.joinpath("udpipe")
 UDPIPE = UDPIPE_BASE.joinpath("udpipe")
 UDPIPE_MODEL = UDPIPE_BASE.joinpath("en", "english-ud-2.0-170801.udpipe")
+
 HISTNORM_EN = "histnorm"
 HISTNORM_SV = TOOL_DIR.joinpath("HistNorm")
+
+KELLY_DIR = BASE_DIR.joinpath("swegram_main", "statistics", "kelly")
+KELLY_EN = _json_load(KELLY_DIR.joinpath("kelly.en"))
+KELLY_SV = _json_load(KELLY_DIR.joinpath("kelly.sv"))
+WPM_SV = _json_load(KELLY_DIR.joinpath("wpm.sv"))
+ADVANCE_CEFR_LEVELS = "3456"  # WHICH CEFR LEVELS ARE TREATED AS BEING ADVANCE
 
 
 # OUTPUT_DIR = settings.BASE_DIR + "/swegram_main/handle_texts/pipeline/output/" #need to be put into config.py

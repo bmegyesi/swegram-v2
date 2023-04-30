@@ -13,6 +13,7 @@ from swegram_main.lib.converter import Converter
 from swegram_main.lib.logger import get_logger
 
 
+N = TypeVar("N", List[Union[int, float]], Counter)
 T = TypeVar("T", bound=List[Tuple[List[List[List[str]]], Dict[str, str]]])
 FT = TypeVar("FT", bound=Iterator[Union[Dict[str, str], str]])
 logger = get_logger(__name__)
@@ -214,11 +215,13 @@ def change_suffix(filepath: Path, suffix: str) -> Path:
 ####################################################
 #    functions for statistics                      #
 ####################################################
-def mean(numbers: Union[int, float]) -> float:
-    return round(sum(numbers)/max(len(numbers), 1), 2)
+def mean(numbers: N) -> float:
+    if isinstance(numbers, Counter):
+        return r2(sum([k * v for k, v in numbers.items()]), sum(numbers.values()))
+    return r2(sum(numbers), max(len(numbers), 1))
 
 
-def median(numbers: Union[int, float, Counter]) -> float:
+def median(numbers: N) -> float:
     if isinstance(numbers, Counter):
         return median([key for key, value in numbers.items() for _ in range(value)])
 
@@ -228,7 +231,7 @@ def median(numbers: Union[int, float, Counter]) -> float:
         return numbers[len(numbers) // 2]
     index = len(numbers) // 2
     a, b = numbers[index-1: index+1]
-    return round((a + b) / 2, 2)
+    return r2((a + b) / 2)
 
 
 def r2(number: int, *args) -> float:
@@ -239,17 +242,44 @@ def r2(number: int, *args) -> float:
     return round(number / number2, 2)
 
 
-def merge_dicts(blocks: List[object], fields: List[str]) -> List[defaultdict]:
-    defaultdicts = [] 
-    for field in fields:
-        df = defaultdict(int)
-        for block in blocks:
-            for key, value in getattr(block.general, field).items():
+def merge_counter(blocks: List[object], field: str) -> Counter:
+    counter_instance = Counter()
+    for block in blocks:
+        counter_instance.update(getattr(block.general, field))
+    return counter_instance
+
+
+def merge_counters(blocks: List[object], fields: List[str]) -> List[Counter]:
+    return [merge_counter(blocks, field) for field in fields]
+
+
+def merge_dicts(blocks: List[object], field: str, data_type: type = int) -> defaultdict:
+    df = defaultdict(data_type)
+    for block in blocks:
+        for key, value in getattr(block.general, field).items():
+            if issubclass(data_type, int):
                 df[key] += value
-        defaultdicts.append(df)
+            elif issubclass(data_type, list):
+                df[key].extend(value)
+            elif issubclass(data_type, set):
+                df[key] = df[key].union(value)
+            elif issubclass(data_type, dict):
+                df[key].update(value)
+            else:
+                raise Exception(f"Unsopported data type: {data_type}")
+    return df
+
+
+def merge_dicts_for_fields(blocks: List[object], fields: List[str]) -> List[defaultdict]:
+    defaultdicts = []
+    for field in fields:
+        defaultdicts.append(merge_dicts(blocks, field))
     return defaultdicts
 
 
+def get_sum_for_field(blocks: List[object], field: str) -> int:
+    return sum(getattr(block.general, field) for block in blocks)
+
+
 def get_sum_list_for_fields(blocks: List[object], fields: List[str]) -> List[int]:
-    return [sum([getattr(block.general, field) for block in blocks]) for field in fields]
- 
+    return [get_sum_for_field(blocks, field) for field in fields]

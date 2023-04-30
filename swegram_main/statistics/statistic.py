@@ -2,12 +2,13 @@
 Create a decorator to append statistic e.g. Text instance
 
 """
-from swegram_main.data.sentences import Sentence
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text
+from swegram_main.data.sentences import Sentence
 from swegram_main.statistics.features.general import CountFeatures as CF
-from swegram_main.statistics.features.readability import ReadabilityFeatures as RF
+from swegram_main.statistics.features.lexical import LexicalFeatures as LF
 from swegram_main.statistics.features.morph import MorphFeatures as MF
+from swegram_main.statistics.features.readability import ReadabilityFeatures as RF
 
 
 class Statistic:
@@ -28,14 +29,17 @@ class Statistic:
             instance.general = CF(instance.tokens, language)
             instance.readability = RF(instance.tokens, language, sentence=instance)
             instance.morph = MF(instance.tokens, language, sentence=instance)
+            instance.lexical = LF(instance.tokens, language, sentence=instance)
         elif isinstance(instance, Paragraph):
             instance.general = CF(instance.sentences, language)
             instance.readability = RF(instance.sentences, language)
             instance.morph = MF(instance.sentences, language)
+            instance.lexical = LF(instance.sentences, language)
         elif isinstance(instance, Text):
             instance.general = CF(instance.paragraphs, language)
             instance.readability = RF(instance.paragraphs, language)
             instance.morph = MF(instance.paragraphs, language)
+            instance.lexical = LF(instance.paragraphs, language)
         else:
             raise Exception(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
         return instance
