@@ -205,5 +205,3 @@ def enggram_spellcheck(inputFileName, outputFileName):
                         p.write(u'\n')
         f.close()
         p.close()
-
-enggram_spellcheck(sys.argv[1], sys.argv[2])
