@@ -16,6 +16,8 @@ from swegram_main.lib.logger import get_logger
 
 
 FT = TypeVar("FT", bound=Iterator[Union[Dict[str, str], str]])
+FP = TypeVar("FP", bound=Tuple[str, callable, Optional[callable], Dict[str, List[Tuple[str, Any]]], Dict[str, Any]]) # Feature Parameters
+K = TypeVar("K", bound=Dict[str, List[Tuple[str, Any]]])
 N = TypeVar("N", List[Union[int, float]], Counter)
 T = TypeVar("T", bound=List[Tuple[List[List[List[str]]], Dict[str, str]]])
 logger = get_logger(__name__)
@@ -251,7 +253,7 @@ def merge_counter(blocks: List[object], field: str) -> Counter:
     return counter_instance
 
 
-def merge_counters(blocks: List[object], fields: List[str]) -> List[Counter]:
+def merge_counters_for_fields(blocks: List[object], fields: List[str]) -> List[Counter]:
     return [merge_counter(blocks, field) for field in fields]
 
 
@@ -279,12 +281,21 @@ def merge_dicts_for_fields(blocks: List[object], fields: List[str]) -> List[defa
     return defaultdicts
 
 
-def merge_digits_for_field(blocks: List[object], field: str, operation: callable = sum) -> int:
+def merge_digits(blocks: List[object], field: str, operation: callable = sum) -> int:
     return operation([getattr(block.general, field) for block in blocks])
 
 
 def merge_digits_for_fields(blocks: List[object], fields: List[str], operation: callable = sum) -> int:
-    return [merge_digits_for_field(blocks, field, operation) for field in fields]
+    return [merge_digits(blocks, field, operation) for field in fields]
+
+
+def mixin_merge_digits_or_dicts(
+    blocks: List[object], field: str,
+    operation: callable = sum, data_type: type = int
+):
+    if isinstance(getattr(blocks[0].general, field), defaultdict):
+        return merge_dicts(blocks, field, data_type) 
+    return merge_digits(blocks, field, operation)
 
 
 def get_path(index: int, heads: List[Union[int, None]]) -> List[int]:
@@ -329,23 +340,35 @@ def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
     return True
 
 
-def prepare_feature(*args: str) -> Tuple[str, callable, Dict[str, List[Tuple[str, Any]]]]:
+def prepare_feature(*args: str) -> FP:
     """Two arg types are defined in this case
 
     with arg as arg_type, it can be used in the incsc computation;
     with attribute as arg_type, it needs to be converted from the instance before it is utilized for computation
-    with operation (a function used to convert the attribute into arg) as arg_type, only the first operation in the
-    kwargs will be applied.q
+    with attribute_arg as arg_type, the argument used when converting the attribute into arg for feature computation
     """
-    feature_name, func, *rest_args = args
-    kwargs = {}
+    feature_name, feature_func, attribute_func, *rest_args = args
+    kwargs, attribute_kwargs = {}, {}
     while rest_args:
         try:
             arg_key, arg_value, arg_type, *rest_args = rest_args
-            if arg_type in kwargs:
+            if arg_type == "attribute_arg":
+                attribute_kwargs.update({arg_key: arg_value})
+            elif arg_type in kwargs:
                 kwargs[arg_type].append((arg_key, arg_value))
             else:
                 kwargs[arg_type] = [(arg_key, arg_value)]
         except ValueError:
             raise Exception(f"Failed to parse args for feature, args: {args}")
-    return feature_name, func, kwargs
+    return feature_name, feature_func, attribute_func, kwargs, attribute_kwargs
+
+
+def parse_args(kwarg_list: K, func: callable, content: Any, **kwargs) -> Dict[str, Any]:
+    args = kwarg_list.get("arg", [])
+    args.extend([
+        (
+            key,
+            func(content, attribute, **kwargs)
+        ) for key, attribute in kwarg_list.get("attribute", [])
+    ])
+    return {key: value for key, value in args}

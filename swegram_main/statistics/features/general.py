@@ -21,10 +21,11 @@ from swegram_main.config import (
     MODIFIER_DEPREL_LABELS, SUBORDINATION_DEPREL_LABELS,
     LONG_ARC_THRESHOLD
 )
-from swegram_main.data.tokens import Token
-from swegram_main.data.sentences import Sentence
+from swegram_main.data.features import Feature
 from swegram_main.data.paragraphs import Paragraph
+from swegram_main.data.sentences import Sentence
 from swegram_main.data.texts import Text
+from swegram_main.data.tokens import Token
 from swegram_main.lib.utils import (
     get_path, get_child_nodes, is_a_ud_tree,
     merge_digits_for_fields,
@@ -294,8 +295,7 @@ class CountFeatures:
         self.type_count = len(self.types)
 
     def _set_feats(self) -> None:
-        self.feats = OrderedDict()
-        self.average = OrderedDict()
+        self.data = OrderedDict()
         self._set_sentence_features()
         if not isinstance(self.blocks[0], Token):
             self._set_paragraph_features()
@@ -307,33 +307,37 @@ class CountFeatures:
             self.SENTENCE_FEATURES,
             ["token_count", "type_count", "misspells", "compounds"]
         ):
-            self.feats[feature_name] = getattr(self, attribute)
             if not isinstance(self.blocks[0], Token):
                 scalar_list = [getattr(block.general, attribute) for block in self.blocks]
-                self.average[feature_name] = {"mean": mean(scalar_list), "median": median(scalar_list)}
-        self.average["Word length"] = {"mean": r2(self.chars, self.token_count), "median": median(self.token_length_counter)}
+                self.data[feature_name] = Feature(
+                    scalar=getattr(self, attribute), mean=mean(scalar_list), median=median(scalar_list)
+                )
+            else:
+                self.data[feature_name] = Feature(scalar=getattr(self, attribute))
+        self.data["Word length"] = Feature(
+            mean=r2(self.chars, self.token_count), median=median(self.token_length_counter)
+        )
 
     def _set_paragraph_features(self) -> None:
-        self.feats[self._Sentences] = self.sents
-        self.feats[self._Sentence_length] = {
-            "mean": r2(self.token_count, self.sents),
-            "median": median(self.sentence_length_counter)
-        }
+        self.data[self._Sentences] = Feature(scalar=self.sents)
+        self.data[self._Sentence_length] = Feature(
+            mean=r2(self.token_count, self.sents), median=median(self.sentence_length_counter)
+        )
+
         if not isinstance(self.blocks[0], (Token, Sentence)):
             scalar_list = [block.general.sents for block in self.blocks]
-            self.average[self._Sentences] = {"mean": mean(scalar_list), "median": median(scalar_list)}
+            self.data[self._Sentences].mean = mean(scalar_list)
+            self.data[self._Sentences].median = median(scalar_list)
 
     def _set_text_features(self) -> None:
         blocks = [p for t in self.blocks for p in t.paragraphs] if isinstance(self.blocks[0], Text) else self.blocks
         token2paragraph = [b.general.token_count for b in blocks]
         sent2paragraph = [b.general.sents for b in blocks]
         paragraph_length = len(blocks)
-        self.feats[self._Paragraphs] = paragraph_length
-        self.average[self._Paragraph_length_word] = {
-            "mean": r2(self.token_count, paragraph_length),
-            "median": median(token2paragraph)
-        }
-        self.average[self._Paragraph_length_sentence] = {
-            "mean": r2(self.sents, paragraph_length),
-            "median": median(sent2paragraph)
-        }
+        self.data[self._Paragraphs] = Feature(scalar=paragraph_length)
+        self.data[self._Paragraph_length_word] = Feature(
+            mean=r2(self.token_count, paragraph_length), median=median(token2paragraph)
+        )
+        self.data[self._Paragraph_length_sentence] = Feature(
+            mean=r2(self.sents, paragraph_length), median=median(sent2paragraph)
+        )

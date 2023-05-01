@@ -27,22 +27,22 @@ class Statistic:
 
         if isinstance(instance, Sentence):
             instance.general = CF(instance.tokens, language)
-            instance.readability = RF(instance.tokens, language, sentence=instance)
-            instance.morph = MF(instance.tokens, language, sentence=instance)
-            instance.lexical = LF(instance.tokens, language, sentence=instance)
-            instance.syntactic = SF(instance.tokens, language, sentence=instance)
+            instance.readability = RF(instance.tokens, language, sentence=instance).data
+            instance.morph = MF(instance.tokens, language, sentence=instance).data
+            instance.lexical = LF(instance.tokens, language, sentence=instance).data
+            instance.syntactic = SF(instance.tokens, language, sentence=instance).data
         elif isinstance(instance, Paragraph):
             instance.general = CF(instance.sentences, language)
-            instance.readability = RF(instance.sentences, language)
-            instance.morph = MF(instance.sentences, language)
-            instance.lexical = LF(instance.sentences, language)
-            instance.syntactic = SF(instance.sentences, language)
+            instance.readability = RF(instance.sentences, language).data
+            instance.morph = MF(instance.sentences, language).data
+            instance.lexical = LF(instance.sentences, language).data
+            instance.syntactic = SF(instance.sentences, language).data
         elif isinstance(instance, Text):
             instance.general = CF(instance.paragraphs, language)
-            instance.readability = RF(instance.paragraphs, language)
-            instance.morph = MF(instance.paragraphs, language)
-            instance.lexical = LF(instance.paragraphs, language)
-            instance.syntactic = SF(instance.paragraphs, language)
+            instance.readability = RF(instance.paragraphs, language).data
+            instance.morph = MF(instance.paragraphs, language).data
+            instance.lexical = LF(instance.paragraphs, language).data
+            instance.syntactic = SF(instance.paragraphs, language).data
         else:
             raise Exception(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
         return instance

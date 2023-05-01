@@ -46,6 +46,7 @@ from collections import OrderedDict, defaultdict
 from typing import Optional, List, Tuple, TypeVar, Union
 
 from swegram_main.config import UD_TAGS
+from swegram_main.data.features import Feature
 from swegram_main.data.sentences import Sentence
 from swegram_main.lib.utils import r2, mean, median, get_logger, merge_digits_for_fields
 from swegram_main.statistics.types import C
@@ -149,7 +150,7 @@ class MorphFeatures:
 
     def __init__(self, content: C, lang: str, sentence: Optional[Sentence] = None) -> None:
         self.blocks = content
-        self.feats = [OrderedDict({"name": group, "data": OrderedDict()}) for group in self.MORPH_GROUPS]
+        self.data = [OrderedDict({"name": group, "data": OrderedDict()}) for group in self.MORPH_GROUPS]
         self.sentence = sentence
 
         if lang == "en":
@@ -166,22 +167,22 @@ class MorphFeatures:
         self._set_feats(self.SWEDISH_FEATURES)
 
     def _set_feats(self, features: CF):
-        for index, (_, feature_list) in enumerate(features):
+        for index, (_, feature_list) in enumerate(features):  # _ is group name, which is skipped
             for feature_name, (dict_type, target_list, base_psos, to_convert) in feature_list:
-                if not self.sentence:
-                    if to_convert:
-                        target_list = merge_digits_for_fields(self.blocks, target_list)
-                    self.feats[index]["data"][feature_name] = {
-                        "scalar": pos_incsc(
-                            [getattr(block.general, dict_type) for block in self.blocks],
-                            target_list, base_psos
-                        )
-                    }
-                    scalars = [b.morph.feats[index]["data"][feature_name]["scalar"] for b in self.blocks]
-                    self.feats[index]["data"][feature_name].update({"mean": mean(scalars), "median": median(scalars)})
-                else:
+                if self.sentence:
                     if to_convert:
                         target_list = [getattr(self.sentence.general, feature) for feature in target_list]
-                    self.feats[index]["data"][feature_name] = {
-                        "scalar": pos_incsc([getattr(self.sentence.general, dict_type)], target_list, base_psos)
-                    }
+                    self.data[index]["data"][feature_name] = Feature(
+                        scalar=pos_incsc([getattr(self.sentence.general, dict_type)], target_list, base_psos)
+                    )
+                else:
+                    if to_convert:
+                        target_list = merge_digits_for_fields(self.blocks, target_list)
+                    self.data[index]["data"][feature_name] = Feature(
+                        scalar=pos_incsc(
+                            [getattr(block.general, dict_type) for block in self.blocks], target_list, base_psos
+                        )
+                    )
+                    scalars = [b.morph[index]["data"][feature_name].scalar for b in self.blocks]
+                    self.data[index]["data"][feature_name].mean = mean(scalars)
+                    self.data[index]["data"][feature_name].median = median(scalars)

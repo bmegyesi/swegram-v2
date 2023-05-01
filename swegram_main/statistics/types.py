@@ -2,8 +2,7 @@
 
 """
 from collections import Counter, defaultdict
-from dataclasses import dataclass
-from typing import List, Tuple, TypeVar, Optional
+from typing import List, Tuple, TypeVar
 
 from swegram_main.data.tokens import Token
 from swegram_main.data.sentences import Sentence
@@ -37,11 +36,3 @@ S = TypeVar(  # Serialization
         List[str], List[Tuple[int]]
     ]
 )
-V = TypeVar("V", int, float)
-
-
-@dataclass
-class Feature:
-    scalar: Optional[V] = None
-    mean: Optional[V] = None
-    median: Optional[V] = None

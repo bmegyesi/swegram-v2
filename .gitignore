@@ -1,11 +1,7 @@
 swegram_main/uploads
-swegram_main/handle_texts/pipeline/nlp/efselab/*
-swegram_main/handle_texts/pipeline/nlp/udpipe/*
-swegram_main/handle_texts/pipeline/tmp/*
-swegram_main/handle_texts/pipeline/output/*
-swegram_main/handle_texts/output/*
+swegram_main/handle_texts/*
 *.db
-test.txt
+tools/*
 
 
 # Created by https://www.gitignore.io/api/macos,django,python,virtualenv,visualstudiocode
