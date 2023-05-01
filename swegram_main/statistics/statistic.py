@@ -11,7 +11,7 @@ from swegram_main.statistics.features.morph import MorphFeatures as MF
 from swegram_main.statistics.features.readability import ReadabilityFeatures as RF
 from swegram_main.statistics.features.syntactic import SyntacticFeatures as SF
 
-class Statistic:
+class StatisticLoading:
 
     def __init__(self, load_function: callable) -> None:
         self.function = load_function

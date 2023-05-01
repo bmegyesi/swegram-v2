@@ -1,8 +1,4 @@
 
-import argparse
-from argparse import ArgumentParser
-from pathlib import Path
-
 """
 swegram 
 
@@ -21,6 +17,10 @@ optional arguments:
 --parse     bool
 """
 
+import argparse
+from argparse import ArgumentParser
+from pathlib import Path
+
 
 DESCRIPTION = """
 Swegram command line interface description
@@ -37,7 +37,10 @@ def _annotation_parser(annotation_parser: ArgumentParser):
 
 def _statistic_parser(statistic_parser: ArgumentParser):
     """Add arguments for statistic parser"""
-    statistic_parser.add_argument("--feature", dest="FEATURES", nargs="+", type=str)
+    # statistic_parser.add_argument("-f", "--features", dest="FEATURES", nargs="+", type=str, default=[])
+    statistic_parser.add_argument("-l", "--level", dest="LEVELS", nargs="+",
+        choices=["text", "paragraph", "sentence"], type=str, default=["text"]
+    )
 
 
 def main_parser():
