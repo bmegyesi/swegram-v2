@@ -1,36 +1,32 @@
-"""Swegram setup"""
-from setuptools import setup, find_packages
-from pathlib import Path
-from src.swegram.version import VERSION
 
-BASE_PATH = Path.cwd()
+import os
+from setuptools import setup
+from typing import List
 
-REQUIREMENTS_PATH = Path.joinpath(BASE_PATH, 'requirements.txt')
-if REQUIREMENTS_PATH:
-    with open(REQUIREMENTS_PATH, mode='r') as dependency_file:
-        dependencies = [d.strip() for d in dependency_file.readlines() if d.strip()]
-else:
-    dependencies = []
+
+def read(fname: str) -> str:
+    with open(os.path.join(os.path.dirname(__file__), fname)) as input_file:
+        return input_file.read()
+
+
+def get_requirements(requirement: str) -> List[str]:
+    return [dependency.strip() for dependency in read(requirement).split("\n") if dependency.strip()]
 
 
 setup(
-    name='swegram',
-    version=VERSION,
-    author='Uppsala University',
-    description='',
-    long_description='',
-    packages=find_packages(exclude=['test*']),
-    include_package_data=True,
-    install_requires=dependencies,
-    python_requires='>=3.6',
-    classifiers=['Programming Language :: Python :: 3'],
+    name="Swegram CLI",
+    version="1.0.0",
+    # author="",
+    # author_email="",
+    description="Swegram description",
+    long_description=read("README.md"),
+    # packages=[],
+    license=read("LICENSE"),
+    # url="url",
+    # requires=get_requirements("requirements.txt"),
     entry_points={
-        'console_scripts': [
-            'swegram=src.swegram.swegram:main'
+        "console_scripts": [
+            "swegram=swegram_main.handler.cli:main"
         ]
     }
 )
-
-
-
-

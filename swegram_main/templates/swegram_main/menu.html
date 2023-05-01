@@ -1,0 +1,43 @@
+<div class="ui bla menu large" style="width:1020px; background-color:#f3f4f6">
+  <div class="ui container">
+    <div class="ui simple dropdown item">
+      <b>Lägg till text</b> <i class="dropdown icon"></i>
+      <div class="menu">
+        <a class="item" href="#" onclick="openTab('page_upload_text'); makeActive(this)">Annoterad text</a>
+        <a class="item active" href="#" onclick="openTab('page_annotate'); makeActive(this)">Annotera ny text</a>
+      </div>
+    </div>
+    <div class="ui simple dropdown item">
+      <b>Statistik</b> <i class="dropdown icon"></i>
+      <div class="menu">
+        <a class="item" href="#" onclick="openTab('page_general'); makeActive(this)">Allmän statistik</a>
+        <a class="item" href="#" onclick="openTab('page_readability'); makeActive(this)">Läsbarhet</a>
+        <a class="item" href="#" onclick="openTab('page_pos'); makeActive(this)">Ordklasser</a>
+        <a class="item" href="#" onclick="openTab('page_freq'); makeActive(this)">Frekvenser</a>
+        <a class="item" href="#" onclick="openTab('page_morph'); makeActive(this)">Morfologiska särdrag</a>
+        <a class="item" href="#" onclick="openTab('page_syntactic'); makeActive(this)">Syntaktiska särdrag</a>
+        <div class="divider"></div>
+        <a href="#" class="item" onclick="openTab('page_export'); makeActive(this)">Exportera statistik</a>
+      </div>
+    </div>
+
+    <span id="text_menu_zone"></span>
+
+
+    <div class="right menu">
+      <a class="item" href="{{url}}/">Start</a>
+      <!---
+      <a class="item" onclick="openTab('page_auth'); makeActive(this)">Logga in</a>
+      --->
+
+      <div class="ui right simple dropdown item">
+        <b>Hjälp</b> <i class="dropdown icon"></i>
+
+      <div class="menu">
+        <a class="item" href="#" onclick="openTab('page_help'); makeActive(this)">Användarmanual</a>
+      </div>
+
+    </div>
+  </div>
+  </div>
+</div>

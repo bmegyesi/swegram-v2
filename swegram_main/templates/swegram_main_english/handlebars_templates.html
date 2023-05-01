@@ -1,0 +1,1031 @@
+{% verbatim myblock %}
+  <script id="n_loaded_texts_template" type="x-tmpl-mustache">
+  <h3>{{texts_selected}}/{{text_n}} texts chosen</h3>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="visualise_template" type="x-tmpl-mustache">
+  <h2 class="ui block header">
+    {{metadata}}
+  </h2>
+
+
+
+  <div class="ui one column grid">
+    <div class="two column row">
+      <div class="ui segment">
+        <div class="ui fluid icon input">
+          <input onkeyup="token_search()" id="search_token" type="text" placeholder="Search token...">
+          <i class="search icon"></i>
+        </div><br>
+
+        <div class="ui compact menu">
+          <div class="ui simple dropdown item">
+            <span id="mark_pos_label">Highlight pos</span><br><br>
+              <i class="dropdown icon"></i>
+            <div class="menu">
+              <br>
+              {{#pos_list}}
+              <span class="ui checked slider checkbox">
+              <input id="pos_{{this}}_slider" onclick="toggle_visualise_pos('{{this}}');" type="checkbox">
+              <label>{{this}}</label>
+              </span><br><br>
+              {{/pos_list}}
+            </div>
+          </div>
+        </div><br><br>
+
+        <span class="ui checked slider checkbox">
+        <input id="visualise_slider" type="checkbox" onclick="toggle_visualise();" checked="">
+        <label>Show normalized tokens</label>
+        </span><br><br><br>
+
+        <span class="ui checked slider checkbox">
+        <input id="visualise_slider" type="checkbox" onclick="highlight_normalized();">
+        <label>Highlight normalized tokens</label>
+        </span><br><br><br>
+      </div>
+    </div>
+    <span id="edit_token_id" style="display:none;"></span>
+
+    <div class="column">
+      <div class="ui list">
+        {{#sentences}}
+        <div class="ui divider"></div>
+        <div class="item">
+          {{#tokens}}
+          {{#this}}
+          <span id="form_{{id}}"
+            data-id="{{id}}"
+            data-form="{{form}}"
+            data-norm="{{norm}}"
+            data-lemma="{{lemma}}"
+            data-upos="{{upos}}"
+            data-xpos="{{xpos}}"
+            data-feats="{{feats}}"
+            data-ufeats="{{ufeats}}"
+            data-head="{{head}}"
+            data-deprel="{{deprel}}"
+            data-deps="{{deps}}"
+            data-misc="{{misc}}"
+            data-normalized="{{normalized}}"
+            data-dep-length="{{dep_length}}"
+            data-path="{{path}}"
+            onclick="highlight_token(this);"
+            class="token form {{#ifNotEquals form norm}}has_norm{{/ifNotEquals}}">{{form}}
+          </span>
+          {{#ifEquals compound_originals false}}
+          <span id="norm_{{id}}"
+            data-id="{{id}}"
+            data-form="{{form}}"
+            data-norm="{{norm}}"
+            data-lemma="{{lemma}}"
+            data-upos="{{upos}}"
+            data-xpos="{{xpos}}"
+            data-feats="{{feats}}"
+            data-ufeats="{{ufeats}}"
+            data-head="{{head}}"
+            data-deprel="{{deprel}}"
+            data-deps="{{deps}}"
+            data-misc="{{misc}}"
+            data-normalized="{{normalized}}"
+            data-dep-length="{{dep_length}}"
+            data-path="{{path}}"
+            onclick="highlight_token(this);"
+            class="token norm">{{norm}}
+          </span>
+          {{/ifEquals}}
+          {{/this}}
+          {{/tokens}}
+          <div class="ui accordion">
+            <div class="title">
+              <i class="dropdown icon"></i>
+              Syntactic Features
+            </div>
+            <div class="content" data-index="{{@index}}">
+              <div id="displacy_sent_{{@index}}" onclick="showDisplacyModal({{@index}})"></div>
+              <div class="ui segment">
+                <span>Avg. DepArc length: {{avg_dep_length}}</span><br>
+                <span>Median Dependency length: {{median_dep_length}}</span><br>
+                <span>Longest Dependency length: {{longest_length}}</span><br>
+                <span>Left Ratio: {{left}}</span><br>
+                <span>Right Ratio: {{right}}</span><br>
+                <span>Dep arc5+: {{arc5plus}}</span><br>
+                <span>Modifier variation INCSC: {{mod_incsc}}</span><br>
+                <span>Pre-modifier INCSC: {{pre_incsc}}</span></br>
+                <span>Post-modifier INCSC: {{post_incsc}}</span></br>
+                <span>Subordinate INCSC: {{sub_incsc}}</span></br>
+                <span>Relative clause INCSC: {{rel_incsc}}</span></br>
+                <span>Prepositional complement INCSC: {{pp_incsc}}</span></br>
+              </div>
+            </div>
+          </div>
+          <div class="ui fullscreen modal" id="displacy_modal_{{@index}}">
+            <div class="image content"></div>
+          </div>
+        </div>
+        {{/sentences}}
+      </div>
+    </div>
+
+    <div id="token_detail_info_popup" style="word-wrap: break-word;" class="ui popup hidden">
+
+      <h4>Highlighted token</h4>
+      <i style="cursor:pointer;" onclick="edit_text('form', '{{text_id}}')" class="edit icon"></i> Form: <span id="marked_form"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('norm', '{{text_id}}')" class="edit icon"></i> Norm: <span id="marked_norm"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('lemma', '{{text_id}}')" class="edit icon"></i> Lemma: <span id="marked_lemma"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('upos', '{{text_id}}')" class="edit icon"></i> Upos: <span id="marked_upos"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('xpos', '{{text_id}}')" class="edit icon"></i> Xpos: <span id="marked_xpos"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('feats', '{{text_id}}')" class="edit icon"></i> Feats: <span id="marked_feats"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('ufeats', '{{text_id}}')" class="edit icon"></i> Ufeats: <span id="marked_ufeats"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('head', '{{text_id}}')" class="edit icon"></i> Head: <span id="marked_head"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('deprel', '{{text_id}}')" class="edit icon"></i> Deprel: <span id="marked_deprel"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('deps', '{{text_id}}')" class="edit icon"></i> Deps: <span id="marked_deps"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('misc', '{{text_id}}')" class="edit icon"></i> Misc: <span id="marked_misc"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('dep_length', '{{text_id}}" class="edit icon"></i> Dependency length: <span id="marked_dep_length"></span><br>
+      <i style="cursor:pointer;" onclick="edit_text('path', '{{text_id}}" class="edit icon"></i> Path: <span id="marked_path"></span><br>
+    </div>
+
+  </div>
+</script>
+
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="readability_template" type="x-tmpl-mustache">
+  <table class="ui very basic table" id="table_readability" style="width:100%;">
+  <thead style="display:none;">
+    <tr style="display:none;">
+      <th>#General statistics</th>
+    </tr>
+  </thead>
+
+  <thead>
+    <tr>
+
+    <th></th>
+    <th style="text-align:right;">Total<sup>1</sup></th>
+    <th style="text-align:right;">Median<sup>2</sup></th>
+    </tr>
+  </thead>
+
+
+
+    <tbody>
+      <tr>
+        <td>Coleman Liau index</td>
+        <td class="td_content" style="text-align:right;">{{cli_mean}}</td>
+        <td class="td_content" style="text-align:right;">{{cli_median}}</td>
+      </tr>
+
+
+      <tr>
+        <td>Flesch Reading Ease</td>
+        <td class="td_content" style="text-align:right;">{{fres_mean}}</td>
+        <td class="td_content" style="text-align:right;">{{fres_median}}</td>
+      </tr>
+
+      <tr>
+        <td>Flesch Kincaid Grade Level</td>
+        <td class="td_content" style="text-align:right;">{{fkgl_mean}}</td>
+        <td class="td_content" style="text-align:right;">{{fkgl_median}}</td>
+      </tr>
+
+      <tr>
+        <td>Automated Readability Index</td>
+        <td class="td_content" style="text-align:right;">{{ari_mean}}</td>
+        <td class="td_content" style="text-align:right;">{{ari_median}}</td>
+      </tr>
+
+      <tr>
+        <td>SMOG</td>
+        <td class="td_content" style="text-align:right;">{{smog_mean}}</td>
+        <td class="td_content" style="text-align:right;">{{smog_median}}</td>
+      </tr>
+
+    </tbody>
+
+  </thead>
+  </table>
+  <br>
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="lengths_template" type="x-tmpl-mustache">
+  <div class="ui buttons">
+    <button onclick="lengths_words_pos('words');" id="wl_words" class="wlbtn ui button">Words</button>
+    <div id="pos_menu_button" class="ui floating dropdown icon button">
+      <span id="pos_menu_label">{{#ifEquals words_pos "Ord"}} Part-of-speech {{/ifEquals}}{{#ifNotEquals words_pos "Ord"}} {{words_pos}} {{/ifNotEquals}}</span>
+      <i class="dropdown icon"></i>
+
+      <div class="menu">
+        <div class="ui search icon input">
+          <i class="search icon"></i>
+          <input type="text" name="search" placeholder="Search...">
+        </div>
+        {{#each pos_list}}
+        <div id="menu_{{this}}" onclick="lengths_words_pos('{{this}}');" class="item">{{this}}
+        </div>
+        {{/each}}
+      </div>
+
+    </div>
+  </div><br>
+
+
+  <table>
+    <table class="ui very basic table" id="table_lengths" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#General statistics</th></tr></thead>
+
+      <tbody>
+        <tr>
+        <td id="morethan_label" style="width:20%;">
+        {{words_pos}} with more than
+        </td>
+        <td>
+        <i onclick="update_lengths('morethan', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{morethan_n}} <i style="cursor:pointer;" onclick="update_lengths('morethan', 'plus');" class="plus square outline icon"></i> characters
+        </td>
+        <td id="morethan_total" style="text-align:right;">
+        {{morethan_total}}
+        </td>
+        </tr>
+
+        <tr>
+        <td id="lessthan_label" style="width:20%;">
+        {{words_pos}} with less than
+        </td>
+        <td style="text-align:left;">
+        <i onclick="update_lengths('lessthan', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{lessthan_n}} <i style="cursor:pointer;" onclick="update_lengths('lessthan', 'plus');" class="plus square outline icon"></i> characters
+        </td>
+        <td id="lessthan_total" style="text-align:right;">
+        {{lessthan_total}}
+        </td>
+        </tr>
+
+        <tr>
+        <td id="equal_label" style="width:20%;">
+        {{words_pos}} with
+        </td>
+        <td>
+        <i onclick="update_lengths('equal', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{equal_n}} <i style="cursor:pointer;" onclick="update_lengths('equal', 'plus');" class="plus square outline icon"></i> characters
+        </td>
+        <td  id="equal_total" style="text-align:right;">
+        {{equal_total}}
+        </td>
+        </tr>
+      </tbody>
+    </table>
+
+   <!-- REX
+   <div class="ui buttons">
+    <button onclick="lengths_words_pos('words');" id="wl_words" class="wlbtn ui button">Words</button>
+    <div id="pos_menu_button" class="ui floating dropdown icon button">
+      <span id="pos_menu_label">{{#ifEquals words_pos "Ord"}} Part-of-speech {{/ifEquals}}{{#ifNotEquals words_pos "Ord"}} {{words_pos}} {{/ifNotEquals}}</span> <i class="dropdown icon"></i>
+
+      <div class="menu">
+        <div class="ui search icon input">
+          <i class="search icon"></i>
+          <input type="text" name="search" placeholder="Search...">
+        </div>
+        {{#each pos_list}}
+      <div id="menu_{{this}}" onclick="lengths_words_pos('{{this}}');" class="item">{{this}}</div>
+        {{/each}}
+      </div>
+    </div>
+  </div><br>
+
+    <table>
+    <table class="ui very basic table" id="table_lengths" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#General statistics</th></tr></thead>
+
+      <tbody>
+        <tr>
+        <td id="morethan_label" style="width:20%;">
+        Dependency arcs longer than
+        </td>
+        <td>
+        <i onclick="update_lengths('morethan', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{morethan_n}} <i style="cursor:pointer;" onclick="update_lengths('morethan', 'plus');" class="plus square outline icon"></i>
+        </td>
+        <td id="morethan_total" style="text-align:right;">
+        {{morethan_total}}
+        </td>
+        </tr>
+
+        <tr>
+        <td id="lessthan_label" style="width:20%;">
+        Dependency arcs shorter than
+        </td>
+        <td style="text-align:left;">
+        <i onclick="update_lengths('lessthan', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{lessthan_n}} <i style="cursor:pointer;" onclick="update_lengths('lessthan', 'plus');" class="plus square outline icon"></i>
+        </td>
+        <td id="lessthan_total" style="text-align:right;">
+        {{lessthan_total}}
+        </td>
+        </tr>
+
+        <tr>
+        <td id="equal_label" style="width:20%;">
+        The length of dependency arcs is equal to
+        </td>
+        <td>
+        <i onclick="update_lengths('equal', 'minus');" style="cursor:pointer;" class="minus square outline icon"></i> {{equal_n}} <i style="cursor:pointer;" onclick="update_lengths('equal', 'plus');" class="plus square outline icon"></i>
+        </td>
+        <td  id="equal_total" style="text-align:right;">
+        {{equal_total}}
+        </td>
+        </tr>
+      </tbody>
+    </table>
+    -->
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="general_stats_template" type="x-tmpl-mustache">
+
+  {{#if non_normalized_files}}
+  Följande filer inkluderas inte eftersom de inte är normaliserade:<br>
+  {{#each non_normalized_files}}
+      <b>{{this}}</b><br>
+  {{/each}}
+  {{/if}}
+
+  <table>
+    <table class="ui very basic table" id="table_general" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#General statistics</th></tr></thead>
+      <thead>
+
+        <tr>
+        <th></th>
+        <th style="text-align:right;">Amount</th>
+        <th style="text-align:right;">Average</th>
+        <th style="text-align:right;">Median</th>
+      </tr></thead>
+      <tbody>
+
+      <tr>
+        <td>
+          Tokens
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_tokens}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_tokens}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_tokens}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Words
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_words}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_words}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_words}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Spelling errors
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_misspells}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_misspells}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_misspells}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Compound errors
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_compounds}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_compounds}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_compounds}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Word length
+        </td>
+        <td style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_word_len}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_word_len}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Sentences
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_sent}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_sent}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_sent}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Sentence length (n words) <sup>1</sup>
+        </td>
+        <td style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_sent_len}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_sent_len}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Paragraphs
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{n_paragraphs}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_paragraphs}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_paragraphs}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Paragraph length (n words) <sup>1</sup>
+        </td>
+        <td class="td_content" style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_paragraph_length}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_paragraph_length}}
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Paragraph length (n sentences)
+        </td>
+        <td class="td_content" style="text-align:right;">
+
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{mean_paragraph_sentence_length}}
+        </td>
+        <td class="td_content" style="text-align:right;">
+          {{median_paragraph_sentence_length}}
+        </td>
+      </tr>
+
+      <tr style="display:none;"><br></tr>
+      </tbody>
+    </table>
+    <br><sup>1</sup> Excluding punctuation
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="syntactic_template" type="x-tmpl-mustache">
+    <table class="ui very basic table" id="table_syntactic" style="width:100%;">
+
+    <thead>
+      <tr>
+        <th></th>
+        <th style="text-align:right;">Amount</th>
+        <th style="text-align:right;">Average</th>
+        <th style="text-align:right;">Median</th>
+      </tr>
+    </thead>
+
+
+    <tbody>
+      <tr>
+        <td>Dependency length</td>
+        <td class="td_content" style="text-align:right;">{{n_dep_length}}</td>
+        <td class="td_content" style="text-align:right;">{{avg_dep_length}}</td>
+        <td class="td_content" style="text-align:right;">{{median_dep_length}}</td>
+      </tr>
+
+      <tr>
+        <td>Dependency arcs longer than 5</td>
+        <td class="td_content" style="text-align:right;">{{arc5plus}}</td>
+        <td></td>
+        <td></td>
+      </tr>
+
+      <tr>
+        <td>Longest dependency length</td>
+        <td class="td_content" style="text-align:right;">{{long_length}}</td>
+        <td></td>
+        <td></td>
+      </tr>
+
+      <tr>
+        <td>Ratio of right dependency arcs</td>
+        <td class="td_content" style="text-align:right;">{{n_dep_right}}</td>
+        <td class="td_content" style="text-align:right;">{{right_dep_ratio}}</td>
+        <td class="td_content" style="text-align:right;">{{median_dep_right}}</td>
+      </tr>
+
+      <tr>
+        <td>Ratio of left dependency arcs</td>
+        <td class="td_content" style="text-align:right;">{{n_dep_left}}</td>
+        <td class="td_content" style="text-align:right;">{{left_dep_ratio}}</td>
+        <td class="td_content" style="text-align:right;">{{median_dep_left}}</td>
+      </tr>
+
+      <tr>
+        <td>Modifier variation</td>
+        <td></td>
+        <td class="td_content" style="text-align:right;">{{mean_mod_incsc}}</td>
+        <td class="td_content" style="text-align:right;">{{median_mod_incsc}}</td>
+      </tr>
+
+      <tr>
+        <td>Pre-modifier INCSC</td>
+        <td></td>
+        <td class="td_content" style="text-align:right;">{{mean_pre_incsc}}</td>
+        <td class="td_content" style="text-align:right;">{{median_pre_incsc}}</td>
+      </tr>
+
+      <tr>
+        <td>Post-modifier INCSC</td>
+        <td></td>
+        <td class="td_content" style="text-align:right;">{{mean_post_incsc}}</td>
+        <td class="td_content" style="text-align:right;">{{median_post_incsc}}</td>
+      </tr>
+
+      <tr>
+        <td>Subordinate INCSC</td>
+        <td></td>
+        <td class="td_content" style="text-align:right;">{{mean_sub_incsc}}</td>
+        <td class="td_content" style="text-align:right;">{{median_sub_incsc}}</td>
+      </tr>
+
+
+      <tr>
+        <td>Relative clause INCSC</td>
+        <td></td>
+        <td class="td_content" style="text-align:right;">{{mean_relative_incsc}}</td>
+        <td class="td_content" style="text-align:right;">{{median_relative_incsc}}</td>
+      </tr>
+
+      <tr>
+
+        <td>Prepositional complement INCSC</td>
+        <td></td>
+        <td class="td_content" style="text-align:right;">{{mean_prep_incsc}}</td>
+        <td class="td_content" style="text-align:right;">{{median_prep_incsc}}</td>
+      </tr>
+
+    </tbody>
+    </table>
+  </br>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="morph_template" type="x-tmpl-mustache">
+    <table class="ui very basic table" id="table_morph" style="width:100%;">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Feature Name</th>
+          <th style="text-align:right;">Scalar</th>
+          <th style="text-align:right;">Average</th>
+          <th style="text-align:right;">Median</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each morph_features}}
+          {{#each this}}
+            {{#with this}}
+
+        <tr>
+          <td class="td_content" style="text-align:left;">{{ name }}</td>
+          <td class="td_content" style="text-align:right;">{{ scalar }}</td>
+          <td class="td_content" style="text-align:right;">{{ mean }}</td>
+          <td class="td_content" style="text-align:right;">{{ median }}</td>
+        </tr>
+            {{/with}}
+          {{/each }}
+        {{/each}}
+      </tbody>
+    </table>
+  </br>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="lexical_template" type="x-tmpl-mustache">
+    <table class="ui very basic table" id="table_lexical" style="width:100%;">
+      <thead>
+        <tr>
+          <th style="text-algin:left;">Feature Name</th>
+          <th style="text-align:right;">Amount</th>
+          <th style="text-align:right;">Average</th>
+          <th style="text-align:right;">Median</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each lexical_features}}
+          {{#with this}}
+
+        <tr>
+          <td class="td_content" style="text-align:left;">{{ name }}</td>
+          <td class="td_content" style="text-align:right;">{{ scalar }}</td>
+          <td class="td_content" style="text-align:right;">{{ mean }}</td>
+          <td class="td_content" style="text-align:right;">{{ median }}</td>
+        </tr>
+          {{/with}}
+        {{/each}}
+      </tbody>
+    </table>
+  </br>
+  </script>
+
+{% endverbatim myblock %}
+
+
+{% verbatim myblock %}
+  <script id="text_menu_template" type="x-tmpl-mustache">
+  <div class="ui simple dropdown item">
+    <b>Visualize text</b> <i class="dropdown icon"></i>
+
+
+    <div class="menu">
+    {{#texts}}
+      <div class="item">
+        <i class="dropdown icon"></i>
+        <span class="text">{{filename}}</span>
+        <div class="menu">
+          {{#texts_in_file}}
+            <div onclick="visualise_text('{{id}}');" class="item">{{meta}}</div>
+          {{/texts_in_file}}
+      </div>
+      </div>
+    {{/texts}}
+    </div>
+  </div>
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="filter_template" type="x-tmpl-mustache">
+
+  <table class="ui table">
+    <thead>
+      <tr>
+        <th>Show statistics for</th>
+      </tr>
+    </thead>
+    <tbody>
+    <tr>
+    <td>
+
+    <select id="stats_type_dropdown" onchange="change_stats_type()" class="ui fluid dropdown">
+      <option value="all_texts">All texts</option>
+      {{#each text_ids}}
+        <option value="{{this.[0]}}">{{this.[1]}}</option>
+      {{/each}}
+    </select>
+
+    </td>
+    </tr>
+    </tbody>
+  </table>
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="metadata_template" type="x-tmpl-mustache">
+
+  <table class="ui table">
+    <thead>
+      <tr>
+        <th>Metadata</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    <br><br>
+
+    {{#each metadata}}
+      <tr>
+        <td>
+          <div style="cursor:pointer;" onclick="fade_down('meta_{{@key}}')" class="sixteen wide column">
+            <i class="tag icon"></i>
+            {{@key}}
+            <i id="arrow_meta_{{@key}}" style="float:right;" class="angle double down icon"></i>
+          </div>
+
+          <div id='meta_{{@key}}' class="text_faded sixteen wide column transition hidden"><hr>
+            {{#each this}}
+            <div>
+              {{@key}}
+
+              <span style="float:right; left:20px;" class="ui checked slider checkbox">
+
+              <input class="meta_checkbox" type="checkbox" onclick="toggle_metadata('{{@../key}}_{{@key}}');"
+              {{#if this.[0]}} checked=""{{/if}}
+              >
+              <label>&nbsp;</label>
+
+              </span>
+              </div>
+              {{#unless @last}}
+              <br>
+              {{/unless}}
+            {{/each}}
+          </div>
+        </td>
+      </tr>
+    {{/each}}
+
+
+    </tbody>
+  </table>
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+  <script id="loaded_texts_template" type="x-tmpl-mustache">
+
+
+  <table class="ui table">
+    <thead>
+      <tr>
+          <th>Loaded files</th>
+      </tr>
+    </thead>
+    <tbody>
+
+    {{#each loaded_files}}
+      <tr>
+        <td>
+          <div class="sixteen wide column">
+            <i style="cursor:pointer;" class="edit text outline icon" onclick="filename_popup({{this.[1]}}, '{{this.[0]}}');"></i>
+            <span style="cursor:pointer;" onclick="fade_down({{this.[1]}})">
+            {{#if this.[7]}}
+            <span id="span_{{this.[1]}}">
+                {{this.[0]}}
+                </span>
+            {{else}}
+              <span class="grey_text" id="span_{{this.[1]}}">
+                {{this.[0]}}
+              </span>
+            {{/if}}
+            <i id="arrow_{{this.[1]}}" style="float:right;" class="angle double down icon"></i>
+            </span>
+          </div>
+
+          <div id="{{this.[1]}}" class="text_faded sixteen wide column transition hidden">
+          <br>
+            Include<span style="float:right; left:20px;" class="ui checked slider checkbox">
+            <input type="checkbox" onclick="change_file_state({{this.[1]}});" {{#unless this.[6]}} disabled="disabled"{{/unless}}
+            {{#if this.[7]}}checked=""{{/if}}><label>&nbsp;</label></span><br>
+
+            <div style="margin-top:2px;">Size<span style="float:right;">{{this.[2]}}</span></div>
+            Texts<span style="float:right;">{{this.[3]}}</span> <br>
+            {{#if this.[5]}}
+              Has metadata<span style="float:right;">Yes</span><br>
+            {{else}}
+              Has metadata<span style="float:right;">No</span><br>
+            {{/if}}
+            {{#if this.[6]}}
+              Can be analyzed<span style="float:right;">Yes</span><br>
+            {{else}}
+              Can be analyzed<span style="float:right;">No</span><br>
+            {{/if}}
+            {{#if this.[8]}}
+              Normalized<span style="float:right;">Yes</span><br>
+            {{else}}
+              Normalized<span style="float:right;">No</span><br>
+            {{/if}}
+
+            Uploaded<span style="float:right;">{{this.[4]}}</span><br>
+            <hr>
+            <a style="" href="/swegram/dl/{{this.[1]}}">
+              <i class="download icon"></i>
+              Download
+            </a>
+
+           <a style="color:red; float:right" href="#" onclick="update_sidebar({{this.[1]}});">
+              <i class="remove icon"></i>
+              Remove
+           </a>
+
+
+
+          </div>
+        </td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+
+
+
+
+
+  </script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+<script id="freq_header_template" type="x-tmpl-mustache">
+
+<div class="ui form">
+  <div class="inline fields">
+
+    <div class="field">
+        <input type="radio" onclick="toggle_freq('form');" {{#ifEquals freq_type "form"}} checked {{/ifEquals}} class="freq_radio" name="freq_radio" value="form" tabindex="0" class="hidden">
+        <label>Form</label>
+    </div>
+    <div class="field">
+      <input type="radio" onclick="toggle_freq('norm');" {{#ifEquals freq_type "norm"}} checked {{/ifEquals}} class="freq_radio" name="freq_radio" value="norm" tabindex="0" class="hidden">
+      <label>Norm</label>
+    </div>
+    <div class="field">
+      <input type="radio" onclick="toggle_freq('lemma');" {{#ifEquals freq_type "lemma"}} checked {{/ifEquals}} class="freq_radio" name="freq_radio" value="lemma" tabindex="0" class="hidden">
+      <label>Lemma</label>
+    </div>
+  </div>
+</div>
+<button class="ui basic button" onclick="update_freq_pos('deselect_all')">Deselect all parts-of-speech</button><br><br>
+<div id='freq_pos_list' class="ui grid text_faded sixteen wide column transition">
+
+
+
+{{#each freq_pos_list}}
+  <div class="five wide column"><span class="ui checked slider checkbox">
+  <input type="checkbox" {{#if this.[1]}}checked="" {{/if}}onclick="update_freq_pos('{{this.[0]}}')"><label>{{this.[0]}}</label>
+  </span></div>
+{{/each}}
+
+{{#each disabled_pos_list}}
+  <div class="five wide column"><span class="ui slider checkbox">
+  <label><strike>{{this}}</strike></label>
+  </span></div>
+{{/each}}
+
+</div>
+<br>
+
+
+<br>
+</script>
+{% endverbatim myblock %}
+
+{% verbatim myblock %}
+<script id="freq_template" type="x-tmpl-mustache">
+{{#if non_normalized_files}}
+Följande filer inkluderas inte eftersom de inte är normaliserade:<br>
+  {{#each non_normalized_files}}
+  <b>{{this}}</b><br>
+  {{/each}}<br>
+{{/if}}
+<table>
+  <table class="ui very basic table" id="table_freq" style="width:100%;">
+  <thead style="display:none;"><tr style="display:none;"><th>#Frequencies</th></tr></thead>
+    <thead>
+      <tr>
+
+      <th width="10%;">Index</th>
+      <th width="50%;">Token</th>
+      <th width="10%;">Part-of-speech</th>
+      <th width="15%;" style="text-align:right;">Amount</th>
+      <th width="15%;" style="text-align:right;">Share</th>
+    </tr></thead>
+    <tbody>
+    {{#each freq_list}}
+    <tr>
+      <td class="td_content">{{this.[0]}}
+      </td>
+      <td class="td_content">{{this.[1]}}
+      </td>
+      <td class="td_content">{{this.[2]}}
+      </td>
+      <td class="td_content" style="text-align:right;">{{this.[3]}}
+      </td>
+      <td class="td_content" style="text-align:right;">{{this.[4]}}
+      </td>
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+
+
+</table>
+</script>
+{% endverbatim myblock %}
+
+
+
+{% verbatim myblock %}
+<script id="pos_list_template" type="x-tmpl-mustache">
+
+
+<button class="ui basic button" onclick="update_pos('deselect_all')">Deselect all parts-of-speech</button><br><br>
+
+
+<div id='pos_list' class="ui grid text_faded sixteen wide column transition">
+
+{{#each pos_list}}
+  <div class="five wide column"><span class="ui checked slider checkbox">
+  <input type="checkbox" {{#if this.[1]}}checked="" {{/if}}onclick="update_pos('{{this.[0]}}')"><label>{{this.[0]}}</label>
+  </span></div>
+{{/each}}
+
+{{#each disabled_pos_list}}
+  <div class="five wide column"><span class="ui slider checkbox">
+  <label>{{this}}</label>
+  </span></div>
+{{/each}}
+
+</div>
+</script>
+{% endverbatim myblock %}
+
+
+{% verbatim myblock %}
+<script id="pos_template" type="x-tmpl-mustache">
+
+  <table>
+    <table class="ui very basic table" id="table_pos" style="width:100%;">
+    <thead style="display:none;"><tr style="display:none;"><th>#Part-of-speech statistics</th></tr></thead>
+      <thead>
+        <tr>
+
+        <th>Part-of-speech</th>
+        <th style="text-align:right;">Amount</th>
+        <th style="text-align:right;">Share</th>
+      </tr></thead>
+      <tbody>
+
+      {{#each pos_counts}}
+        <tr>
+        {{#each this}}
+
+          {{#if @first}}
+            <td class="td_content" style="text-align:left;">{{this}}</td>
+          {{/if}}
+
+          {{#unless @first}}
+            {{#each this}}
+              <td class="td_content" style="text-align:right;">{{this}}</td>
+            {{/each}}
+          {{/unless}}
+
+        {{/each}}
+
+          </tr>
+      {{/each}}
+      <tr style="display:none;"><br></tr>
+      </tbody>
+    </table>
+
+
+  </table>
+  </div>
+  </script>
+{% endverbatim myblock %}

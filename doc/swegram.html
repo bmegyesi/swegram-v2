@@ -1,0 +1,196 @@
+<style>
+.sourcecode{
+  font-family: "Courier New", Courier, monospace;
+
+}
+
+body{
+  width:800px;
+}
+
+</style>
+
+<html>
+<body>
+These notes are written with linux/macos in mind since that's what I'm using. There are a few things that'd be
+different for Windows, such as piping pip freeze to a file but it shouldn't be too much trouble to figure out.<br>
+I will refer to <i>production</i> and <i>local</i> which refers to the code running on the stp server and the code
+running on a local machine respectively.<br>
+
+<h3>1. Python, virtualenv and pip</h3>
+Swegram is written for python 2.<br>
+It's generally a good idea to use <a href="https://virtualenv.pypa.io/en/latest/">virtual environments</a> when working
+with python projects. This makes sure that all the libraries you need can be installed for that project specifically,
+using the correct versions. It's also a good idea to have <a href="https://pypi.org/project/pip/">pip</a> installed,
+which makes it easy to install libraries for python. <br>
+Assuming you have virtualenv and pip installed, run the following to set up a new virtual environment called <i>swegram</i><br>
+<span class="sourcecode">virtualenv swegram</span><br>
+which sets up the virtual environment in the current folder. In order to activate it, simply run
+<span class="sourcecode">source swegram/bin/activate</span><br><br>
+To run swegram, a few libraries need to be installed. These can be found in <span class="sourcecode">requirements.txt</span> which
+is located in the root folder of the project. Using pip, these can be installed with<br>
+<span class="sourcecode">pip install -r requirements.txt</span><br>
+If you decide to include any new packages, it's a good idea to also update <span class="sourcecode">requirements.txt</span>. This
+can be done by running<br>
+<span class="sourcecode">pip freeze > requirements.txt</span><br>
+
+<h3>2. Configuration</h3>
+The configuration is split between three files: <span class="sourcecode">base.py</span>,  <span class="sourcecode">production.py</span>
+and <span class="sourcecode">local.py</span>.<br>
+<ul>
+  <li>
+    <span class="sourcecode">base.py</span> contains the part of the configuration that are always the same on production and
+    local, such as installed apps, timezone and template locations. If you look at the last lines of this file, you can see
+    that it import either <span class="sourcecode">production.py</span> or <span class="sourcecode">local.py</span> depending
+    on whether the machine is running Linux or not. <b>Note that you will have to change this if you're running Linux on your
+    own machine to avoid the production config to be loaded</b>. Even if you're not running Linux on your own machine,
+    imorting the configs using this method is bad practice so feel free to come up with a better solution if you have the time.
+  </li>
+  <li>
+    <span class="sourcecode">production.py</span> contains the rest of the config when running in production, such as how to access
+    postgresql for the swegram user on the stp server. I have noted that this file as found on git might differ from the
+    one actually in production (i.e. I have probably made some changes directly to the file without using git), <b>please
+    be aware of this if you're pushing changes to production</b>.
+  </li>
+  <li>
+    <span class="sourcecode">local.py</span> contains the rest of the config when running locally. The main difference between
+    this config and the production config is the database and cache backends.
+  </li>
+</ul>
+Note that the DEBUG variable always should be set to False on production. I have sometimes set it to True when debugging
+in production, but remember to change it back to False when you're done if you decide to do that.
+
+
+<h3>3. Database and cache</h3>
+<h4>3.1 Production</h4>
+In production, swegram uses postgresql as a database. The only things stored in the database are the user accounts (which is only
+the admin account and isn't really used for anything except for maybe debugging using the /admin page) and
+<a href="https://en.wikipedia.org/wiki/MD5">md5</a> hashes of uploaded files.
+The reason for storing md5 hashes of the uploaded files is that if a user <br>
+1) uploads and annotates a new file with normalization<br>
+2) downloads the file<br>
+3) re-uploads the file as an already annotated file<br>
+we want to know whether that file was normalized so that we can produce statistics correctly. Using md5 hashes and storing them
+in the database allows us to save that information. In <i>models.py</i> you can find the model that handles this.<br><br>
+In addition to the database, caching is used for the <a href="https://docs.djangoproject.com/en/2.1/topics/http/sessions/">
+sessions</a>. For production, this is also handled by posgresql. Normally a caching server such as memcached or Redis would
+be used for this, but given the relatively low traffic on swegram, postgres works just fine.
+<h4>3.2 Local</h4>
+For local development, I have used posgres as well. I would however recommend using
+<a href="https://docs.djangoproject.com/en/2.1/ref/settings/#databases">SQLite</a> instead. SQLite is very easy to set up
+(you don't need any additional software running, Django handles everything for you) and saves all the data in a single file
+in the root directory of the project, making it easy to share the database if needed. There is also no difference in
+performance between postgresql and SQLite when running locally (SQLite would probably even work just as well as
+postgresql in production).<br>
+For caching locally, it doesn't matter much which method you use. If you choose DatabaseCache, the default database
+will be used for caching, which is what I typically do. Another method that can be used is LocMemCache. This stores
+the cache directly in memory, which is really fast (but again, the difference is so small that you won't notice a
+difference). <br>There is one notable difference between LocMemCache and DatabaseCache though: when using LocMemCache, the cache
+is wiped every time you make a change in the code (which triggers the server to reload it), while if you use DatabaseCache,
+the data persists even if you make changes to the code. I have found LocMemCache to be usedful when I for instance debug
+something related to uploading files, so that I don't have a huge pile of uploaded files after I've uploaded 10+ times. <br>
+If you want to learn more about caching in Django, check out <a href="https://docs.djangoproject.com/en/2.1/topics/cache/">
+this</a>. And if you want to learn more about caching in general, <a href="https://redis.io/">Redis</a> might be fun to
+fiddle with. It's easy to get it running with Django and it's used by lots of big sites like instagram and stackoverflow. <br>
+
+<h3>4. Prerequisites</h3>
+There are two packages -- <a href="http://ufal.mff.cuni.cz/udpipe">UDPipe</a> and <a href="https://github.com/robertostling/efselab">
+efselab</a> -- that are required by swegram but not included in the git repository. These need to be obtained separately from their
+respective repositories. <br>
+UDPipe is used for the English annotation pipeline, and should be stored in <span class="sourcecode">
+swegram_main/handle_texts/pipeline/nlp/udpipe/udpipe</span><br>
+efselab is used for the Swegish annotation pipeline, and should be stored in <span class="sourcecode">
+swegram_main/handle_texts/pipeline/nlp/efselab</span>.<br> Note that it's not the default efselab we're using, but the swedish annotation
+pipeline. Instructions for installing this are
+available in the <a href="https://github.com/robertostling/efselab#swedish-annotation-pipeline">repository readme</a>.
+
+<h3>5. Data structure</h3>
+The uploaded data is represented as various objects in swegram. Each uploaded text file is represented as a <span class="sourcecode">
+Textfile</span> object,
+which in turn contains a list of <span class="sourcecode">Text</span> objects (each individual text found in the file). The texts
+objects have a number of variables such as metadata and word count, as well as a list of <span class="sourcecode">Sentence</span> objects.
+Each <span class="sourcecode">Sentence</span> object consists only of a lit of <span class="sourcecode">Token</span> objects, which
+basically contain the raw data for each token, i.e. form, norm, lemma, upos etc. Check <i>handle_texts/import_text.py</i> for more
+information.
+
+<h3>6. Code structure</h3>
+In <span class="sourcecode">swegram_main/templates/swegram_main(_english)</span> you'll find all the html. To build the templates,
+I'm using <a href="https://handlebarsjs.com/">handlebars</a>, and the templates build with handlebars can be found in <span class="sourcecode">
+handlebars_templates.html</span>.<br>
+All the javascript and css is located in <span class="sourcecode">swegram_main/static/swegram_main</span>. If any of these files are changed
+and applied to production, you have to run<br>
+<span class="sourcecode">python manage.py collectstatic</span><br>
+on the server.
+This moves the static files to the static folder which is served by the web server on the URL <span class="sourcecode">
+https://cl.lingfil.uu.se/swegramstatic/swegram_main/</span>.<br>
+Some other important files are:
+<ul>
+  <li>
+    <i>urls.py</i> - URL dispatcher, it should be fairly straightforward, check the <a href="https://docs.djangoproject.com/en/2.1/topics/http/urls/">
+      official documentation</a> for more info.
+  </li>
+  <li>
+    <i>views.py</i> - contains the views of swegram. This mainly determines that languages and returns the correct templates.
+  </li>
+  <li>
+    <i>handle_texts/helpers.py</i> - contains various helper methods as well as methods for downloading data.
+  </li>
+  <li>
+    <i>handle_texts/import_texts.py</i> - contains the class definitions for the texts as described in <i>5. Data structure</i>. This also
+    contains the methods that create the Textfile objects.
+  </li>
+  <li>
+    <i>handle_texts/statistics.py</i> - statistics calculations.
+  </li>
+  <li>
+    <i>handle_texts/upload_file.py</i> - handles file uploads, both raw texts that are to be annotated, and already annotated texts for which
+    statistics are just calculated.
+  </li>
+</ul>
+<br><br>
+To exemplify how the statistics are calculated, let's pretend we want to implement a new statistic that counts how many words contains the character
+<i>a</i> in total:<br>
+First we need to be able to reach the method. If you look at the url dispatcher, various types of statistics have their own url so that data
+can be fetched. So for this example, we'll create a new url called <i>/character_a/</i> which points to a function in <i>statistics.py</i>
+called <i>character_a</i>. <br>
+This function takes one argument: <i>request</i>, which contains our session (which contains lots of things such as a list of the texts that
+we have loaded and various statistics) among other things, thus our function will be defined as<br><br>
+<span class="sourcecode">def character_a(request):</span><br>
+<span class="sourcecode">&nbsp occurrences = 0 # contains the number of occurrences</span><br><br>
+<span class="sourcecode">&nbsp for text in request.session.get('text_list'):</span><br>
+<span class="sourcecode">&nbsp &nbsp for sentence in text.sentences:</span><br>
+<span class="sourcecode">&nbsp &nbsp &nbsp for token in sentence.tokens:</span><br>
+<span class="sourcecode">&nbsp &nbsp &nbsp &nbsp if 'a' in token.norm.lower():</span><br>
+<span class="sourcecode">&nbsp &nbsp &nbsp &nbsp &nbsp occurrences += 1</span><br><br>
+<span class="sourcecode">&nbsp return JsonResponse('a_occurrences': occurrences)</span><br><br>
+
+We can now access this statistic by going to <i>/character_a/</i>, and we'll get a Json object in return. <br>
+The data is typically accessed using ajax; have a look at stats.js, for example like 161, where readability is loaded. If you look at line 168,
+you can see that the data is rendered to the <i>readability_zone</i> template, which is defined in <i>handlebars_templates.html</i> on line 123.<br>
+<i>readability_zone</i> is in turn included in <i>readability_section.html</i>.<br><br>
+Whenever you make changes in the code in production, run the following while in the &ltproject-root&gt/swegram to apply the changes:<br>
+<span class="sourcecode">touch wsgi.py</span>
+</body>
+
+<h3>7. Running</h3>
+You don't need a real web server to run Django, simply type<br>
+<span class="sourcecode">python manage.py runserver</span><br>
+to run a web server at 127.0.0.1:8000.<br>
+You can also specify ip and port by running for instance<br>
+<span class="sourcecode">python manage.py runserver 192.168.1.2:80</span><br>
+
+<h3>8. Misc</h3>
+<h4>8.1 numpy</h4>
+I have had some problems running numpy with django, causing spontaneous deadlocks. Since I only used numpy for simple functions such as
+mean and median I just made my own functions for that instead of trying to fix the actual issue. There is some information on it
+<a href="https://code.google.com/archive/p/modwsgi/wikis/ApplicationIssues.wiki#Python_Simplified_GIL_State_API">here</a> if you're
+interested. This also applies to other C-based libraries such as scipy.
+<h4>8.2 Troubleshooting</h4>
+If errors occur in production, in addition to setting DEBUG to True, also check the server log which is located in <i>/var/log/httpd/error_log</i>.
+Since it's usually very long, use tail to only get the last <i>n</i> lines, such as<br>
+ <span class="sourcecode">tail -n 200 /var/log/httpd/error_log</span><br><br>
+ It's possible to get emails whenever errors occur by setting the ADMINS variable in the settings, see <a href="https://docs.djangoproject.com/en/2.1/ref/settings/#admins">
+   here</a>. 
+
+</html>
+
