@@ -24,6 +24,8 @@ UDPIPE_MODEL = UDPIPE_BASE.joinpath("en", "english-ud-2.0-170801.udpipe")
 HISTNORM_EN = "histnorm"
 HISTNORM_SV = TOOL_DIR.joinpath("HistNorm")
 
+
+# Lexical feature related variables
 KELLY_DIR = BASE_DIR.joinpath("swegram_main", "statistics", "kelly")
 KELLY_EN = _json_load(KELLY_DIR.joinpath("kelly.en"))
 KELLY_SV = _json_load(KELLY_DIR.joinpath("kelly.sv"))
@@ -31,7 +33,28 @@ WPM_SV = _json_load(KELLY_DIR.joinpath("wpm.sv"))
 ADVANCE_CEFR_LEVELS = "3456"  # WHICH CEFR LEVELS ARE TREATED AS BEING ADVANCE
 
 
-# OUTPUT_DIR = settings.BASE_DIR + "/swegram_main/handle_texts/pipeline/output/" #need to be put into config.py
+# Syntactical feature related variables
+LONG_ARC_THRESHOLD = 5
+MODIFIER_DEPREL_LABELS = [
+  "advmod",  # adverbial modifier
+  "amod",  # adjective modifier
+  "appos",  # appositional modifier
+  "discourse",  # discourse element
+  "nmod",  # nominal modifier
+  "nummod",  # numeric modifier
+]
+# See https://universaldependencies.org/u/overview/complex-syntax.html#subordination
+SUBORDINATION_DEPREL_LABELS = [
+  "acl",  # Adnominal clause modifiers
+  "advcl",  # Adverbial clause modifiers
+  "ccomp",  # Clausal complements (objects) without obligatory control
+  "csubj",  # Clausal subjects 
+  "xcomp",  # Clausal complements (objects) with obligatory control
+]
+
+
+
+# OUTPUT variables
 OUT_FILE = "text_file"   
 OUT_STATS_FILE = "stats_file" 
 

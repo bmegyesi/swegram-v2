@@ -6,16 +6,18 @@ import tempfile
 from collections import Counter, defaultdict
 from hashlib import md5
 from pathlib import Path
-from typing import Callable, Dict, Generator, Iterator, List, Optional, TypeVar, Tuple, Union
-
+from typing import (
+    Any, Callable, Dict, Generator, Iterator, List, Optional,
+    TypeVar, Tuple, Union
+)
 from swegram_main.data.metadata import parse_metadata
 from swegram_main.lib.converter import Converter
 from swegram_main.lib.logger import get_logger
 
 
+FT = TypeVar("FT", bound=Iterator[Union[Dict[str, str], str]])
 N = TypeVar("N", List[Union[int, float]], Counter)
 T = TypeVar("T", bound=List[Tuple[List[List[List[str]]], Dict[str, str]]])
-FT = TypeVar("FT", bound=Iterator[Union[Dict[str, str], str]])
 logger = get_logger(__name__)
 
 
@@ -277,9 +279,73 @@ def merge_dicts_for_fields(blocks: List[object], fields: List[str]) -> List[defa
     return defaultdicts
 
 
-def get_sum_for_field(blocks: List[object], field: str) -> int:
-    return sum(getattr(block.general, field) for block in blocks)
+def merge_digits_for_field(blocks: List[object], field: str, operation: callable = sum) -> int:
+    return operation([getattr(block.general, field) for block in blocks])
 
 
-def get_sum_list_for_fields(blocks: List[object], fields: List[str]) -> List[int]:
-    return [get_sum_for_field(blocks, field) for field in fields]
+def merge_digits_for_fields(blocks: List[object], fields: List[str], operation: callable = sum) -> int:
+    return [merge_digits_for_field(blocks, field, operation) for field in fields]
+
+
+def get_path(index: int, heads: List[Union[int, None]]) -> List[int]:
+    path = [index]
+    while index:
+        path.append(heads[index])
+        if len(path) > len(heads):
+            raise Exception(f"Failed to get dependency path for index {index} in heads {heads}")
+        index = heads[index]
+    return path
+
+
+def get_child_nodes(index: int, heads: List[Union[int, None]]) -> List[int]:
+    """Get all direct and indirect child nodes given index node"""
+    child_nodes = []
+    while index in heads:
+        child = heads.index(index)
+        child_nodes.append(child)
+        heads[child] = None
+        for c in get_child_nodes(child, heads):
+            child_nodes.append(c)
+    return child_nodes
+
+
+def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
+    heads = list(map(int, heads))
+    children = list(range(1, len(heads)+1))
+    if 0 not in heads:
+        return f"{error_prefix} Root is missing."
+    if Counter(heads)[0] > 1:
+        return f"{error_prefix} More than one roots in sentence"
+    if len(children) > len(set(children)):
+        return f"{error_prefix} Same indeces for two nodes in sentence."
+
+    for i in children:
+        head = [heads[i - 1]]
+        while 0 not in head:
+            if heads[head[-1] - 1] in head:
+                return f"{error_prefix} Cycle Error in sentence."
+            head.append(heads[head[-1] - 1])
+        head = []
+    return True
+
+
+def prepare_feature(*args: str) -> Tuple[str, callable, Dict[str, List[Tuple[str, Any]]]]:
+    """Two arg types are defined in this case
+
+    with arg as arg_type, it can be used in the incsc computation;
+    with attribute as arg_type, it needs to be converted from the instance before it is utilized for computation
+    with operation (a function used to convert the attribute into arg) as arg_type, only the first operation in the
+    kwargs will be applied.q
+    """
+    feature_name, func, *rest_args = args
+    kwargs = {}
+    while rest_args:
+        try:
+            arg_key, arg_value, arg_type, *rest_args = rest_args
+            if arg_type in kwargs:
+                kwargs[arg_type].append((arg_key, arg_value))
+            else:
+                kwargs[arg_type] = [(arg_key, arg_value)]
+        except ValueError:
+            raise Exception(f"Failed to parse args for feature, args: {args}")
+    return feature_name, func, kwargs

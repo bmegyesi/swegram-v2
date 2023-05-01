@@ -3,7 +3,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Tuple, List, Union, Iterator
 
-from swegram_main.lib.utils import read
+from swegram_main.lib.utils import read, is_a_ud_tree
 from swegram_main.config import UD_TAGS, PT_TAGS, SUC_TAGS, DEPRELS, XFEATS, FEATS
 
 
@@ -133,26 +133,6 @@ def check_text(model: str, text: Iterator) -> None:
     return any(normalized), any(tagged), any(parsed)
 
 
-def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
-    heads = list(map(int, heads))
-    children = list(range(1,len(heads)+1))
-    if 0 not in heads:
-        return f"{error_prefix} Root is missing."
-    if Counter(heads)[0] > 1:
-        return f"{error_prefix} More than one roots in sentence"
-    if len(children) > len(set(children)):
-        return f"{error_prefix} Same indeces for two nodes in sentence."
-
-    for i in children:
-        head = [heads[i - 1]]
-        while 0 not in head:
-            if heads[head[-1] - 1] in head:
-                return f"{error_prefix} Cycle Error in sentence."
-            head.append(heads[head[-1] - 1])
-        head = []
-    return True
-
-
-if __name__ == "__main__":
-    t = checker(Path("10-sv.conll"), "efselab")
-    print(t)
+# if __name__ == "__main__":
+#     t = checker(Path("10-sv.conll"), "efselab")
+#     print(t)

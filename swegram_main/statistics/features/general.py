@@ -13,14 +13,23 @@ paragraph length (n sentences)
 import math
 import re
 from collections import Counter, OrderedDict, defaultdict
-from typing import List
+from copy import copy
+from typing import List, Tuple
 
-from swegram_main.config import KELLY_EN, KELLY_SV, ADVANCE_CEFR_LEVELS, WPM_SV
+from swegram_main.config import (
+    KELLY_EN, KELLY_SV, ADVANCE_CEFR_LEVELS, WPM_SV,
+    MODIFIER_DEPREL_LABELS, SUBORDINATION_DEPREL_LABELS,
+    LONG_ARC_THRESHOLD
+)
 from swegram_main.data.tokens import Token
 from swegram_main.data.sentences import Sentence
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text
-from swegram_main.lib.utils import mean, median, r2, merge_dicts_for_fields, get_sum_list_for_fields
+from swegram_main.lib.utils import (
+    get_path, get_child_nodes, is_a_ud_tree,
+    merge_digits_for_fields,
+    mean, median, r2, merge_dicts_for_fields
+)
 from swegram_main.statistics.types import B, S
 
 
@@ -69,11 +78,27 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
     upos_dict, xpos_dict, word_dict = [defaultdict(int) for _ in range(3)]  # used for readability features
 
     token_length_list = [] # the length of each token
+
+    # Lexical features related
     cefr_list = []
     wpm_sv_list = []
     kelly_dict = KELLY_EN if lang == "en" else KELLY_SV
 
-    for token in tokens:
+    # Syntactical features related
+    depth_list: List[Tuple[int, ...]] = []
+    long_arcs, left_arcs, right_arcs, pre_modifier, post_modifier = 0, 0, 0, 0, 0
+    subordinate_nodes, relative_clause_nodes, preposition_nodes = [set() for _ in range(3)]
+
+    try:
+        response = is_a_ud_tree([token.head for token in tokens])
+        if response is not True:
+            raise ValueError(response)
+    except ValueError:
+        heads = None
+    else:
+        heads = [None, *[int(token.head) for token in tokens]]
+
+    for index, token in enumerate(tokens, 1):
         form, norm, lemma = token.form.lower(), token.norm.lower(), token.lemma.lower()
         upos, xpos, feats = token.upos, token.xpos, token.feats
         freq_form_dict_upos[f"{form}_{upos}"] += 1
@@ -145,15 +170,49 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
             if wpm:
                 wpm_sv_list.append(r2(math.log(wpm)))
         #<end------------used for lexical features------------end>
-        
+
+        #<start----------used for syntactic features--------start>
+        if heads:
+            token_depth = tuple(get_path(index, heads))
+            depth_list.append(token_depth)
+            if len(token_depth) > LONG_ARC_THRESHOLD:
+                long_arcs += 1
+            if heads[index] < index:
+                left_arcs += 1
+            elif heads[index] > index:
+                right_arcs += 1
+            else:
+                raise Exception("Error during syntax annotation parsing")
+            if token.deprel.startswith(tuple(MODIFIER_DEPREL_LABELS)):
+                if heads[index] < index:
+                    post_modifier += 1
+                elif heads[index] > index:
+                    pre_modifier += 1
+                else:
+                    raise Exception("Error during syntax annotation parsing")
+            elif token.deprel == "case":
+                preposition_nodes.add(index)
+                preposition_nodes = preposition_nodes.union(get_child_nodes(index, copy(heads)))
+            else:
+                if token.deprel.startswith(tuple(SUBORDINATION_DEPREL_LABELS)):
+                    subordinate_nodes = subordinate_nodes.union(get_child_nodes(index, copy(heads)))
+                if "rel" in token.deprel:
+                    relative_clause_nodes.add(index)
+                    relative_clause_nodes = relative_clause_nodes.union(get_child_nodes(index, copy(heads)))
+        #<end------------used for syntactic features----------end>
+
 
     return  sum(token_length_list), len(tokens), words, syllables, polysyllables, misspells, compounds, \
             _3sg_pron, neut_noun, s_verb, rel_pron, pres_verb, past_verb, sup_verb, pres_pc, past_pc, \
-            advance_cefr, advance_noun_or_verb, 1, \
+            advance_cefr, advance_noun_or_verb, \
+            long_arcs, left_arcs, right_arcs, pre_modifier, post_modifier, \
+            len(subordinate_nodes), len(relative_clause_nodes), len(preposition_nodes), \
+            1, \
             freq_form_dict_upos, freq_norm_dict_upos, freq_lemma_dict_upos, \
             freq_form_dict_xpos, freq_norm_dict_xpos, freq_lemma_dict_xpos, \
             upos_dict, xpos_dict, word_dict, \
-            Counter(token_length_list), Counter([len(tokens)]), Counter(cefr_list), Counter(wpm_sv_list), list(types)
+            Counter(token_length_list), Counter([len(tokens)]), Counter(cefr_list), Counter(wpm_sv_list), \
+            list(types), depth_list
 
 
 def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
@@ -183,12 +242,13 @@ def _serialize(blocks: List[B], lang: str) -> S:
         sents = sum([block.general.sents for block in blocks])
     else:
         raise SerializationError(f"Unknown block type: {type(blocks[0])}")
-    scalars = get_sum_list_for_fields(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
+    scalars = merge_digits_for_fields(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
     freqs = merge_dicts_for_fields(blocks, CountFeatures.FREQ_FIELDS)
     counters = _merge_counters(blocks, CountFeatures.COUNTER_FIELDS)
     types = _union(blocks, CountFeatures.UNION_FIELD)
+    depth_list = [t for block in blocks for t in getattr(block.general, CountFeatures.LIST_FIELD)]
 
-    return *scalars, sents, *freqs, *counters, types
+    return *scalars, sents, *freqs, *counters, types, depth_list
 
 
 class CountFeatures:
@@ -198,6 +258,8 @@ class CountFeatures:
         "chars", "token_count", "words", "syllables", "polysyllables", "misspells", "compounds",
         "_3sg_pron", "neut_noun", "s_verb", "rel_pron", "pres_verb", "past_verb", "sup_verb", "pres_pc", "past_pc",
         "advance_cefr", "advance_noun_or_verb",
+        "long_arcs", "left_arcs", "right_arcs", "pre_modifier", "post_modifier",
+        "subordinate_nodes", "relative_clause_nodes", "preposition_nodes",
         "sents",
     ]
     FREQ_FIELDS = [
@@ -207,7 +269,8 @@ class CountFeatures:
     ]
     COUNTER_FIELDS = ["token_length_counter", "sentence_length_counter", "cefr_counter", "wpm_sv_counter"]
     UNION_FIELD = "types"
-    FIELDS = [*SCALAR_FIELDS, *FREQ_FIELDS, *COUNTER_FIELDS, UNION_FIELD]
+    LIST_FIELD = "depth_list"
+    FIELDS = [*SCALAR_FIELDS, *FREQ_FIELDS, *COUNTER_FIELDS, UNION_FIELD, LIST_FIELD]
 
     # Feature Declaration
     SENTENCE_FEATURES = ["Token-count", "Type-count", "Spelling erros", "Compound errors", "Word length"]

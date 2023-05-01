@@ -22,13 +22,19 @@ S = TypeVar(  # Serialization
         # scalars: 3sg_pron, neut_noun, s_verb, rel_pron, pres_verb, past_verb, sup_verb, pres_pc, past_pc
         int, int, int, int, int, int, int, int, int,
         # scalars: advance_cefr, advance_noun_or_verb
-        int, int, 
+        int, int,
+        # scalars: long_arcs, left_arcs, right_arcs, pre_modifier, post_modifier,
+        int, int, int, int, int,
+        # scalars: subordinate_nodes, relative_clause_nodes, preposition_nodes
+        int, int, int,
         # sents
         int,
         # freq_<form|norm|lemma>_dict_<upos|xpos>, xpos_dict, word_dict
         D, D, D, D, D, D, D, D,
-        # counter for token length, sentence length, cefr, wpm;  a list of types
-        Counter, Counter, Counter, Counter, List[str]
+        # counter for token length, sentence length, cefr, wpm;
+        Counter, Counter, Counter, Counter,
+        # list of types, list of token depths
+        List[str], List[Tuple[int]]
     ]
 )
 V = TypeVar("V", int, float)

@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Tuple, TypeVar, Any, Union
 
 
 from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import r2, mean, median, get_sum_for_field, merge_counter
+from swegram_main.lib.utils import r2, mean, median, merge_digits_for_field, merge_counter, prepare_feature
 from swegram_main.statistics.types import C, Feature
 
 
@@ -34,46 +34,26 @@ def lemma_incsc(
     return r2(lemmas * 1000, token_count)
 
 
-def _prepare_incsc(*args: str) -> Tuple[str, Dict[str, List[Tuple[str, Any]]]]:
-    """Two arg types are defined in this case
-    
-    with arg as arg_type, it can be used in the incsc computation;
-    with attribute as arg_type, it needs to be converted from the instance before it is utilized for computation
-    """
-    feature_name, *rest_args = args
-    kwargs = {}
-    while rest_args:
-        try:
-            arg_key, arg_value, arg_type, *rest_args = rest_args
-            if arg_type in kwargs:
-                kwargs[arg_type].append((arg_key, arg_value))
-            else:
-                kwargs[arg_type] = [(arg_key, arg_value)]
-        except ValueError:
-            raise Exception(f"Failed to parse args for feature, args: {args}")
-    return feature_name, kwargs
-
-
 class LexicalFeatures:
 
     COMMON_FEATURES = [
-        _prepare_incsc(*args) for args in [
-            ("A1 lemma INCSC", "lemmas", "1", "arg"),
-            ("A2 lemma INCSC", "lemmas", "2", "arg"),
-            ("B1 lemma INCSC", "lemmas", "3", "arg"),
-            ("B2 lemma INCSC", "lemmas", "4", "arg"),
-            ("C1 lemma INCSC", "lemmas", "5", "arg"),
-            ("C2 lemma INCSC", "lemmas", "6", "arg"),
-            ("Difficult Word INCSC", "lemmas", "advance_cefr", "attribute"),
-            ("Difficult Noun or Verb INCSC", "lemmas", "advance_noun_or_verb", "attribute"),
-            ("Out of Kelly-list INCSC", "diff", True, "arg")
+        prepare_feature(*args) for args in [
+            ("A1 lemma INCSC", lemma_incsc, "lemmas", "1", "arg"),
+            ("A2 lemma INCSC", lemma_incsc, "lemmas", "2", "arg"),
+            ("B1 lemma INCSC", lemma_incsc, "lemmas", "3", "arg"),
+            ("B2 lemma INCSC", lemma_incsc, "lemmas", "4", "arg"),
+            ("C1 lemma INCSC", lemma_incsc, "lemmas", "5", "arg"),
+            ("C2 lemma INCSC", lemma_incsc, "lemmas", "6", "arg"),
+            ("Difficult Word INCSC", lemma_incsc, "lemmas", "advance_cefr", "attribute"),
+            ("Difficult Noun or Verb INCSC", lemma_incsc, "lemmas", "advance_noun_or_verb", "attribute"),
+            ("Out of Kelly-list INCSC", lemma_incsc, "diff", True, "arg")
         ]
     ]
 
     KELLY_LOG_FREQ_FEATURE = "Kelly log-frequency"
     SWEDISH_FEATURES = [
         *COMMON_FEATURES,
-        (KELLY_LOG_FREQ_FEATURE, {})
+        (KELLY_LOG_FREQ_FEATURE, None, {})
     ]
     def __init__(self, content: C, lang: str, sentence: Optional[Sentence] = None) -> None:
         self.blocks = content
@@ -105,7 +85,7 @@ class LexicalFeatures:
 
 
     def _set_feats(self, features: Tuple[str, Optional[str], bool]) -> None:
-        for feature_name, kwarg_list in features:
+        for feature_name, func, kwarg_list in features:
             if feature_name == self.KELLY_LOG_FREQ_FEATURE:
                 if not self.sentence:
                     kelly_log_counter = merge_counter(self.blocks, "wpm_sv_counter")
@@ -114,17 +94,16 @@ class LexicalFeatures:
                 self.feats[feature_name] = Feature(mean=mean(kelly_log_counter), median=median(kelly_log_counter))
                 continue
 
-            if not self.sentence:
-                token_count = get_sum_for_field(self.blocks, "token_count")
-                cefr_counter = merge_counter(self.blocks, "cefr_counter")
-                kwargs = self._parse_args(kwarg_list, get_sum_for_field, self.blocks)
-                scalar_list = [block.lexical.feats[feature_name].scalar for block in self.blocks]
-                self.feats[feature_name] = Feature(
-                    scalar=lemma_incsc(token_count, cefr_counter, **kwargs),
-                    mean=mean(scalar_list), median=median(scalar_list)
-                )
-
-            else:
+            if self.sentence:
                 token_count, cefr_counter = [getattr(self.sentence.general, a) for a in ["token_count", "cefr_counter"]]
                 kwargs = self._parse_args(kwarg_list, getattr, self.sentence.general)
-                self.feats[feature_name] = Feature(scalar=lemma_incsc(token_count, cefr_counter, **kwargs))
+                self.feats[feature_name] = Feature(scalar=func(token_count, cefr_counter, **kwargs))
+            else:
+                token_count = merge_digits_for_field(self.blocks, "token_count")
+                cefr_counter = merge_counter(self.blocks, "cefr_counter")
+                kwargs = self._parse_args(kwarg_list, merge_digits_for_field, self.blocks)
+                scalar_list = [block.lexical.feats[feature_name].scalar for block in self.blocks]
+                self.feats[feature_name] = Feature(
+                    scalar=func(token_count, cefr_counter, **kwargs),
+                    mean=mean(scalar_list), median=median(scalar_list)
+                )

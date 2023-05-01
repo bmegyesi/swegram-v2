@@ -47,7 +47,7 @@ from typing import Optional, List, Tuple, TypeVar, Union
 
 from swegram_main.config import UD_TAGS
 from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import r2, mean, median, get_logger, get_sum_list_for_fields
+from swegram_main.lib.utils import r2, mean, median, get_logger, merge_digits_for_fields
 from swegram_main.statistics.types import C
 
 
@@ -170,7 +170,7 @@ class MorphFeatures:
             for feature_name, (dict_type, target_list, base_psos, to_convert) in feature_list:
                 if not self.sentence:
                     if to_convert:
-                        target_list = get_sum_list_for_fields(self.blocks, target_list)
+                        target_list = merge_digits_for_fields(self.blocks, target_list)
                     self.feats[index]["data"][feature_name] = {
                         "scalar": pos_incsc(
                             [getattr(block.general, dict_type) for block in self.blocks],
