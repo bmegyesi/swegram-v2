@@ -48,109 +48,188 @@ from typing import Optional, List, Tuple, TypeVar, Union
 from swegram_main.config import UD_TAGS
 from swegram_main.data.features import Feature
 from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import r2, mean, median, get_logger, merge_digits_for_fields
+from swegram_main.lib.utils import r2, mean, median, get_logger, prepare_feature, parse_args
+from swegram_main.lib.utils import incsc, mixin_merge_digits_or_dicts
 from swegram_main.statistics.types import C
 
 
 logger = get_logger(__name__)
-SCF = Tuple[str, Tuple[str, List[str], List[str]], bool] # Single Common Feature
-CF = TypeVar("CF", bound=List[Tuple[str, List[SCF]]])  # Common Features
 TARGET = TypeVar("TARGET", str, int)
 
 SINGLE_PSOS = ["ADJ", "ADV", "NOUN", "PART", "PUNCT", "SCONJ", "VERB"] 
 VARIATION_PSOS_BASE = ["ADJ", "ADV", "NOUN", "VERB"]
-LEXICAL_PSOS = [*VARIATION_PSOS_BASE, "PROPN", "INTJ"]
-FUNCTIONAL_PSOS = ["ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "PUNCT", "SCONJ", "SYM", "X"]
+VARIATION_PSOS_BASE_STRING = " ".join(VARIATION_PSOS_BASE)
+LEXICAL_PSOS = " ".join([*VARIATION_PSOS_BASE, "PROPN", "INTJ"])
+FUNCTIONAL_PSOS = " ".join(["ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON", "PUNCT", "SCONJ", "SYM", "X"])
+UD_TAG_STRING = " ".join(UD_TAGS)
 
 
-def _get_psos_amount(pos_dicts: List[defaultdict], psos: List[str]) -> int:
-    return sum([pos_dict[pos] for pos_dict in pos_dicts for pos in psos])
+def prepare_verb(group_name: str, feature_name: str, *args, dict_type: str = "upos_dict") -> Tuple[str, callable, callable, str, str]:
+    return f"{group_name}_{feature_name}", pos_incsc, mixin_merge_digits_or_dicts, *args, "pos_dict", dict_type, "attribute"
 
 
-def _serilize_psos(psos: Union[str, List[str]]):
-    if isinstance(psos, str):
-        return psos.split()
-    return psos
+def _psos_counter(psos: str, pos_dict: defaultdict) -> int:
+    return sum([pos_dict[pos] for pos in psos.split()])
 
 
-def pos_incsc(pos_dicts: List[defaultdict], target_psos: List[TARGET], base_psos: List[str]) -> float:
-    """get incsc value (a ratio) by retreiving the amount of target parts of speech and base parts of speech
-    from pos dictionary
-    """
-    try:
-        if isinstance(target_psos[0], int):
-            target_amount = sum(target_psos)
-        else:
-            target_amount = _get_psos_amount(pos_dicts, target_psos)
-        return r2(1000 * target_amount, _get_psos_amount(pos_dicts, base_psos))
-    except ZeroDivisionError:
-        # logger.warning(f"The amount of base parts of speech is zero: {base_psos}.")
-        return 1000.00
-
-
-def _prepare_incsc(
-    feature_name: str, target: str,  # target is pos, pos array, feat, or feat array
-    base_psos: Union[str, List[str]] = UD_TAGS, dict_type: str = "upos_dict", convert_feat: bool = False,
-) -> SCF:
-    return feature_name, (dict_type, _serilize_psos(target), _serilize_psos(base_psos), convert_feat)
+def pos_incsc(target_psos: Union[str, int], base_psos: str, pos_dict: defaultdict) -> float:
+    targets = _psos_counter(target_psos, pos_dict) if isinstance(target_psos, str) else target_psos
+    return incsc(targets, _psos_counter(base_psos, pos_dict))
 
 
 class MorphFeatures:
 
     MORPH_GROUPS = ["VERBFORM", "PoS-PoS", "SubPoS-ALL", "PoS-ALL", "PoS-MultiPoS", "MultiPoS-MultiPoS"]
     _COMMON_VERBFORM_FEATURES = [
-        _prepare_incsc("Modal VERB to VERB", "AUX", "AUX VERB"),
-        _prepare_incsc("Present Participle to VERB", "pres_pc", "AUX VERB", convert_feat=True),
-        _prepare_incsc("Past Participle to VERB", "past_pc", "AUX VERB", convert_feat=True),
-        _prepare_incsc("Present VERB to VERB", "pres_verb", "AUX VERB", convert_feat=True),
-        _prepare_incsc("Past VERB to VERB", "past_verb", "AUX VERB", convert_feat=True),
-        _prepare_incsc("Supine VERB to VERB", "sup_verb", "AUX VERB", convert_feat=True)
+        prepare_feature(*prepare_verb("VERBFORM", *args)) for args in [
+            (
+                "Modal VERB to VERB",
+                "target_psos", "AUX", "arg",
+                "base_psos", "AUX VERB", "arg"
+            ),
+            (
+                "Present Participle to VERB",
+                "target_psos", "pres_pc", "attribute",
+                "base_psos", "AUX VERB", "arg"
+            ),
+            (
+                "Past Participle to VERB",
+                "target_psos", "past_pc", "attribute",
+                "base_psos", "AUX VERB", "arg"
+            ),
+            (
+                "Present VERB to VERB",
+                "target_psos", "pres_verb", "attribute",
+                "base_psos", "AUX VERB", "arg"
+            ),
+            (
+                "Past VERB to VERB",
+                "target_psos", "past_verb", "attribute",
+                "base_psos", "AUX VERB", "arg"
+            ),
+            (
+                "Supine VERB to VERB",
+                "target_psos", "sup_verb", "attribute",
+                "base_psos", "AUX VERB", "arg"
+            )
+        ]
     ]
 
-    _COMMON_FEATURES: CF = [
-        ("PoS-ALL", [_prepare_incsc(f"{pos} INCSC", pos) for pos in SINGLE_PSOS]),
-        ("PoS-PoS", [
-            _prepare_incsc("NOUN to VERB", "NOUN", "VERB"),
-            _prepare_incsc("PRON to NOUN", "PRON", "NOUN"),
-            _prepare_incsc("PRON to PREP", "PRON", "PREP"),
-        ]),
-        ("PoS-MultiPoS", [
-            _prepare_incsc(f"{pos} Variation", pos, VARIATION_PSOS_BASE)
-            for pos in VARIATION_PSOS_BASE
-        ]),
-        ("MultiPoS-MultiPoS", [
-            _prepare_incsc("CCONJ & SCONJ INCSC", "CCONJ SCONJ"),
-            _prepare_incsc("Functional Token INCSC", FUNCTIONAL_PSOS),
-            _prepare_incsc("Lex to Non-Lex", LEXICAL_PSOS, FUNCTIONAL_PSOS),
-            _prepare_incsc("Lex to Token", LEXICAL_PSOS),
-            _prepare_incsc("Nominal Ratio", "NN PC PP", "AB PN VB", dict_type="xpos_dict"),
-            _prepare_incsc("Rel INCSC",  "rel_pron", convert_feat=True)
-        ])
+    _COMMON_FEATURES = [
+        *[
+            prepare_feature(
+                *prepare_verb(
+                    "PoS-ALL", f"{pos} INCSC",
+                    "target_psos", pos, "arg",
+                    "base_psos", UD_TAG_STRING, "arg"
+                )
+            ) for pos in SINGLE_PSOS
+        ],
+        *[
+            prepare_feature(*prepare_verb("PoS-PoS", *args)) for args in [
+                (
+                    "NOUN to VERB",
+                    "target_psos", "NOUN", "arg",
+                    "base_psos", "VERB", "arg"
+                ),
+                (
+                    "PRON to NOUN",
+                    "target_psos", "PRON", "arg",
+                    "base_psos", "NOUN", "arg"
+                ),
+                (
+                    "PRON to PREP",
+                    "target_psos", "PRON", "arg",
+                    "base_psos", "PREP", "arg"
+                )
+            ]
+        ],
+        *[
+            prepare_feature(
+                *prepare_verb(
+                    "PoS-MultiPoS", f"{pos} Variation",
+                    "target_psos", pos, "arg",
+                    "base_psos", VARIATION_PSOS_BASE_STRING, "arg"
+                )
+            ) for pos in VARIATION_PSOS_BASE
+        ],
+        *[
+            prepare_feature(*prepare_verb("MultiPoS-MultiPoS", *args, dict_type=dict_type)) for dict_type, *args in [
+                (
+                    "upos_dict", "CCONJ & SCONJ INCSC",
+                    "target_psos", "CCONJ SCONJ", "arg",
+                    "base_psos", UD_TAG_STRING, "arg"
+                ),
+                (
+                    "upos_dict", "Functional Token INCSC",
+                    "target_psos", FUNCTIONAL_PSOS, "arg",
+                    "base_psos", UD_TAG_STRING, "arg"
+                ),
+                (
+                    "upos_dict", "Lex to Non-Lex",
+                    "target_psos", LEXICAL_PSOS, "arg",
+                    "base_psos", FUNCTIONAL_PSOS, "arg"
+                ),
+                (
+                    "upos_dict", "Lex to Token",
+                    "target_psos", LEXICAL_PSOS, "arg",
+                    "base_psos", UD_TAG_STRING, "arg"
+                ),
+                (
+                    "xpos_dict", "Nominal Ratio",
+                    "target_psos", "NN PC PP", "arg",
+                    "base_psos", "AB PN VB", "arg"
+                ),
+                (
+                    "upos_dict", "Rel INCSC",
+                    "target_psos", "rel_pron", "attribute",
+                    "base_psos", UD_TAG_STRING, "arg"
+                ),
+            ]
+        ]
     ]
 
-    SWEDISH_FEATURES: CF = [
-        ("VERBFORM", [
-            *_COMMON_VERBFORM_FEATURES,
-            _prepare_incsc("S-VERB to VERB", "s_verb", "AUX VERB", convert_feat=True)
-        ]),
+    SWEDISH_FEATURES = [
+        *_COMMON_VERBFORM_FEATURES,
+        prepare_feature(
+            *prepare_verb(
+                "VERBFORM", "S-VERB to VERB",
+                "target_psos", "s_verb", "attribute",
+                "base_psos", "AUX VERB", "arg"
+            )
+        ),
         *_COMMON_FEATURES,
-        ("SubPoS-ALL", [
-            _prepare_incsc("S-VERB INCSC", "s_verb", convert_feat=True),
-            _prepare_incsc("Neuter Gender NOUN INCSC", "neut_noun", convert_feat=True)
-        ])
+        *[
+            prepare_feature(*prepare_verb("SubPoS-ALL", *args)) for args in [
+                (
+                    "S-VERB INCSC",
+                    "target_psos", "s_verb", "attribute",
+                    "base_psos", UD_TAG_STRING, "arg"
+                ),
+                (
+                    "Neuter Gender NOUN INCSC",
+                    "target_psos", "neut_noun", "attribute",
+                    "base_psos", UD_TAG_STRING, "arg"
+                )
+            ]
+        ]
     ]
 
-    ENGLISH_FEATUERS: CF = [
-        ("VERBFORM", _COMMON_VERBFORM_FEATURES),
+    ENGLISH_FEATUERS = [
+        *_COMMON_VERBFORM_FEATURES,
         *_COMMON_FEATURES,
-        ("SubPoS-ALL", [
-            _prepare_incsc("S-VERB INCSC", "_3sg_pron", convert_feat=True)
-        ])
+        prepare_feature(
+            *prepare_verb(
+                "SubPoS-ALL", "S-VERB INCSC",
+                "target_psos", "_3sg_pron", "attribute",
+                "base_psos", UD_TAG_STRING, "arg"
+            )
+        )
     ]
 
     def __init__(self, content: C, lang: str, sentence: Optional[Sentence] = None) -> None:
         self.blocks = content
-        self.data = [OrderedDict({"name": group, "data": OrderedDict()}) for group in self.MORPH_GROUPS]
+        self.data = OrderedDict()
         self.sentence = sentence
 
         if lang == "en":
@@ -165,24 +244,15 @@ class MorphFeatures:
 
     def _set_swedish_feats(self):
         self._set_feats(self.SWEDISH_FEATURES)
-
-    def _set_feats(self, features: CF):
-        for index, (_, feature_list) in enumerate(features):  # _ is group name, which is skipped
-            for feature_name, (dict_type, target_list, base_psos, to_convert) in feature_list:
-                if self.sentence:
-                    if to_convert:
-                        target_list = [getattr(self.sentence.general, feature) for feature in target_list]
-                    self.data[index]["data"][feature_name] = Feature(
-                        scalar=pos_incsc([getattr(self.sentence.general, dict_type)], target_list, base_psos)
-                    )
-                else:
-                    if to_convert:
-                        target_list = merge_digits_for_fields(self.blocks, target_list)
-                    self.data[index]["data"][feature_name] = Feature(
-                        scalar=pos_incsc(
-                            [getattr(block.general, dict_type) for block in self.blocks], target_list, base_psos
-                        )
-                    )
-                    scalars = [b.morph[index]["data"][feature_name].scalar for b in self.blocks]
-                    self.data[index]["data"][feature_name].mean = mean(scalars)
-                    self.data[index]["data"][feature_name].median = median(scalars)
+    
+    def _set_feats(self, features):
+        for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
+            if self.sentence:
+                kwargs = parse_args(kwarg_list, getattr, self.sentence.general)
+                self.data[feature_name] = Feature(scalar=func(**kwargs))
+            else:
+                kwargs = parse_args(kwarg_list, attr_func, self.blocks, **attribute_kwargs)
+                scalar_list = [block.morph[feature_name].scalar for block in self.blocks]
+                self.data[feature_name] = Feature(
+                    scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
+                )

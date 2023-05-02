@@ -246,7 +246,7 @@ def r2(number: int, *args) -> float:
     return round(number / number2, 2)
 
 
-def merge_counter(blocks: List[object], field: str) -> Counter:
+def merge_counters(blocks: List[object], field: str) -> Counter:
     counter_instance = Counter()
     for block in blocks:
         counter_instance.update(getattr(block.general, field))
@@ -254,7 +254,7 @@ def merge_counter(blocks: List[object], field: str) -> Counter:
 
 
 def merge_counters_for_fields(blocks: List[object], fields: List[str]) -> List[Counter]:
-    return [merge_counter(blocks, field) for field in fields]
+    return [merge_counters(blocks, field) for field in fields]
 
 
 def merge_dicts(blocks: List[object], field: str, data_type: type = int) -> defaultdict:
@@ -289,10 +289,16 @@ def merge_digits_for_fields(blocks: List[object], fields: List[str], operation: 
     return [merge_digits(blocks, field, operation) for field in fields]
 
 
+def mixin_merge_digits_or_counters(blocks: List[object], field: str, operation: callable = sum) -> Any:
+    if isinstance(getattr(blocks[0].general, field), Counter):
+        return merge_counters(blocks, field)
+    return merge_digits(blocks, field, operation)
+
+
 def mixin_merge_digits_or_dicts(
     blocks: List[object], field: str,
     operation: callable = sum, data_type: type = int
-):
+) -> Any:
     if isinstance(getattr(blocks[0].general, field), defaultdict):
         return merge_dicts(blocks, field, data_type) 
     return merge_digits(blocks, field, operation)
@@ -340,7 +346,7 @@ def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
     return True
 
 
-def prepare_feature(*args: str) -> FP:
+def prepare_feature(*args: Union[str, callable]) -> FP:
     """Two arg types are defined in this case
 
     with arg as arg_type, it can be used in the incsc computation;
@@ -372,3 +378,10 @@ def parse_args(kwarg_list: K, func: callable, content: Any, **kwargs) -> Dict[st
         ) for key, attribute in kwarg_list.get("attribute", [])
     ])
     return {key: value for key, value in args}
+
+
+def incsc(c: Union[int, float], t: Union[int, float]) -> float:
+    try:
+        return r2(c * 1000, t)
+    except ZeroDivisionError:
+        return 1000.00

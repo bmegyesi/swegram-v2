@@ -18,20 +18,13 @@ from typing import Optional, Union, List, TypeVar, Dict, Any, Tuple
 from swegram_main.config import LONG_ARC_THRESHOLD
 from swegram_main.data.features import Feature
 from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import mean, median, r2, prepare_feature, merge_digits, parse_args
+from swegram_main.lib.utils import mean, median, r2, prepare_feature, merge_digits, parse_args, incsc
 from swegram_main.statistics.types import C
 
 
 CI = TypeVar("CI", int, List[int], List[Tuple[int, ...]])  # Conver Tuple to List[int]
 D = TypeVar("D", int, List[int], List[Tuple[int, ...]], List[List[Tuple[int, ...]]])  # Depth of a token in relation to root
 K = TypeVar("K", bound=Dict[str, List[Tuple[str, Any]]])
-
-
-def incsc(c: Union[int, float], t: Union[int, float]) -> float:
-    try:
-        return r2(c * 1000, t)
-    except ZeroDivisionError:
-        return 1000.00
 
 
 def ratio(c: int, t: int) -> float:
