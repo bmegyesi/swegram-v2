@@ -23,7 +23,7 @@ from typing import Dict, List, Tuple, TypeVar, Optional
 
 from swegram_main.data.features import Feature
 from swegram_main.data.sentences import Sentence
-from swegram_main.statistics.types import B, C
+from swegram_main.statistics.types import B
 
 from swegram_main.lib.utils import (
     mean, median, merge_dicts, merge_digits, mixin_merge_digits_or_dicts,
@@ -124,7 +124,7 @@ def lix(sents: int, words: int, word_dict: defaultdict) -> float:
 
 class ReadabilityFeatures:
 
-    ENGLISH_FEATURES: Tuple[str, callable, Tuple[str, ...]] = [
+    ENGLISH_FEATURES: Tuple[str, callable, callable, Tuple[str, ...]] = [
         prepare_feature(*args) for args in [
             (
                 "Bilogarithm TTR", bilog, merge_digits,
@@ -168,7 +168,7 @@ class ReadabilityFeatures:
         ]
     ]
 
-    SWEDISH_FEATURES: Tuple[str, callable, Tuple[str, ...]] = [
+    SWEDISH_FEATURES: Tuple[str, callable, callable, Tuple[str, ...]] = [
         prepare_feature(*args) for args in [
             (
                 "LIX", lix, mixin_merge_digits_or_dicts,
