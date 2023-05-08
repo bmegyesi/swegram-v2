@@ -27,6 +27,8 @@ class Text:
     text_id: str
     language: str
     filename: Path  # The filename can be shared across different texts 
+
+    elements: Optional[str] = "paragraphs"
     labels: Optional[Dict[str, str]] = None
     activated: bool = False
 

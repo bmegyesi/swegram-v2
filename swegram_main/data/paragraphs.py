@@ -10,7 +10,7 @@ class Paragraph:
     text_id: str
     language: str
     sentences: List[Sentence]
-
+    elements: Optional[str] = "sentences"
     # statistics
     general: Optional[Any]                  = None
     readability: Optional[Any]              = None

@@ -18,21 +18,13 @@ Full nominalkvot
 """
 
 import math
-from collections import OrderedDict, defaultdict
-from typing import Dict, List, Tuple, TypeVar, Optional
+from collections import defaultdict
+from typing import Dict, Tuple
 
-from swegram_main.data.features import Feature
-from swegram_main.data.sentences import Sentence
-from swegram_main.statistics.types import B
-
-from swegram_main.lib.utils import (
-    mean, median, merge_dicts, merge_digits, mixin_merge_digits_or_dicts,
-    parse_args, r2, prepare_feature
-)
+from swegram_main.lib.utils import merge_dicts, merge_digits, mixin_merge_digits_or_dicts, r2, prepare_feature
 
 
 LONG_WORD_THRESHOLD = 6  # The threshold for being a long word
-F = TypeVar("F", bound=Tuple[str, callable, Tuple[str, ...]])  # feature setting
 
 
 #########################################
@@ -124,6 +116,8 @@ def lix(sents: int, words: int, word_dict: defaultdict) -> float:
 
 class ReadabilityFeatures:
 
+    ASPECT = "Readability"
+
     ENGLISH_FEATURES: Tuple[str, callable, callable, Tuple[str, ...]] = [
         prepare_feature(*args) for args in [
             (
@@ -196,38 +190,3 @@ class ReadabilityFeatures:
             )
         ]
     ]
-
-
-    def __init__(self, content: List[B], lang: str, sentence: Optional[Sentence] = None) -> None:
-        self.blocks = content
-        self.lang = lang
-        self.data = OrderedDict()
-        self.sentence = sentence
-
-        if not self.sentence:
-            self.average = OrderedDict()
-
-        if lang == "en":
-            self._set_english_feats()
-        elif lang == "sv":
-            self._set_swedish_feats()
-        else:
-            raise Exception(f"Unknown working language: {lang}")
-
-    def _set_feats(self, features: F) -> None:
-        for feature_name, func, attr_func, kwarg_list, attr_kwargs in features:
-            if self.sentence:
-                kwargs = parse_args(kwarg_list, getattr, self.sentence.general)
-                self.data[feature_name] = Feature(scalar=func(**kwargs))
-            else:
-                kwargs = parse_args(kwarg_list, attr_func, self.blocks, **attr_kwargs)
-                scalar_list = [block.readability[feature_name].scalar for block in self.blocks]
-                self.data[feature_name] = Feature(
-                    scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
-                )
-
-    def _set_english_feats(self) -> None:
-        self._set_feats(self.ENGLISH_FEATURES)
-
-    def _set_swedish_feats(self) -> None:
-        self._set_feats(self.SWEDISH_FEATURES)
