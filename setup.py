@@ -1,6 +1,7 @@
 
 import os
-from setuptools import setup
+from pathlib import Path
+from setuptools import setup, find_packages
 from typing import List
 
 
@@ -9,21 +10,23 @@ def read(fname: str) -> str:
         return input_file.read()
 
 
-def get_requirements(requirement: str) -> List[str]:
-    return [dependency.strip() for dependency in read(requirement).split("\n") if dependency.strip()]
+def get_requirements() -> List[str]:
+    """Get Requirements"""
+    with (Path(__file__).parent / "requirements.txt").open("r") as f:
+        return f.read().splitlines()
 
 
 setup(
-    name="Swegram CLI",
-    version="1.0.0",
+    name="swegram",
+    version="1.0.0.dev0",
     # author="",
     # author_email="",
-    description="Swegram description",
-    long_description=read("README.md"),
-    # packages=[],
+    description="CLI library for Swegram",
+    # long_description=read("README.md"),
+    packages=find_packages(exclude=["tools*", "test*"]),
     license=read("LICENSE"),
     # url="url",
-    # requires=get_requirements("requirements.txt"),
+    install_requires=get_requirements(),
     entry_points={
         "console_scripts": [
             "swegram=swegram_main.handler.cli:main"

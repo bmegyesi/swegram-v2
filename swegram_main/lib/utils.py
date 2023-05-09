@@ -115,9 +115,7 @@ def read_conll_file(input_path: Path) -> T:
     file_content = FileContent(input_path).get()
 
     def _append_paragraph() -> None:
-        if sentences and sentence:
-            sentences.append(sentence)
-        elif sentence:
+        if sentence:
             sentences.append(sentence)
         if sentences:
             paragraphs.append(sentences)
@@ -156,7 +154,7 @@ def read_conll_file(input_path: Path) -> T:
                 elif isinstance(component, dict):
                     _append_text(meta)
                     meta = component
-                    paragraphs = []
+                    paragraphs, sentences, sentence = [], [], []
                     break
                 else:
                     raise MetaFormatError(f"Invalid format, got {type(component)}:{component}")
@@ -249,7 +247,7 @@ def r2(number: int, *args) -> float:
 def merge_counters(blocks: List[object], field: str) -> Counter:
     counter_instance = Counter()
     for block in blocks:
-        counter_instance.update(getattr(block.general, field))
+        counter_instance.update(getattr(block, field))
     return counter_instance
 
 
@@ -260,7 +258,7 @@ def merge_counters_for_fields(blocks: List[object], fields: List[str]) -> List[C
 def merge_dicts(blocks: List[object], field: str, data_type: type = int) -> defaultdict:
     df = defaultdict(data_type)
     for block in blocks:
-        for key, value in getattr(block.general, field).items():
+        for key, value in getattr(block, field).items():
             if issubclass(data_type, int):
                 df[key] += value
             elif issubclass(data_type, list):
@@ -282,7 +280,7 @@ def merge_dicts_for_fields(blocks: List[object], fields: List[str]) -> List[defa
 
 
 def merge_digits(blocks: List[object], field: str, operation: callable = sum) -> int:
-    return operation([getattr(block.general, field) for block in blocks])
+    return operation([getattr(block, field) for block in blocks])
 
 
 def merge_digits_for_fields(blocks: List[object], fields: List[str], operation: callable = sum) -> int:
@@ -290,7 +288,7 @@ def merge_digits_for_fields(blocks: List[object], fields: List[str], operation: 
 
 
 def mixin_merge_digits_or_counters(blocks: List[object], field: str, operation: callable = sum) -> Any:
-    if isinstance(getattr(blocks[0].general, field), Counter):
+    if isinstance(getattr(blocks[0], field), Counter):
         return merge_counters(blocks, field)
     return merge_digits(blocks, field, operation)
 
@@ -299,7 +297,7 @@ def mixin_merge_digits_or_dicts(
     blocks: List[object], field: str,
     operation: callable = sum, data_type: type = int
 ) -> Any:
-    if isinstance(getattr(blocks[0].general, field), defaultdict):
+    if isinstance(getattr(blocks[0], field), defaultdict):
         return merge_dicts(blocks, field, data_type) 
     return merge_digits(blocks, field, operation)
 

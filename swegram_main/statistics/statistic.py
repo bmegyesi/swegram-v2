@@ -2,6 +2,10 @@
 Create a decorator to append statistic e.g. Text instance
 
 """
+from collections import OrderedDict
+
+from swegram_main.lib.utils import mean, median, parse_args
+from swegram_main.data.features import Feature
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text
 from swegram_main.data.sentences import Sentence
@@ -10,6 +14,10 @@ from swegram_main.statistics.features.lexical import LexicalFeatures as LF
 from swegram_main.statistics.features.morph import MorphFeatures as MF
 from swegram_main.statistics.features.readability import ReadabilityFeatures as RF
 from swegram_main.statistics.features.syntactic import SyntacticFeatures as SF
+from swegram_main.statistics.statistic_types import C, F
+
+
+LINGUISTIC_ASPECTS = [RF, MF, LF, SF]  # CF is loaded separately
 
 
 class StatisticLoading:
@@ -27,23 +35,39 @@ class StatisticLoading:
             raise Exception("Unknown working language for statistics.")
 
         if isinstance(instance, Sentence):
-            instance.general = CF(instance.tokens, language)
-            instance.readability = RF(instance.tokens, language, sentence=instance).data
-            instance.morph = MF(instance.tokens, language, sentence=instance).data
-            instance.lexical = LF(instance.tokens, language, sentence=instance).data
-            instance.syntactic = SF(instance.tokens, language, sentence=instance).data
+            instance = CF().load_instance(instance, language)
+            instance = load_statistic(instance, language)
         elif isinstance(instance, Paragraph):
-            instance.general = CF(instance.sentences, language)
-            instance.readability = RF(instance.sentences, language).data
-            instance.morph = MF(instance.sentences, language).data
-            instance.lexical = LF(instance.sentences, language).data
-            instance.syntactic = SF(instance.sentences, language).data
+            instance = CF().load_instance(instance, language)
+            instance = load_statistic(instance, language)
         elif isinstance(instance, Text):
-            instance.general = CF(instance.paragraphs, language)
-            instance.readability = RF(instance.paragraphs, language).data
-            instance.morph = MF(instance.paragraphs, language).data
-            instance.lexical = LF(instance.paragraphs, language).data
-            instance.syntactic = SF(instance.paragraphs, language).data
+            instance = CF().load_instance(instance, language)
+            instance = load_statistic(instance, language)
         else:
             raise Exception(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
         return instance
+
+
+def load_statistic(instance: C, language: str) -> C:
+    for aspect in LINGUISTIC_ASPECTS:
+        feature_lang_suffix = "ENGLISH" if language == "en" else "SWEDISH"
+        features = getattr(aspect, f"{feature_lang_suffix}_FEATURES")
+        data = get_features_data(instance, aspect.ASPECT, features)
+        setattr(instance, aspect.ASPECT, data)
+    return instance
+
+
+def get_features_data(instance: C, aspect: str, features: F):
+    data = OrderedDict()
+    for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
+        if isinstance(instance, Sentence):
+            kwargs = parse_args(kwarg_list, getattr, instance)
+            data[feature_name] = Feature(scalar=func(**kwargs))
+        else:
+            blocks = getattr(instance, instance.elements)
+            kwargs = parse_args(kwarg_list, attr_func, blocks, **attribute_kwargs)
+            scalar_list = [getattr(block, aspect)[feature_name].scalar for block in blocks]
+            data[feature_name] = Feature(
+                scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
+            )
+    return data # setup for token property after computation for sentence

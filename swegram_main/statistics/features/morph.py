@@ -42,19 +42,18 @@ subgroup 6
 2    3SG PRON INCSC (only for english)
 3    S-VERB INCSC  (only for swedish)
 """
-from collections import OrderedDict, defaultdict
-from typing import Optional, List, Tuple, TypeVar, Union
+from collections import defaultdict
+from typing import List, Tuple, TypeVar, Union
 
 from swegram_main.config import UD_TAGS
-from swegram_main.data.features import Feature
-from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import r2, mean, median, get_logger, prepare_feature, parse_args
+from swegram_main.lib.utils import get_logger, prepare_feature
 from swegram_main.lib.utils import incsc, mixin_merge_digits_or_dicts
-from swegram_main.statistics.types import C
+from swegram_main.statistics.statistic_types import F
 
 
 logger = get_logger(__name__)
-TARGET = TypeVar("TARGET", str, int)
+
+V = TypeVar("V", bound=Tuple[str, callable, callable, str, str])
 
 SINGLE_PSOS = ["ADJ", "ADV", "NOUN", "PART", "PUNCT", "SCONJ", "VERB"] 
 VARIATION_PSOS_BASE = ["ADJ", "ADV", "NOUN", "VERB"]
@@ -64,7 +63,7 @@ FUNCTIONAL_PSOS = " ".join(["ADP", "AUX", "CCONJ", "DET", "NUM", "PART", "PRON",
 UD_TAG_STRING = " ".join(UD_TAGS)
 
 
-def prepare_verb(group_name: str, feature_name: str, *args, dict_type: str = "upos_dict") -> Tuple[str, callable, callable, str, str]:
+def prepare_verb(group_name: str, feature_name: str, *args: str, dict_type: str = "upos_dict") -> V:
     return f"{group_name}_{feature_name}", pos_incsc, mixin_merge_digits_or_dicts, *args, "pos_dict", dict_type, "attribute"
 
 
@@ -79,8 +78,10 @@ def pos_incsc(target_psos: Union[str, int], base_psos: str, pos_dict: defaultdic
 
 class MorphFeatures:
 
+    ASPECT = "morph"
+
     MORPH_GROUPS = ["VERBFORM", "PoS-PoS", "SubPoS-ALL", "PoS-ALL", "PoS-MultiPoS", "MultiPoS-MultiPoS"]
-    _COMMON_VERBFORM_FEATURES = [
+    _COMMON_VERBFORM_FEATURES: List[F] = [
         prepare_feature(*prepare_verb("VERBFORM", *args)) for args in [
             (
                 "Modal VERB to VERB",
@@ -115,7 +116,7 @@ class MorphFeatures:
         ]
     ]
 
-    _COMMON_FEATURES = [
+    _COMMON_FEATURES: List[F] = [
         *[
             prepare_feature(
                 *prepare_verb(
@@ -189,7 +190,7 @@ class MorphFeatures:
         ]
     ]
 
-    SWEDISH_FEATURES = [
+    SWEDISH_FEATURES: List[F] = [
         *_COMMON_VERBFORM_FEATURES,
         prepare_feature(
             *prepare_verb(
@@ -215,7 +216,7 @@ class MorphFeatures:
         ]
     ]
 
-    ENGLISH_FEATUERS = [
+    ENGLISH_FEATUERS: List[F] = [
         *_COMMON_VERBFORM_FEATURES,
         *_COMMON_FEATURES,
         prepare_feature(
@@ -226,33 +227,3 @@ class MorphFeatures:
             )
         )
     ]
-
-    def __init__(self, content: C, lang: str, sentence: Optional[Sentence] = None) -> None:
-        self.blocks = content
-        self.data = OrderedDict()
-        self.sentence = sentence
-
-        if lang == "en":
-            self._set_english_feats()
-        elif lang == "sv":
-            self._set_swedish_feats()
-        else:
-            raise Exception(f"Unknown working language: {lang}")
-
-    def _set_english_feats(self):
-        self._set_english_feats(self.ENGLISH_FEATUERS)
-
-    def _set_swedish_feats(self):
-        self._set_feats(self.SWEDISH_FEATURES)
-    
-    def _set_feats(self, features):
-        for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
-            if self.sentence:
-                kwargs = parse_args(kwarg_list, getattr, self.sentence.general)
-                self.data[feature_name] = Feature(scalar=func(**kwargs))
-            else:
-                kwargs = parse_args(kwarg_list, attr_func, self.blocks, **attribute_kwargs)
-                scalar_list = [block.morph[feature_name].scalar for block in self.blocks]
-                self.data[feature_name] = Feature(
-                    scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
-                )

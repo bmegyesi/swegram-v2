@@ -12,14 +12,10 @@ Subordinate INCSC
 Relative clause INCSC
 Prepositional complement INCSC
 """
-from collections import OrderedDict
-from typing import Optional, Union, List, TypeVar, Dict, Any, Tuple
+from typing import List, TypeVar, Dict, Any, Tuple
 
 from swegram_main.config import LONG_ARC_THRESHOLD
-from swegram_main.data.features import Feature
-from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import mean, median, r2, prepare_feature, merge_digits, parse_args, incsc
-from swegram_main.statistics.types import C
+from swegram_main.lib.utils import r2, prepare_feature, merge_digits, incsc
 
 
 CI = TypeVar("CI", int, List[int], List[Tuple[int, ...]])  # Conver Tuple to List[int]
@@ -60,6 +56,8 @@ def _max(iterable: List[D]) -> int:
 
 
 class SyntacticFeatures:
+
+    ASPECT = "syntactic"
 
     FEATURES = [
         prepare_feature(*args) for args in [
@@ -122,20 +120,4 @@ class SyntacticFeatures:
         ]
     ]
 
-    def __init__(self, content: C, lang: str, sentence: Optional[Sentence] = None) -> None:
-        self.blocks = content
-        self.data = OrderedDict()
-        self.sentence = sentence
-        self._set_feats()
-
-    def _set_feats(self):
-        for feature_name, func, attr_func, kwarg_list, attribute_kwargs in self.FEATURES:
-            if self.sentence:
-                kwargs = parse_args(kwarg_list, getattr, self.sentence.general)
-                self.data[feature_name] = Feature(scalar=func(**kwargs))
-            else:
-                kwargs = parse_args(kwarg_list, attr_func, self.blocks, **attribute_kwargs)
-                scalar_list = [block.syntactic[feature_name].scalar for block in self.blocks]
-                self.data[feature_name] = Feature(
-                    scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
-                )
+    SWEDISH_FEATURES = ENGLISH_FEATURES = FEATURES

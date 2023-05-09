@@ -14,7 +14,7 @@ import math
 import re
 from collections import Counter, OrderedDict, defaultdict
 from copy import copy
-from typing import List, Tuple
+from typing import List, Tuple, Any
 
 from swegram_main.config import (
     KELLY_EN, KELLY_SV, ADVANCE_CEFR_LEVELS, WPM_SV,
@@ -31,15 +31,15 @@ from swegram_main.lib.utils import (
     merge_digits_for_fields,
     mean, median, r2, merge_dicts_for_fields
 )
-from swegram_main.statistics.types import B, S
-
-
-class SerializationError(Exception):
-    """Serialization Error"""
+from swegram_main.statistics.statistic_types import B, S
 
 
 ENGLISH_VOWELS = "aoueiy"
 SWEDISH_VOWELS = f"{ENGLISH_VOWELS}åöä"
+
+
+class SerializationError(Exception):
+    """Serialization Error"""
 
 
 def _syllable_count_en(word: str) -> int:
@@ -221,7 +221,7 @@ def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
     for field in fields:
         counter = Counter()
         for block in blocks:
-            for key, value in getattr(block.general, field).items():
+            for key, value in getattr(block, field).items():
                 counter[key] += value
         counters.append(counter)
     return counters
@@ -230,7 +230,7 @@ def _merge_counters(blocks: List[B], fields: List[str]) -> List[Counter]:
 def _union(blocks: List[B], field: str) -> List[str]:
     union = set()
     for block in blocks:
-        union = union.union(getattr(block.general, field))
+        union = union.union(getattr(block, field))
     return list(union)
 
 
@@ -240,19 +240,21 @@ def _serialize(blocks: List[B], lang: str) -> S:
     elif isinstance(blocks[0], Sentence):
         sents = len(blocks)
     elif isinstance(blocks[0], (Paragraph, Text)):
-        sents = sum([block.general.sents for block in blocks])
+        sents = sum([block.sents for block in blocks])
     else:
         raise SerializationError(f"Unknown block type: {type(blocks[0])}")
     scalars = merge_digits_for_fields(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately
     freqs = merge_dicts_for_fields(blocks, CountFeatures.FREQ_FIELDS)
     counters = _merge_counters(blocks, CountFeatures.COUNTER_FIELDS)
     types = _union(blocks, CountFeatures.UNION_FIELD)
-    depth_list = [t for block in blocks for t in getattr(block.general, CountFeatures.LIST_FIELD)]
+    depth_list = [t for block in blocks for t in getattr(block, CountFeatures.LIST_FIELD)]
 
     return *scalars, sents, *freqs, *counters, types, depth_list
 
 
 class CountFeatures:
+
+    ASPECT = "general"
 
     # Field Declaration
     SCALAR_FIELDS = [
@@ -274,7 +276,13 @@ class CountFeatures:
     FIELDS = [*SCALAR_FIELDS, *FREQ_FIELDS, *COUNTER_FIELDS, UNION_FIELD, LIST_FIELD]
 
     # Feature Declaration
-    SENTENCE_FEATURES = ["Token-count", "Type-count", "Spelling erros", "Compound errors", "Word length"]
+    SENTENCE_FEATURES = [
+        ("Token-count", "token_count"),
+        ("Type-count", "type_count"),
+        ("Spelling erros", "misspells"),
+        ("Compound errors", "compounds"),
+        # ("Word length")  # Word length is computed separately
+    ]
 
     _Sentences, _Sentence_length = "Sentences", "Sentence length (n words)"
     PARAGRAPH_FEATURES = [_Sentences, _Sentence_length]
@@ -282,62 +290,51 @@ class CountFeatures:
     _Paragraphs, _Paragraph_length_word = "Paragraphs", "Paragraph length (n words)"
     _Paragraph_length_sentence = "Paragraph length (n sentences)"
     TEXT_FEATURES = [_Paragraphs, _Paragraph_length_word, _Paragraph_length_sentence]
+ 
 
-    def __init__(self, content: List[B], lang: str) -> None:
-        self.blocks = content
-        self.lang = lang
-        self._set_fields()
-        self._set_feats()
+    def load_instance(self, instance: B, lang: str) -> B:
+        instance = update_instance_with_metadata(instance, lang, getattr(instance, instance.elements))
+        instance.general = OrderedDict()  # initialize general orderedDict instance
+        if isinstance(instance, (Sentence, Paragraph, Text)):
+            for feature_name, attribute in self.SENTENCE_FEATURES:
+                if isinstance(instance, Sentence):
+                    instance.general[feature_name] = Feature(scalar=getattr(instance, attribute))
+                else:
+                    scalar_list = [getattr(element, attribute) for element in getattr(instance, instance.elements)]
+                    instance.general[feature_name] = Feature(
+                        scalar=getattr(instance, attribute),
+                        mean=mean(scalar_list), median=median(scalar_list)
+                    )
+            instance.general["Word length"] = Feature(
+                scalar=instance.chars, mean=r2(instance.chars, instance.token_count),
+                median=median(instance.token_length_counter)
+            )
+        if isinstance(instance, (Paragraph, Text)):
+            sents_scalar_list = [b.sents for b in getattr(instance, instance.elements)]
+            instance.general[self._Sentences] = Feature(
+                scalar=sum(sents_scalar_list), mean=mean(sents_scalar_list), median=median(sents_scalar_list)
+            )
+            instance.general[self._Sentence_length] = Feature(
+                scalar=instance.token_count, mean=r2(instance.token_count, instance.sents),
+                median=median(instance.sentence_length_counter)
+            )
+        if isinstance(instance, Text):
+            token2paragraph = [p.token_count for p in instance.paragraphs]
+            sents2paragraph = [p.sents for p in instance.paragraphs]
+            paragraph_length = len(instance.paragraphs)
+            instance.general[self._Paragraphs] = Feature(scalar=paragraph_length)
+            instance.general[self._Paragraph_length_word] = Feature(
+                mean=r2(instance.token_count, paragraph_length), median=median(token2paragraph)
+            )
+            instance.general[self._Paragraph_length_sentence] = Feature(
+                mean=r2(instance.sents, paragraph_length), median=median(sents2paragraph)
+            )
 
-    def _set_fields(self) -> None:
-        for key, value in zip(self.FIELDS, _serialize(self.blocks, self.lang)):
-            setattr(self, key, value)
-        self.type_count = len(self.types)
+        return instance
 
-    def _set_feats(self) -> None:
-        self.data = OrderedDict()
-        self._set_sentence_features()
-        if not isinstance(self.blocks[0], Token):
-            self._set_paragraph_features()
-        if not isinstance(self.blocks[0], (Token, Sentence)):
-            self._set_text_features()
 
-    def _set_sentence_features(self) -> None:
-        for feature_name, attribute in zip(
-            self.SENTENCE_FEATURES,
-            ["token_count", "type_count", "misspells", "compounds"]
-        ):
-            if not isinstance(self.blocks[0], Token):
-                scalar_list = [getattr(block.general, attribute) for block in self.blocks]
-                self.data[feature_name] = Feature(
-                    scalar=getattr(self, attribute), mean=mean(scalar_list), median=median(scalar_list)
-                )
-            else:
-                self.data[feature_name] = Feature(scalar=getattr(self, attribute))
-        self.data["Word length"] = Feature(
-            mean=r2(self.chars, self.token_count), median=median(self.token_length_counter)
-        )
-
-    def _set_paragraph_features(self) -> None:
-        self.data[self._Sentences] = Feature(scalar=self.sents)
-        self.data[self._Sentence_length] = Feature(
-            mean=r2(self.token_count, self.sents), median=median(self.sentence_length_counter)
-        )
-
-        if not isinstance(self.blocks[0], (Token, Sentence)):
-            scalar_list = [block.general.sents for block in self.blocks]
-            self.data[self._Sentences].mean = mean(scalar_list)
-            self.data[self._Sentences].median = median(scalar_list)
-
-    def _set_text_features(self) -> None:
-        blocks = [p for t in self.blocks for p in t.paragraphs] if isinstance(self.blocks[0], Text) else self.blocks
-        token2paragraph = [b.general.token_count for b in blocks]
-        sent2paragraph = [b.general.sents for b in blocks]
-        paragraph_length = len(blocks)
-        self.data[self._Paragraphs] = Feature(scalar=paragraph_length)
-        self.data[self._Paragraph_length_word] = Feature(
-            mean=r2(self.token_count, paragraph_length), median=median(token2paragraph)
-        )
-        self.data[self._Paragraph_length_sentence] = Feature(
-            mean=r2(self.sents, paragraph_length), median=median(sent2paragraph)
-        )
+def update_instance_with_metadata(instance: B, lang: str, components: List[Any]) -> B:
+    for key, value in zip(CountFeatures.FIELDS, _serialize(components, lang)):
+        setattr(instance, key, value)
+    setattr(instance, "type_count", len(instance.types))
+    return instance

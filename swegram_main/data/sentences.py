@@ -14,6 +14,7 @@ class Sentence:
     text_id: str
     language: str
     tokens: List[Token]
+    elements: Optional[str] = "tokens"
 
     # statistics
     general: Optional[Any]       = None
@@ -22,16 +23,14 @@ class Sentence:
     lexical: Optional[Any]       = None
     syntactic: Optional[Any]     = None
 
+    types: Optional[List[str]]   = None
+    
     @property
     def ud_tree(self) -> bool:
         try:
             return is_ud_tree([int(token.head) for token in self.tokens])
         except ValueError:  # raised error when token.head is _
             return False
-
-    @property
-    def types(self) -> List[Tuple[str, int]]:
-        return Counter([str(token) for token in self.tokens]).most_common()
 
     def __str__(self):
         sentence = str(self.tokens[0])
