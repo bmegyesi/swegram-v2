@@ -3,7 +3,7 @@ Create a decorator to append statistic e.g. Text instance
 
 """
 from collections import OrderedDict
-from typing import TypeVar
+
 from swegram_main.lib.utils import mean, median, parse_args
 from swegram_main.data.features import Feature
 from swegram_main.data.paragraphs import Paragraph
@@ -14,9 +14,7 @@ from swegram_main.statistics.features.lexical import LexicalFeatures as LF
 from swegram_main.statistics.features.morph import MorphFeatures as MF
 from swegram_main.statistics.features.readability import ReadabilityFeatures as RF
 from swegram_main.statistics.features.syntactic import SyntacticFeatures as SF
-
-
-U = TypeVar("U", Sentence, Paragraph, Text)
+from swegram_main.statistics.statistic_types import C, F
 
 
 LINGUISTIC_ASPECTS = [RF, MF, LF, SF]  # CF is loaded separately
@@ -50,7 +48,7 @@ class StatisticLoading:
         return instance
 
 
-def load_statistic(instance: U, language: str) -> U:
+def load_statistic(instance: C, language: str) -> C:
     for aspect in LINGUISTIC_ASPECTS:
         feature_lang_suffix = "ENGLISH" if language == "en" else "SWEDISH"
         features = getattr(aspect, f"{feature_lang_suffix}_FEATURES")
@@ -59,23 +57,16 @@ def load_statistic(instance: U, language: str) -> U:
     return instance
 
 
-def set_features_for_aspects(instance, level):
-    for aspect in LINGUISTIC_ASPECTS:
-        instance = get_features_data(instance, aspect, level)
-
-
-def get_features_data(instance, aspect, features):
+def get_features_data(instance: C, aspect: str, features: F):
     data = OrderedDict()
     for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
         if isinstance(instance, Sentence):
             kwargs = parse_args(kwarg_list, getattr, instance)
-            data[feature_name] = Feature(scalar=func(**kwargs))  # data need to be fixed with aspect
+            data[feature_name] = Feature(scalar=func(**kwargs))
         else:
             blocks = getattr(instance, instance.elements)
             kwargs = parse_args(kwarg_list, attr_func, blocks, **attribute_kwargs)
-            scalar_list = [
-                getattr(block, aspect)[feature_name].scalar for block in blocks
-            ] # same for morph here
+            scalar_list = [getattr(block, aspect)[feature_name].scalar for block in blocks]
             data[feature_name] = Feature(
                 scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
             )

@@ -16,12 +16,12 @@ Typ-token ratio(rotbaserad)
 Enkel nominalkvot
 Full nominalkvot
 """
-
 import math
 from collections import defaultdict
-from typing import Dict, Tuple
+from typing import Dict, List
 
 from swegram_main.lib.utils import merge_dicts, merge_digits, mixin_merge_digits_or_dicts, r2, prepare_feature
+from swegram_main.statistics.statistic_types import F
 
 
 LONG_WORD_THRESHOLD = 6  # The threshold for being a long word
@@ -75,7 +75,7 @@ def ari(sents: int, words: int, chars: int) -> float:
     return r2(4.71 * (chars / words) + 0.5 * (words / sents) - 21.43)
 
 
-def smog(sents: int, polysyllables: int):
+def smog(sents: int, polysyllables: int) -> float:
     """smog metric"""
     if not sents:
         return 0.0
@@ -118,7 +118,7 @@ class ReadabilityFeatures:
 
     ASPECT = "Readability"
 
-    ENGLISH_FEATURES: Tuple[str, callable, callable, Tuple[str, ...]] = [
+    ENGLISH_FEATURES: List[F] = [
         prepare_feature(*args) for args in [
             (
                 "Bilogarithm TTR", bilog, merge_digits,
@@ -162,7 +162,7 @@ class ReadabilityFeatures:
         ]
     ]
 
-    SWEDISH_FEATURES: Tuple[str, callable, callable, Tuple[str, ...]] = [
+    SWEDISH_FEATURES: List[F] = [
         prepare_feature(*args) for args in [
             (
                 "LIX", lix, mixin_merge_digits_or_dicts,

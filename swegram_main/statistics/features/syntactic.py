@@ -12,14 +12,10 @@ Subordinate INCSC
 Relative clause INCSC
 Prepositional complement INCSC
 """
-from collections import OrderedDict
-from typing import Optional, Union, List, TypeVar, Dict, Any, Tuple
+from typing import List, TypeVar, Dict, Any, Tuple
 
 from swegram_main.config import LONG_ARC_THRESHOLD
-from swegram_main.data.features import Feature
-from swegram_main.data.sentences import Sentence
-from swegram_main.lib.utils import mean, median, r2, prepare_feature, merge_digits, parse_args, incsc
-from swegram_main.statistics.statistic_types import C
+from swegram_main.lib.utils import r2, prepare_feature, merge_digits, incsc
 
 
 CI = TypeVar("CI", int, List[int], List[Tuple[int, ...]])  # Conver Tuple to List[int]

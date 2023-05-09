@@ -34,12 +34,12 @@ from swegram_main.lib.utils import (
 from swegram_main.statistics.statistic_types import B, S
 
 
-class SerializationError(Exception):
-    """Serialization Error"""
-
-
 ENGLISH_VOWELS = "aoueiy"
 SWEDISH_VOWELS = f"{ENGLISH_VOWELS}åöä"
+
+
+class SerializationError(Exception):
+    """Serialization Error"""
 
 
 def _syllable_count_en(word: str) -> int:
