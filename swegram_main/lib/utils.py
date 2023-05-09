@@ -115,9 +115,7 @@ def read_conll_file(input_path: Path) -> T:
     file_content = FileContent(input_path).get()
 
     def _append_paragraph() -> None:
-        if sentences and sentence:
-            sentences.append(sentence)
-        elif sentence:
+        if sentence:
             sentences.append(sentence)
         if sentences:
             paragraphs.append(sentences)
@@ -156,7 +154,7 @@ def read_conll_file(input_path: Path) -> T:
                 elif isinstance(component, dict):
                     _append_text(meta)
                     meta = component
-                    paragraphs = []
+                    paragraphs, sentences, sentence = [], [], []
                     break
                 else:
                     raise MetaFormatError(f"Invalid format, got {type(component)}:{component}")

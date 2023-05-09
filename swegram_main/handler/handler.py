@@ -1,3 +1,4 @@
+import os
 from collections import OrderedDict
 from pathlib import Path
 from typing import Dict, List, TypeVar, Tuple, Optional
@@ -8,7 +9,7 @@ from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text
 from swegram_main.lib.utils import read_conll_file, get_content_md5
 from swegram_main.statistics.statistic import StatisticLoading
-from swegram_main.statistics.types import C
+from swegram_main.statistics.statistic_types import C
 
 
 ST = TypeVar("ST", bound=List[str])  # Sentence Line Type
@@ -57,6 +58,12 @@ def load_file(input_file: Path, language: str) -> List[Text]:
     return [load_text(text, labels, language, input_file) for text, labels in read_conll_file(input_file)]
 
 
+def load_dir(input_dir: Path, language: str) -> List[Text]:
+    """Load texts from one directory containing conll file"""
+    conll_files = [input_dir.joinpath(filename) for filename in os.listdir(input_dir)] 
+    return [text for conll_file in conll_files for text in load_file(conll_file, language)]
+
+
 def c(v: Optional[str]) -> str:
     return v if v else ""
 
@@ -96,7 +103,17 @@ def get_aspects(block: C, reference: str) -> List[Tuple[str, OrderedDict]]:
 class Statistic:
 
     def __init__(self, input_path: Path, language: str, levels: List[str]):
-        self.texts = load_file(input_path, language)
+        if input_path.is_dir():
+            self.texts = load_dir(input_path, language)
+            if not self.texts:
+                raise Exception(f"Input directory {input_path} doesn't contain any conll files")
+        elif input_path.is_file():
+            if input_path.suffix != ".conll":
+                raise Exception(f"Only conll file valid, got {input_path.suffix.lstrip('.')}")
+            self.texts = load_dir(input_path, language)
+        else:
+            raise Exception(f"Invalid input path: {input_path}")
+
         self.levels = levels if levels else ["text"]
 
     def generate(self) -> None:
