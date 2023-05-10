@@ -1,11 +1,10 @@
 """Module of sentence data structure
 """
 from dataclasses import dataclass
-from collections import Counter
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional
 
 from swegram_main.data.tokens import Token
-from swegram_main.lib.tree import is_ud_tree
+from swegram_main.lib.utils import is_a_ud_tree
 
 
 @dataclass
@@ -28,7 +27,7 @@ class Sentence:
     @property
     def ud_tree(self) -> bool:
         try:
-            return is_ud_tree([int(token.head) for token in self.tokens])
+            return is_a_ud_tree([int(token.head) for token in self.tokens])
         except ValueError:  # raised error when token.head is _
             return False
 
