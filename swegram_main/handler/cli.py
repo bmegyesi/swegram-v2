@@ -1,7 +1,6 @@
 
 
 import os
-from swegram_main.handler.handler import Statistic
 from swegram_main.handler.parser import main_parser
 from swegram_main.lib.logger import get_logger
 from swegram_main.pipeline.pipeline import Pipeline
@@ -43,7 +42,8 @@ def main():
         pipeline.postprocess()
 
     elif args.command == "statistic":
-        Statistic(args.input_path, args.language, args.LEVELS).generate()
+        print("to do statistic commands")
+        # Corpus(args.input_path, args.language, args.LEVELS).generate()
     else:
         raise CommandLineError(f"Unknown command, {args.command}")
 

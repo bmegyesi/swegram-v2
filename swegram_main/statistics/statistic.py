@@ -3,11 +3,12 @@ Create a decorator to append statistic e.g. Text instance
 
 """
 from collections import OrderedDict
+from typing import Dict
 
 from swegram_main.lib.utils import mean, median, parse_args
 from swegram_main.data.features import Feature
 from swegram_main.data.paragraphs import Paragraph
-from swegram_main.data.texts import Text
+from swegram_main.data.texts import Text, Corpus
 from swegram_main.data.sentences import Sentence
 from swegram_main.statistics.features.general import CountFeatures as CF
 from swegram_main.statistics.features.lexical import LexicalFeatures as LF
@@ -34,13 +35,11 @@ class StatisticLoading:
         else:
             raise Exception("Unknown working language for statistics.")
 
-        if isinstance(instance, Sentence):
-            instance = CF().load_instance(instance, language)
-            instance = load_statistic(instance, language)
-        elif isinstance(instance, Paragraph):
-            instance = CF().load_instance(instance, language)
-            instance = load_statistic(instance, language)
-        elif isinstance(instance, Text):
+        # skip loading when the element doesn't exist in the instnace
+        if not getattr(instance, instance.elements):
+            return instance
+
+        if isinstance(instance, (Sentence, Paragraph, Text, Corpus)):
             instance = CF().load_instance(instance, language)
             instance = load_statistic(instance, language)
         else:
@@ -57,8 +56,8 @@ def load_statistic(instance: C, language: str) -> C:
     return instance
 
 
-def get_features_data(instance: C, aspect: str, features: F):
-    data = OrderedDict()
+def get_features_data(instance: C, aspect: str, features: F) -> Dict[str, Feature]:
+    data: OrderedDict[str, Feature] = OrderedDict()
     for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
         if isinstance(instance, Sentence):
             kwargs = parse_args(kwarg_list, getattr, instance)

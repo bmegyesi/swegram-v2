@@ -24,7 +24,7 @@ from swegram_main.config import (
 from swegram_main.data.features import Feature
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.sentences import Sentence
-from swegram_main.data.texts import Text
+from swegram_main.data.texts import Text, Corpus
 from swegram_main.data.tokens import Token
 from swegram_main.lib.utils import (
     get_path, get_child_nodes, is_a_ud_tree,
@@ -295,7 +295,7 @@ class CountFeatures:
     def load_instance(self, instance: B, lang: str) -> B:
         instance = update_instance_with_metadata(instance, lang, getattr(instance, instance.elements))
         instance.general = OrderedDict()  # initialize general orderedDict instance
-        if isinstance(instance, (Sentence, Paragraph, Text)):
+        if isinstance(instance, (Sentence, Paragraph, Text, Corpus)):
             for feature_name, attribute in self.SENTENCE_FEATURES:
                 if isinstance(instance, Sentence):
                     instance.general[feature_name] = Feature(scalar=getattr(instance, attribute))
@@ -309,7 +309,7 @@ class CountFeatures:
                 scalar=instance.chars, mean=r2(instance.chars, instance.token_count),
                 median=median(instance.token_length_counter)
             )
-        if isinstance(instance, (Paragraph, Text)):
+        if isinstance(instance, (Paragraph, Text, Corpus)):
             sents_scalar_list = [b.sents for b in getattr(instance, instance.elements)]
             instance.general[self._Sentences] = Feature(
                 scalar=sum(sents_scalar_list), mean=mean(sents_scalar_list), median=median(sents_scalar_list)
@@ -318,10 +318,15 @@ class CountFeatures:
                 scalar=instance.token_count, mean=r2(instance.token_count, instance.sents),
                 median=median(instance.sentence_length_counter)
             )
-        if isinstance(instance, Text):
-            token2paragraph = [p.token_count for p in instance.paragraphs]
-            sents2paragraph = [p.sents for p in instance.paragraphs]
-            paragraph_length = len(instance.paragraphs)
+        if isinstance(instance, (Text, Corpus)):
+            if isinstance(instance, Text):
+                paragraphs = instance.paragraphs
+            else:
+                paragraphs = [p for t in instance.texts for p in t.paragraphs]
+
+            token2paragraph = [p.token_count for p in paragraphs]
+            sents2paragraph = [p.sents for p in paragraphs]
+            paragraph_length = len(paragraphs)
             instance.general[self._Paragraphs] = Feature(scalar=paragraph_length)
             instance.general[self._Paragraph_length_word] = Feature(
                 mean=r2(instance.token_count, paragraph_length), median=median(token2paragraph)

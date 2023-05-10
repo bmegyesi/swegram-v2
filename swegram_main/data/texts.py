@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Dict, Optional, List, Any
 
 from swegram_main.data.paragraphs import Paragraph
+from swegram_main.data.metadata import convert_labels_to_list
 from swegram_main.lib.utils import get_size, change_suffix
 
 @dataclass
@@ -51,9 +52,30 @@ class Text:
     def has_label(self):
         return len(self.labels) != 0
 
+    @property
+    def metadata(self):
+        return convert_labels_to_list(self.labels)
+
     def __str__(self):
         return "\n  ".join([str(p) for p in self.paragraphs])
 
+
+@dataclass
+class Corpus:
+
+    # data
+    texts: List[Text]
+
+    # properties
+    language: str
+    elements: Optional[str] = "texts"
+
+    # statistics
+    general: Optional[Any]                  = None
+    readability: Optional[Any]              = None
+    morph: Optional[Any]                    = None
+    lexical: Optional[Any]                  = None
+    syntactic: Optional[Any]                = None
 
 @dataclass
 class TextDirectory:
