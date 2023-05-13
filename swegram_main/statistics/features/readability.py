@@ -116,7 +116,7 @@ def lix(sents: int, words: int, word_dict: defaultdict) -> float:
 
 class ReadabilityFeatures:
 
-    ASPECT = "Readability"
+    ASPECT = "readability"
 
     ENGLISH_FEATURES: List[F] = [
         prepare_feature(*args) for args in [
