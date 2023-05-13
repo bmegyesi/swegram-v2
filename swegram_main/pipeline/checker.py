@@ -1,7 +1,5 @@
-
-from collections import Counter
 from pathlib import Path
-from typing import Tuple, List, Union, Iterator
+from typing import Tuple, List, Iterator
 
 from swegram_main.lib.utils import read, is_a_ud_tree
 from swegram_main.config import UD_TAGS, PT_TAGS, SUC_TAGS, DEPRELS, XFEATS, FEATS

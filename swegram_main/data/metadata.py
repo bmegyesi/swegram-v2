@@ -3,7 +3,7 @@
 """
 import logging
 import re
-from typing import Dict
+from typing import Dict, List
 
 from swegram_main.config import METADATA_INITIAL, METADATA_FINAL, METADATA_DELIMITER, METADATA_DELIMITER_TAG
 
@@ -40,3 +40,8 @@ def parse_metadata_helper(metadata: str) -> Dict[str, str]:
         except ValueError:
             raise MetadataError(f"Invalid Metadata Format: {metadata}")
     return labels
+
+
+def convert_labels_to_list(labels: Dict[str, str]) -> List[str]:
+    """Convert the dict of labels into a list of labels for later control/check"""
+    return [*labels.keys(), *[f"{key}:{value}" for key, value in labels.items()]]

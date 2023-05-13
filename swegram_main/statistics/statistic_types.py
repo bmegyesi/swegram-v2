@@ -7,11 +7,11 @@ from typing import Any, Dict, List, Optional, Tuple, TypeVar
 from swegram_main.data.tokens import Token
 from swegram_main.data.sentences import Sentence
 from swegram_main.data.paragraphs import Paragraph
-from swegram_main.data.texts import Text
+from swegram_main.data.texts import Text, Corpus
 
 
 A = TypeVar("A", str, int) # Argument for e.g. lemma incsc computation
-B = TypeVar("B", Token, Sentence, Paragraph, Text)  # Block
+B = TypeVar("B", Token, Sentence, Paragraph, Text, Corpus)  # Block
 C = TypeVar("C", Sentence, Paragraph, Text)  # Context
 D = List[defaultdict]
 F = TypeVar("F", bound=Tuple[str, callable, Optional[callable], Dict[str, List[Tuple[str, Any]]], Dict[str, Any]]) # Feature parameter

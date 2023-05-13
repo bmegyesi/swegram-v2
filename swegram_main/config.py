@@ -53,6 +53,9 @@ SUBORDINATION_DEPREL_LABELS = [
 ]
 
 
+# Variables for statistics
+UNITS = ["corpus", "text", "paragraph", "sentence"]
+ASPECTS = ["general", "readability", "morph", "lexical", "syntactic"]
 
 # OUTPUT variables
 OUT_FILE = "text_file"   

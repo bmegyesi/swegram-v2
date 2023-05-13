@@ -1,12 +1,12 @@
 import os
-from collections import OrderedDict
 from pathlib import Path
-from typing import Dict, List, TypeVar, Tuple, Optional
+from typing import Dict, List, TypeVar, Optional
 
+from swegram_main.data.metadata import convert_labels_to_list
 from swegram_main.data.tokens import Token
 from swegram_main.data.sentences import Sentence
 from swegram_main.data.paragraphs import Paragraph
-from swegram_main.data.texts import Text
+from swegram_main.data.texts import Text, Corpus
 from swegram_main.lib.utils import read_conll_file, get_content_md5
 from swegram_main.statistics.statistic import StatisticLoading
 from swegram_main.statistics.statistic_types import C
@@ -15,7 +15,6 @@ from swegram_main.statistics.statistic_types import C
 ST = TypeVar("ST", bound=List[str])  # Sentence Line Type
 PT = TypeVar("PT", bound=List[List[str]]) # Paragraph Line Type
 TT = TypeVar("TT", bound=List[List[List[str]]]) # Text Line Type
-ASPECTS = ["general", "readability", "morph", "lexical", "syntactic"]
 
 
 def _load_token(text_index: str, token_index: str, form: str, norm: str, lemma: str,
@@ -53,76 +52,56 @@ def load_text(text: TT, labels: Dict[str, str], language: str, filename: Path) -
     return Text(paragraphs=paragraphs, text_id=text_id, language=language, filename=filename, labels=labels)
 
 
-def load_file(input_file: Path, language: str) -> List[Text]:
+def load_file(input_file: Path, language: str, include_tags: List[str], exclude_tags: List[str]) -> List[Text]:
     """Load texts from conll file"""
-    return [load_text(text, labels, language, input_file) for text, labels in read_conll_file(input_file)]
+    return [
+        load_text(text, labels, language, input_file)
+        for text, labels in read_conll_file(input_file)
+        if is_text_included(labels, include_tags, exclude_tags)
+    ]
 
 
-def load_dir(input_dir: Path, language: str) -> List[Text]:
+def load_dir(input_dir: Path, language: str, include_tags: List[str], exclude_tags: List[str]) -> List[Text]:
     """Load texts from one directory containing conll file"""
     conll_files = [input_dir.joinpath(filename) for filename in os.listdir(input_dir)] 
-    return [text for conll_file in conll_files for text in load_file(conll_file, language)]
+    return [text for conll_file in conll_files for text in load_file(conll_file, language, include_tags, exclude_tags)]
 
 
-def c(v: Optional[str]) -> str:
-    return v if v else ""
+@StatisticLoading
+def load(
+    input_path: Path, language: str,
+    include_tags: Optional[List[str]] = None, exclude_tags: Optional[List[str]] = None
+) -> List[Text]:
+
+    include_tags = include_tags or []
+    exclude_tags = exclude_tags or []
+
+    if input_path.is_dir():
+        texts = load_dir(input_path, language, include_tags, exclude_tags)
+        if not texts:
+            raise Exception(f"Input directory {input_path} doesn't contain any conll files")
+    elif input_path.is_file():
+        if input_path.suffix != ".conll":
+            raise Exception(f"Only conll file valid, got {input_path.suffix.lstrip('.')}")
+        texts = load_file(input_path, language, include_tags, exclude_tags)
+    else:
+        raise Exception(f"Invalid input path: {input_path}")
+    return Corpus(texts=texts, language=language)
 
 
-def format_aspect(features: OrderedDict) -> None:
-    for key, v in features.items():
-        print(f"{' ':>2}{key:>30}{'|':>4}{c(v.scalar):>10}{'|':>4}{c(v.mean):>10}{'|':>4}{c(v.median):>10}{'|':>4}")
+def is_text_included(labels: Dict[str, str], include_tags: List[str], exclude_tags: List[str]) -> bool:
+    label_list = convert_labels_to_list(labels)
+    if include_tags and not set(include_tags).intersection(label_list):
+        return False
+    if exclude_tags and set(exclude_tags).intersection(label_list):
+        return False
+    return True
 
 
-
-def format_aspects(aspects: List[Tuple[str, str, OrderedDict]]) -> None:
-    for aspect_name, reference, features in aspects:
-        print(f"-"*78)
-        print(f"Aspect:{aspect_name}    Reference: {reference}")
-        format_aspect(features)
-        print(f"-"*78)
-        print()
-
-
-def get_aspects(block: C, reference: str) -> List[Tuple[str, OrderedDict]]:
-    aspects = []
-    for aspect in ASPECTS:
-        if aspect == "general":
-            aspects.append((aspect, reference, block.general.data))
-        elif aspect == "morph":
-            try:
-                for od in block.morph:
-                    aspects.append((f"{aspect}-{od['name']}", reference, od["data"]))
-            except Exception as err:
-                import pdb; pdb.set_trace()
-                print()
-        else:
-            aspects.append((aspect, reference, getattr(block, aspect)))
-    return aspects
-        
-
-class Statistic:
-
-    def __init__(self, input_path: Path, language: str, levels: List[str]):
-        if input_path.is_dir():
-            self.texts = load_dir(input_path, language)
-            if not self.texts:
-                raise Exception(f"Input directory {input_path} doesn't contain any conll files")
-        elif input_path.is_file():
-            if input_path.suffix != ".conll":
-                raise Exception(f"Only conll file valid, got {input_path.suffix.lstrip('.')}")
-            self.texts = load_dir(input_path, language)
-        else:
-            raise Exception(f"Invalid input path: {input_path}")
-
-        self.levels = levels if levels else ["text"]
-
-    def generate(self) -> None:
-        for t_index, text in enumerate(self.texts, 1):
-            if "text" in self.levels:
-                format_aspects(get_aspects(text, f"text-{t_index}"))
-            for p_index, paragraph in enumerate(text.paragraphs, 1):
-                if "paragraph" in self.levels:
-                    format_aspects(get_aspects(paragraph, f"paragraph-{t_index}-{p_index}"))
-                for s_index, sentence in enumerate(paragraph.sentences, 1):
-                    if "sentence" in self.levels:
-                        format_aspects(get_aspects(sentence, f"sentence-{t_index}-{p_index}-{s_index}"))
+def select_texts_by_meta(texts: List[Text], include_tags: List[str], exclude_tags: List[str]) -> List[Text]:
+    """Filter first with include tags, and then exclude tags"""
+    if include_tags:
+        texts = [text for text in texts if set(text.metadata).intersection(include_tags)]
+    if exclude_tags:
+        texts = [text for text in texts if not set(text.metadata).intersection(exclude_tags)]
+    return texts
