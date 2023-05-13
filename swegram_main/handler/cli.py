@@ -2,9 +2,9 @@
 
 import os
 from swegram_main.handler.parser import main_parser
+from swegram_main.handler.visualization import Visualization
 from swegram_main.lib.logger import get_logger
 from swegram_main.pipeline.pipeline import Pipeline
-
 
 ANNOTATION_PARSER = {
     "en": "udpipe",
@@ -42,8 +42,30 @@ def main():
         pipeline.postprocess()
 
     elif args.command == "statistic":
-        print("to do statistic commands")
-        # Corpus(args.input_path, args.language, args.LEVELS).generate()
+        logger.info("Swegram statistics")
+
+        if args.include_metadata:
+            logger.info(f"Include metadata: {args.include_metadata}")
+        if args.exclude_metadata:
+            logger.info(f"Exclude metadata: {args.exclude_metadata}")
+
+        logger.info(f"UNITS: {args.UNITS}")
+        logger.info(f"Aspects: {args.ASPECTS}")
+
+        if args.include_features:
+            logger.info(f"Include features: {args.include_features}")
+        if args.exclude_features:
+            logger.info(f"Exclude features: {args.exclude_features}")
+        data = Visualization(
+            args.input_path, language=args.language,
+            include_tags=args.include_metadata, exclude_tags=args.exclude_metadata
+        ).filter(
+            args.UNITS, args.ASPECTS,
+            include_features=args.include_features,
+            exclude_features=args.exclude_features,
+            pprint=args.PPRINT
+        )
+
     else:
         raise CommandLineError(f"Unknown command, {args.command}")
 

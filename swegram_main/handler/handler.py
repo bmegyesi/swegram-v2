@@ -1,8 +1,6 @@
 import os
-from collections import OrderedDict
-from copy import copy
 from pathlib import Path
-from typing import Dict, List, TypeVar, Tuple, Optional
+from typing import Dict, List, TypeVar, Optional
 
 from swegram_main.data.metadata import convert_labels_to_list
 from swegram_main.data.tokens import Token

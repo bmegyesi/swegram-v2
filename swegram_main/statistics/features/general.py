@@ -306,17 +306,18 @@ class CountFeatures:
                         mean=mean(scalar_list), median=median(scalar_list)
                     )
             instance.general["Word length"] = Feature(
-                scalar=instance.chars, mean=r2(instance.chars, instance.token_count),
-                median=median(instance.token_length_counter)
+                scalar=instance.chars,
+                mean=r2(instance.chars, instance.token_count), median=median(instance.token_length_counter)
             )
         if isinstance(instance, (Paragraph, Text, Corpus)):
             sents_scalar_list = [b.sents for b in getattr(instance, instance.elements)]
             instance.general[self._Sentences] = Feature(
-                scalar=sum(sents_scalar_list), mean=mean(sents_scalar_list), median=median(sents_scalar_list)
+                scalar=sum(sents_scalar_list),
+                mean=mean(sents_scalar_list), median=median(sents_scalar_list)
             )
             instance.general[self._Sentence_length] = Feature(
-                scalar=instance.token_count, mean=r2(instance.token_count, instance.sents),
-                median=median(instance.sentence_length_counter)
+                scalar=instance.token_count,
+                mean=r2(instance.token_count, instance.sents), median=median(instance.sentence_length_counter)
             )
         if isinstance(instance, (Text, Corpus)):
             if isinstance(instance, Text):
