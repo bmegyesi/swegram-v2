@@ -9,7 +9,6 @@ from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.texts import Text, Corpus
 from swegram_main.lib.utils import read_conll_file, get_content_md5
 from swegram_main.statistics.statistic import StatisticLoading
-from swegram_main.statistics.statistic_types import C
 
 
 ST = TypeVar("ST", bound=List[str])  # Sentence Line Type

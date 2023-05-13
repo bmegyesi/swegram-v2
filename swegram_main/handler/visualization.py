@@ -1,8 +1,10 @@
+import json
 import os
 from copy import copy
 from collections import OrderedDict
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Dict, Union
+from typing import Any, Dict, List, Optional, Union
 from swegram_main.data.features import Feature
 from swegram_main.data.texts import Corpus
 from swegram_main.handler.handler import load
@@ -15,16 +17,17 @@ class Visualization:
         include_tags: Optional[List[str]],
         exclude_tags: Optional[List[str]]
     ) -> None:
+        self.language = language
         self.input_path = input_path
         self.corpus: Corpus = load(input_path, language, include_tags, exclude_tags)
         self.outdir = output_dir or Path(os.getcwd())
-            
 
     def filter(
         self, units: List[str], aspects: List[str],
         include_features: List[str], exclude_features: List[str],
         pprint: bool = False, save_as: str = "txt"
     ) -> None:
+        self.units = units
         self.pprint = pprint
         self.aspects = aspects
         self.save_as = save_as
@@ -52,13 +55,37 @@ class Visualization:
                     ] for p in text.paragraphs
                 ] for text in self.corpus.texts
             ]
+
         self.outfile_name = self.outdir.joinpath(f"statistic-{self.input_path.with_suffix(f'.{save_as}').name}")
         if save_as == "txt" or pprint:
             self.save(data)
+        elif save_as == "json":
+            with open(self.outfile_name, "w") as output_file:
+                json_object = json.dumps(self.serialize_data(data), indent=4)
+                output_file.write(json_object)
 
+    def serialize_data(self, data: Any) -> str:
+        if isinstance(data, OrderedDict):
+            for key, value in data.items():
+                if isinstance(value, Feature):
+                    data[key] = value.json
+                elif isinstance(value, list):
+                    data[key] = self.serialize_data(value)
+        elif isinstance(data, list):
+            for index, instance in enumerate(data):
+                data[index] = self.serialize_data(instance)
+        return data
+                
     def append_in_text(self, content: str) -> None:
         with open(self.outfile_name, "a+") as output_file:
             output_file.write(f"{content}\n")
+
+    def get_header(self):
+        return "Swegram statistic\n" \
+               f"Time: {str(datetime.now())}\n" \
+               f"Language: {self.language}\n" \
+               f"Units: {self.units}\n" \
+               f"Aspects: {self.aspects}\n"
 
     def filter_instance(
         self, instance, include_features: List[str], exclude_features: List[str]
@@ -78,6 +105,11 @@ class Visualization:
         return aspect_dict
 
     def save(self, data: OrderedDict) -> None:
+        if self.pprint:
+            print(self.get_header())
+        if self.save_as == "txt":
+            self.append_in_text(self.get_header())
+
         for unit in data:
             if unit == "corpus":
                 self.save_instance(None, unit, data[unit])
