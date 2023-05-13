@@ -56,14 +56,15 @@ def main():
             logger.info(f"Include features: {args.include_features}")
         if args.exclude_features:
             logger.info(f"Exclude features: {args.exclude_features}")
-        data = Visualization(
-            args.input_path, language=args.language,
+        Visualization(
+            args.input_path, language=args.language, output_dir=args.output_dir,
             include_tags=args.include_metadata, exclude_tags=args.exclude_metadata
         ).filter(
             args.UNITS, args.ASPECTS,
             include_features=args.include_features,
             exclude_features=args.exclude_features,
-            pprint=args.PPRINT
+            pprint=args.PPRINT,
+            save_as=args.format
         )
 
     else:

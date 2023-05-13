@@ -38,34 +38,44 @@ def _annotation_parser(annotation_parser: ArgumentParser) -> None:
 
 def _statistic_parser(statistic_parser: ArgumentParser) -> None:
     """Add arguments for statistic parser"""
-    statistic_parser.add_argument("--include-metadata", dest="include_metadata",
+    statistic_parser.add_argument(
+        "--include-metadata", dest="include_metadata",
         metavar="N", nargs="+", type=str, default=None,
         help="""Include certain texts by selecting metadata.
         For instance, --include-metadata key1 key2:value2, only selects the texts that contain
         key1 or key2:value2 in the metadata.
         """
     )
-    statistic_parser.add_argument("--exclude-metadata", dest="exclude_metadata",
+    statistic_parser.add_argument(
+        "--exclude-metadata", dest="exclude_metadata",
         metavar="N", nargs="+", type=str, default=None,
         help="Exclude certain texts by deselecting metadata."
     )
-    statistic_parser.add_argument("-u", "--units", dest="UNITS", metavar="N", nargs="+",
+    statistic_parser.add_argument(
+        "-u", "--units", dest="UNITS", metavar="N", nargs="+",
         choices=UNITS, type=str, default=["corpus"],
         help="Checking statistics of features given certain linguitisc unit(s)."
     )
-    statistic_parser.add_argument("--aspects", dest="ASPECTS", metavar="N", nargs="+",
+    statistic_parser.add_argument(
+        "--aspects", dest="ASPECTS", metavar="N", nargs="+",
         choices=ASPECTS, type=str, default=ASPECTS,
         help="Checking statistics based on the selection of certain aspect(s)."
     )
-    statistic_parser.add_argument("--include-features", dest="include_features", metavar="N", nargs="+",
+    statistic_parser.add_argument(
+        "--include-features", dest="include_features", metavar="N", nargs="+",
         type=str, default=[],
         help="Only certain features will be included."
     )
-    statistic_parser.add_argument("--exclude-features", dest="exclude_features", metavar="N", nargs="+",
+    statistic_parser.add_argument(
+        "--exclude-features", dest="exclude_features", metavar="N", nargs="+",
         type=str, default=[],
         help="Certain features will be excluded."
     )
     statistic_parser.add_argument("--print", dest="PPRINT", action="store_true", help="Print statistic on console")
+    statistic_parser.add_argument(
+        "--save-as", dest="format", type=str, default="txt", choices=["txt", "json", "csv", "xlsx"],
+        help="Output format to save the statistics"
+    )
 
 
 def main_parser() -> Namespace:
