@@ -1,8 +1,9 @@
 swegram_main/uploads
-swegram_main/handle_texts/*
+swegram_main/handle_texts
 *.db
 tools/*
-
+# Temporary commented out for frontend
+frontend/**
 
 # Created by https://www.gitignore.io/api/macos,django,python,virtualenv,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=macos,django,python,virtualenv,visualstudiocode

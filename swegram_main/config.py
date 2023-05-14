@@ -57,9 +57,6 @@ SUBORDINATION_DEPREL_LABELS = [
 UNITS = ["corpus", "text", "paragraph", "sentence"]
 ASPECTS = ["general", "readability", "morph", "lexical", "syntactic"]
 
-# OUTPUT variables
-OUT_FILE = "text_file"   
-OUT_STATS_FILE = "stats_file" 
 
 PAGE_SIZE = 10 # the default page size is 10 items
 
