@@ -5,6 +5,9 @@ from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
+import openpyxl
+
 from swegram_main.data.features import Feature
 from swegram_main.data.texts import Corpus
 from swegram_main.handler.handler import load
@@ -68,6 +71,11 @@ class Visualization:
                 data["metadata"] = self.get_json_header()
                 json_object = json.dumps(self.serialize_json_data(data), indent=4)
                 output_file.write(json_object)
+        elif save_as == "csv":
+            ...
+
+        elif save_as == "xlsx":
+            XlsxWriter(self.outfile_name, self.aspects).load(self.get_json_header(), data)
 
     def serialize_json_data(self, data: Any) -> str:
         if isinstance(data, OrderedDict):
@@ -172,3 +180,57 @@ class Visualization:
             print(feature)
         if self.save_as == "txt":
             self.append_in_text(feature)
+
+
+from openpyxl import Workbook, worksheet
+class XlsxWriter:
+
+    def __init__(self, output_name: Path, aspects: List[str]) -> None:
+        self.wb = Workbook()
+        self.aspects = aspects
+        self.output_name = output_name
+
+    def load(self, header: Dict[str, Union[str, List[str]]], data: Any) -> None:
+        
+        meta_sheet = self.wb["Sheet"]
+        meta_sheet.title = "Statistic-metadata"
+        # meta_sheet = self.wb.create_sheet(title="Statistic-metadata", index=0)
+        meta_sheet["A1"] = "Swegram statistics"
+        for row, (key, value) in enumerate(header.items(), 2):
+            self.load_cell(meta_sheet, row, 1, key)
+            if isinstance(value, str):
+                self.load_cell(meta_sheet, row, 2, value)
+            elif isinstance(value, list):
+                self.load_column_list(meta_sheet, row, 2, value)
+
+        for unit, aspects in data.items():
+            self.load_unit(unit, aspects)
+
+        self.wb.save(filename=self.output_name)
+
+    def load_cell(self, sheet: worksheet, row: int, column: int, value: str) -> None:
+        cell = sheet.cell(row=row, column=column)
+        cell.value = value
+
+    def load_column_list(self, sheet: worksheet, row: int, base_column: int, values: List[str]) -> None:
+        for column, value in enumerate(values, base_column):
+            self.load_cell(sheet, row, column, value)
+
+    def load_unit(self, unit: str, aspects: Any) -> None:
+        sheet = self.wb.create_sheet(title=unit)
+        self.load_cell(sheet, 1, 1, f"Statistic-{unit}")
+        self.load_aspects(sheet, 2, unit, aspects)
+
+    def load_aspects(self, sheet: worksheet, row: int, unit: str, aspects: Any) -> int:
+        if isinstance(aspects[0], OrderedDict):
+            for aspect, features in zip(self.aspects, aspects):
+                self.load_cell(sheet, row, 1, f"{unit}-{aspect}")
+                row += 1
+                for feature_name, feature in features.items():
+                    self.load_column_list(sheet, row, 1, [feature_name, feature.scalar, feature.mean, feature.median])
+                    row += 1
+            row += 1
+        elif isinstance(aspects[0], list):
+            for index, instance in enumerate(aspects, 1):
+                row = self.load_aspects(sheet, row, f"{unit}-{index}", instance)
+        return row     
