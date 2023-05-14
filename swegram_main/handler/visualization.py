@@ -194,7 +194,6 @@ class XlsxWriter:
         
         meta_sheet = self.wb["Sheet"]
         meta_sheet.title = "Statistic-metadata"
-        # meta_sheet = self.wb.create_sheet(title="Statistic-metadata", index=0)
         meta_sheet["A1"] = "Swegram statistics"
         for row, (key, value) in enumerate(header.items(), 2):
             self.load_cell(meta_sheet, row, 1, key)
@@ -233,4 +232,5 @@ class XlsxWriter:
         elif isinstance(aspects[0], list):
             for index, instance in enumerate(aspects, 1):
                 row = self.load_aspects(sheet, row, f"{unit}-{index}", instance)
-        return row     
+        return row
+  
