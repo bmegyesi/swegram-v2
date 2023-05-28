@@ -6,11 +6,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from openpyxl import Workbook, worksheet
+from openpyxl import worksheet
 
 from swegram_main.data.features import Feature
 from swegram_main.data.texts import Corpus
 from swegram_main.handler.handler import load
+from swegram_main.lib.utils import XlsxWriter
 
 
 class Visualization:
@@ -27,6 +28,7 @@ class Visualization:
         self.labels += f"Exclude metadata: {' '.join(exclude_labels)}\n" if exclude_labels else ""
         self.corpus: Corpus = load(input_path, language, include_tags, exclude_tags)
         self.outdir = output_dir or Path(os.getcwd())
+        os.makedirs(self.outdir, exist_ok=True)
 
     def filter(
         self, units: List[str], aspects: List[str],
@@ -71,7 +73,7 @@ class Visualization:
                 json_object = json.dumps(self.serialize_json_data(data), indent=4)
                 output_file.write(json_object)
         elif save_as == "xlsx":
-            XlsxWriter(self.outfile_name, self.aspects).load(self.get_json_info(), data)
+            XlsxStatisticWriter(self.outfile_name).load(self.get_json_info(), self.aspects, data)
 
     def serialize_json_data(self, data: Any) -> str:
         if isinstance(data, OrderedDict):
@@ -178,16 +180,15 @@ class Visualization:
             self.append_in_text(feature)
 
 
-class XlsxWriter:
+class XlsxStatisticWriter(XlsxWriter):
 
-    def __init__(self, output_path: Path, aspects: List[str]) -> None:
-        self.wb = Workbook()
-        self.aspects = aspects
-        self.output_name = output_path
+    def __init__(self, output_path: Path) -> None:
+        super().__init__(output_path)
 
-    def load(self, header: Dict[str, Union[str, List[str]]], data: Any) -> None:
+    def load(self, header: Dict[str, Union[str, List[str]]], aspects: List[str], data: Any) -> None:
 
         meta_sheet = self.wb["Sheet"]
+        self.aspects = aspects
         meta_sheet.title = "Statistic-metadata"
         meta_sheet["A1"] = "Swegram statistics"
         for row, (key, value) in enumerate(header.items(), 2):
@@ -201,14 +202,6 @@ class XlsxWriter:
             self.load_unit(unit, aspects)
 
         self.wb.save(filename=self.output_name)
-
-    def load_cell(self, sheet: worksheet, row: int, column: int, value: str) -> None:
-        cell = sheet.cell(row=row, column=column)
-        cell.value = value
-
-    def load_column_list(self, sheet: worksheet, row: int, base_column: int, values: List[str]) -> None:
-        for column, value in enumerate(values, base_column):
-            self.load_cell(sheet, row, column, value)
 
     def load_unit(self, unit: str, aspects: Any) -> None:
         sheet = self.wb.create_sheet(title=unit)

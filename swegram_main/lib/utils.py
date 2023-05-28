@@ -10,6 +10,9 @@ from typing import (
     Any, Callable, Dict, Generator, Iterator, List, Optional,
     TypeVar, Tuple, Union
 )
+
+from openpyxl import Workbook, worksheet
+
 from swegram_main.data.metadata import parse_metadata
 from swegram_main.lib.converter import Converter
 from swegram_main.lib.logger import get_logger
@@ -52,6 +55,21 @@ class FileContent:
                 yield line
             else:
                 yield metadata
+
+
+class XlsxWriter:
+
+    def __init__(self, output_path: Path) -> None:
+        self.wb = Workbook()
+        self.output_name = output_path
+
+    def load_cell(self, sheet: worksheet, row: int, column: int, value: str) -> None:
+        cell = sheet.cell(row=row, column=column)
+        cell.value = value
+
+    def load_column_list(self, sheet: worksheet, row: int, base_column: int, values: List[str]) -> None:
+        for column, value in enumerate(values, base_column):
+            self.load_cell(sheet, row, column, value)
 
 
 def get_md5(filepath: Path) -> str:

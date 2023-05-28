@@ -39,7 +39,7 @@ def main():
         elif not args.NORMALIZE:
             logger.info("Annotation: tokenize")
             pipeline.tokenize()
-        pipeline.postprocess()
+        pipeline.postprocess(args.save_as)
 
     elif args.command == "statistic":
         logger.info("Swegram statistics")
@@ -64,7 +64,7 @@ def main():
             include_features=args.include_features,
             exclude_features=args.exclude_features,
             pprint=args.PPRINT,
-            save_as=args.format
+            save_as=args.save_as
         )
 
     else:
