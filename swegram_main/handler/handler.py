@@ -88,7 +88,8 @@ def load(
     return Corpus(texts=texts, language=language)
 
 
-def is_text_included(labels: Dict[str, str], include_tags: List[str], exclude_tags: List[str]) -> bool:
+def is_text_included(labels: Optional[Dict[str, str]], include_tags: List[str], exclude_tags: List[str]) -> bool:
+    labels = labels or {}
     label_list = convert_labels_to_list(labels)
     if include_tags and not set(include_tags).intersection(label_list):
         return False
