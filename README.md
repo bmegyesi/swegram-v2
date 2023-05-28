@@ -45,7 +45,7 @@ optional arguments:
                         The input path to files/directory where working files are stored
   -o OUTPUT_DIR, --output-dir OUTPUT_DIR
                         The output directory where working files are stored
-  --output-format {txt,xlsx,json}
+  --save-as {txt,xlsx,json}
                         The output format
 
 swegram annotate -h
@@ -62,7 +62,6 @@ swegram statistic -h
   --aspects             Checking statistics on the basis of selection of certain aspect(s). The following aspects are valid to be chosen: general, readability, morph, lexical, syntactic
   --include-features    Only certain features will be included
   --exclude-features    Certain features will be excluded
-  --save-as             Select a format to save the result. One of the four formats are valid: txt(default), json, xlsx
   --print               Flag to print the result on console 
 ```
 
