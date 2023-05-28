@@ -45,8 +45,25 @@ optional arguments:
                         The input path to files/directory where working files are stored
   -o OUTPUT_DIR, --output-dir OUTPUT_DIR
                         The output directory where working files are stored
-  --output-format {txt,xlsx,json,csv}
+  --output-format {txt,xlsx,json}
                         The output format
+
+swegram annotate -h
+  --normalize       process normalization
+  --tokenize        process tokenization
+  --tag             process pos-tagging
+  --parse           process syntactic parsing
+
+
+swegram statistic -h
+  --include-metadata    Include certain texts by selecting metadata. For instance, "--include-metadata key1 key2:value2" only selects the texts that contain key1 or key2:value2 in the metadata
+  -- exclude-metadata   Exclude certain texts by deselecting metadata
+  -u --units            Checking statistics of features given certain linguistic unit(s). The following units are valid to be chosen: corpus, text, paragraph, sentence
+  --aspects             Checking statistics on the basis of selection of certain aspect(s). The following aspects are valid to be chosen: general, readability, morph, lexical, syntactic
+  --include-features    Only certain features will be included
+  --exclude-features    Certain features will be excluded
+  --save-as             Select a format to save the result. One of the four formats are valid: txt(default), json, xlsx
+  --print               Flag to print the result on console 
 ```
 
 

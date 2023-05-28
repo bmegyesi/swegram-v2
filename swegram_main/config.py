@@ -60,7 +60,6 @@ ASPECTS = ["general", "readability", "morph", "lexical", "syntactic"]
 
 PAGE_SIZE = 10 # the default page size is 10 items
 
-COLUMN_DELIMITER = "¥" # This will be used to separate different columns in uploaded csv file
 METADATA_DELIMITER = ";"
 METADATA_INITIAL = "<"
 METADATA_FINAL = ">"

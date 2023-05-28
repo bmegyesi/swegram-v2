@@ -6,7 +6,7 @@ set -x
 python3 build_dependencies/install_pandoc.py
 
 # Download and make udpipe
-./build_dependencies/install_udpipe.sh
+python3 build_dependencies/install_udpipe.py
 
 mkdir -p tools/udpipe
 touch tools/__init__.py

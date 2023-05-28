@@ -6,19 +6,19 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import openpyxl
+from openpyxl import worksheet
 
 from swegram_main.data.features import Feature
 from swegram_main.data.texts import Corpus
 from swegram_main.handler.handler import load
+from swegram_main.lib.utils import XlsxWriter
 
 
 class Visualization:
 
     def __init__(
         self, input_path: Path, language: str, output_dir: Optional[Path],
-        include_tags: Optional[List[str]],
-        exclude_tags: Optional[List[str]]
+        include_tags: Optional[List[str]], exclude_tags: Optional[List[str]]
     ) -> None:
         self.language = language
         self.input_path = input_path
@@ -28,6 +28,7 @@ class Visualization:
         self.labels += f"Exclude metadata: {' '.join(exclude_labels)}\n" if exclude_labels else ""
         self.corpus: Corpus = load(input_path, language, include_tags, exclude_tags)
         self.outdir = output_dir or Path(os.getcwd())
+        os.makedirs(self.outdir, exist_ok=True)
 
     def filter(
         self, units: List[str], aspects: List[str],
@@ -68,14 +69,11 @@ class Visualization:
             self.save(data)
         elif save_as == "json":
             with open(self.outfile_name, "w") as output_file:
-                data["metadata"] = self.get_json_header()
+                data["metadata"] = self.get_json_info()
                 json_object = json.dumps(self.serialize_json_data(data), indent=4)
                 output_file.write(json_object)
-        elif save_as == "csv":
-            ...
-
         elif save_as == "xlsx":
-            XlsxWriter(self.outfile_name, self.aspects).load(self.get_json_header(), data)
+            XlsxStatisticWriter(self.outfile_name).load(self.get_json_info(), self.aspects, data)
 
     def serialize_json_data(self, data: Any) -> str:
         if isinstance(data, OrderedDict):
@@ -89,11 +87,11 @@ class Visualization:
                 data[index] = self.serialize_json_data(instance)
         return data
 
-    def append_in_text(self, content: str) -> None:
-        with open(self.outfile_name, "a+") as output_file:
+    def append_in_text(self, content: str, mode: str = "a+") -> None:
+        with open(self.outfile_name, mode) as output_file:
             output_file.write(f"{content}\n")
 
-    def get_header(self) -> str:
+    def get_info(self) -> str:
         return "Swegram statistic\n" \
                f"Time: {str(datetime.now())}\n" \
                f"Language: {self.language}\n" \
@@ -101,16 +99,16 @@ class Visualization:
                f"Units: {self.units}\n" \
                f"Aspects: {self.aspects}\n"
 
-    def get_json_header(self) -> Dict[str, str]:
-        headers = {
+    def get_json_info(self) -> Dict[str, str]:
+        instance_info = {
             "Time": str(datetime.now()),
             "Language": self.language,
             "Units": self.units,
             "Aspects": self.aspects
         }
         if self.labels:
-            headers.update({"Labels": self.labels})
-        return headers
+            instance_info.update({"Labels": self.labels})
+        return instance_info
 
     def filter_instance(
         self, instance, include_features: List[str], exclude_features: List[str]
@@ -131,9 +129,9 @@ class Visualization:
 
     def save(self, data: OrderedDict) -> None:
         if self.pprint:
-            print(self.get_header())
+            print(self.get_info())
         if self.save_as == "txt":
-            self.append_in_text(self.get_header())
+            self.append_in_text(self.get_info(), mode="w")
 
         for unit in data:
             if unit == "corpus":
@@ -182,17 +180,15 @@ class Visualization:
             self.append_in_text(feature)
 
 
-from openpyxl import Workbook, worksheet
-class XlsxWriter:
+class XlsxStatisticWriter(XlsxWriter):
 
-    def __init__(self, output_name: Path, aspects: List[str]) -> None:
-        self.wb = Workbook()
-        self.aspects = aspects
-        self.output_name = output_name
+    def __init__(self, output_path: Path) -> None:
+        super().__init__(output_path)
 
-    def load(self, header: Dict[str, Union[str, List[str]]], data: Any) -> None:
-        
+    def load(self, header: Dict[str, Union[str, List[str]]], aspects: List[str], data: Any) -> None:
+
         meta_sheet = self.wb["Sheet"]
+        self.aspects = aspects
         meta_sheet.title = "Statistic-metadata"
         meta_sheet["A1"] = "Swegram statistics"
         for row, (key, value) in enumerate(header.items(), 2):
@@ -206,14 +202,6 @@ class XlsxWriter:
             self.load_unit(unit, aspects)
 
         self.wb.save(filename=self.output_name)
-
-    def load_cell(self, sheet: worksheet, row: int, column: int, value: str) -> None:
-        cell = sheet.cell(row=row, column=column)
-        cell.value = value
-
-    def load_column_list(self, sheet: worksheet, row: int, base_column: int, values: List[str]) -> None:
-        for column, value in enumerate(values, base_column):
-            self.load_cell(sheet, row, column, value)
 
     def load_unit(self, unit: str, aspects: Any) -> None:
         sheet = self.wb.create_sheet(title=unit)
@@ -233,4 +221,3 @@ class XlsxWriter:
             for index, instance in enumerate(aspects, 1):
                 row = self.load_aspects(sheet, row, f"{unit}-{index}", instance)
         return row
-  

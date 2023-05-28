@@ -10,7 +10,7 @@ positional arguments:
 optional arguments:
 -o --output-path, denote output-file path
 -s --statistics, if statistics are required
---format str output, available [csv, xlsx, json, txt]
+--format str output, available [txt, json, xlsx]
 --tokenize  bool
 --tag       bool
 --parse     bool
@@ -54,7 +54,7 @@ def _statistic_parser(statistic_parser: ArgumentParser) -> None:
     statistic_parser.add_argument(
         "-u", "--units", dest="UNITS", metavar="N", nargs="+",
         choices=UNITS, type=str, default=["corpus"],
-        help="Checking statistics of features given certain linguitisc unit(s)."
+        help="Checking statistics of features given certain linguistic unit(s)."
     )
     statistic_parser.add_argument(
         "--aspects", dest="ASPECTS", metavar="N", nargs="+",
@@ -72,10 +72,6 @@ def _statistic_parser(statistic_parser: ArgumentParser) -> None:
         help="Certain features will be excluded."
     )
     statistic_parser.add_argument("--print", dest="PPRINT", action="store_true", help="Print statistic on console")
-    statistic_parser.add_argument(
-        "--save-as", dest="format", type=str, default="txt", choices=["txt", "json", "csv", "xlsx"],
-        help="Output format to save the statistics"
-    )
 
 
 def main_parser() -> Namespace:
@@ -89,7 +85,7 @@ def main_parser() -> Namespace:
                         help="The input path to files/directory where working files are stored")
     parser.add_argument("-o", "--output-dir", type=Path,
                         help="The output directory where working files are stored")
-    parser.add_argument("--output-format", type=str, choices=["txt", "xlsx", "json", "csv"], default="txt",
+    parser.add_argument("--save-as", type=str, choices=["txt", "xlsx", "json"], default="txt",
                         help="The output format")
 
     subparsers = parser.add_subparsers(dest="command", help="Swegram subparser")

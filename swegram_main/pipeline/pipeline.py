@@ -31,7 +31,9 @@ class Pipeline:
 
     default_output_dir = "output"
 
-    def __init__(self, input_path: Path, output_dir: Optional[Path] = None, language: str = "sv") -> None:
+    def __init__(
+        self, input_path: Path, output_dir: Optional[Path] = None, language: str = "sv"
+    ) -> None:
         if not input_path.exists():
             raise FileNotFoundError(input_path)
 
@@ -40,6 +42,7 @@ class Pipeline:
         self.customized_output_dir = output_dir
         if self.customized_output_dir:
             self.output_dir = output_dir
+            os.makedirs(self.output_dir, exist_ok=True)
         else:
             self.output_dir = self.input_path.absolute().parent.joinpath(self.default_output_dir)
             if self.output_dir.exists():
@@ -79,7 +82,7 @@ class Pipeline:
         self.texts = preprocess(self.input_path, self.output_dir, self.model)
         self.output_dir.joinpath(self.input_path.name).unlink(missing_ok=True)
 
-    def postprocess(self) -> None:
+    def postprocess(self, save_as: str = "txt") -> None:
         """
         if normalized: append original tokens in the list
         else: append normalized tokens in the list
@@ -88,7 +91,7 @@ class Pipeline:
         if not conll, convert to .conll
         """
         for text in self.texts:
-            _postprocess(text, self.model)
+            _postprocess(text, self.model, save_as)
 
     def run(self, action: str, post_action: bool = True) -> None:
         if action == "tokenize":
