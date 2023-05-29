@@ -12,6 +12,7 @@ from shutil import SameFileError
 from typing import Optional
 from swegram_main.data.texts import TextDirectory as TD
 from swegram_main.pipeline.preprocess import preprocess
+from swegram_main.pipeline.postprocess import aggregate_conlls, save
 from swegram_main.pipeline.postprocess import postprocess as _postprocess
 from swegram_main.pipeline.lib.normalize import normalize as normalize_
 from swegram_main.pipeline.lib.parse import parse as parse_
@@ -82,7 +83,7 @@ class Pipeline:
         self.texts = preprocess(self.input_path, self.output_dir, self.model)
         self.output_dir.joinpath(self.input_path.name).unlink(missing_ok=True)
 
-    def postprocess(self, save_as: str = "txt") -> None:
+    def postprocess(self, save_as: str = "txt", aggregate: bool = False) -> None:
         """
         if normalized: append original tokens in the list
         else: append normalized tokens in the list
@@ -90,8 +91,27 @@ class Pipeline:
         if efselab: split suc_tags into suc_tag and ufeats
         if not conll, convert to .conll
         """
+        cache_save_as = save_as if not aggregate else "txt"
+        normalization_tags, annotation_tags = [], []
+
         for text in self.texts:
-            _postprocess(text, self.model, save_as)
+            normalized, annotated = _postprocess(text, self.model, cache_save_as)
+            normalization_tags.append(normalized)
+            annotation_tags.append(annotated)
+
+        if len(set(normalization_tags)) != 1:
+            if normalization_tags:
+                raise Exception(f"Inconsistent normalization across texts: {normalization_tags}")
+            raise Exception("Missing annotated texts")
+        if len(set(annotation_tags)) != 1:
+            if annotation_tags:
+                raise Exception(f"Inconsistent annotation phases across texts: {annotation_tags}")
+
+        if aggregate:
+            conll_filename = aggregate_conlls([text.conll for text in self.texts], save_as)
+            if save_as != "txt":
+                save(save_as, Path(conll_filename), self.model, normalization_tags[0], annotation_tags[0])
+
 
     def run(self, action: str, post_action: bool = True) -> None:
         if action == "tokenize":

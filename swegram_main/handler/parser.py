@@ -30,10 +30,27 @@ Swegram command line interface description
 
 def _annotation_parser(annotation_parser: ArgumentParser) -> None:
     """Add arguments for annotation parser"""
-    annotation_parser.add_argument("--normalize", dest="NORMALIZE", action="store_true")
-    annotation_parser.add_argument("--tokenize", dest="TOKENIZE", action="store_true")    
-    annotation_parser.add_argument("--tag", dest="TAG", action="store_true")
-    annotation_parser.add_argument("--parse", dest="PARSE", action="store_true")
+    annotation_parser.add_argument(
+        "--normalize", dest="NORMALIZE", action="store_true",
+        help="Process spelling checker after tokenization and"
+             " normalized tokens will be used for upcoming annotation actions."
+    )
+    annotation_parser.add_argument(
+        "--tokenize", dest="TOKENIZE", action="store_true",
+        help="Process sentence segmentation and tokenization."
+    )
+    annotation_parser.add_argument(
+        "--tag", dest="TAG", action="store_true",
+        help="Process part-of-speech tagging."
+    )
+    annotation_parser.add_argument(
+        "--parse", dest="PARSE", action="store_true",
+        help="Process syntactic dependency parsing."
+    )
+    annotation_parser.add_argument(
+        "--aggregate", dest="AGGREGATE", action="store_true",
+        help="Aggregate all annotated texts into one file."
+    )
 
 
 def _statistic_parser(statistic_parser: ArgumentParser) -> None:

@@ -5,7 +5,7 @@ import logging
 import re
 from typing import Dict, List
 
-from swegram_main.config import METADATA_INITIAL, METADATA_FINAL, METADATA_DELIMITER, METADATA_DELIMITER_TAG
+from swegram_main.config import METADATA_INITIAL, METADATA_FINAL, METADATA_DELIMITER_LEBAL, METADATA_DELIMITER_TAG
 
 
 METADATA_LINE_PATTERN = fr"{METADATA_INITIAL}.*{METADATA_FINAL}"
@@ -28,7 +28,7 @@ def parse_metadata(line: str) -> Dict[str, str]:
 
 def parse_metadata_helper(metadata: str) -> Dict[str, str]:
     """Parse metadata"""
-    tags = metadata.split(METADATA_DELIMITER)
+    tags = metadata.split(METADATA_DELIMITER_LEBAL)
     labels: Dict[str, str] = {}
     for tag in tags:
         try:

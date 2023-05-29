@@ -60,13 +60,15 @@ ASPECTS = ["general", "readability", "morph", "lexical", "syntactic"]
 
 PAGE_SIZE = 10 # the default page size is 10 items
 
-METADATA_DELIMITER = ";"
 METADATA_INITIAL = "<"
 METADATA_FINAL = ">"
+EMPTY_METADATA = f"{METADATA_INITIAL}{METADATA_FINAL}"
 METADATA_DELIMITER_LEBAL = ";"
 METADATA_DELIMITER_TAG = ":"
 
-NO_METADATA_STRING = "(ingen metadata)" # metadata is printed when there is, no prompt when the text does not contain metadata
+
+AGGREGATION_CONLLS = "aggregation.conll"
+
 
 UD_TAGS = ["ADJ", "ADP", "ADV", "AUX", "CCONJ",
            "DET", "INTJ", "NOUN", "NUM", "PART",
