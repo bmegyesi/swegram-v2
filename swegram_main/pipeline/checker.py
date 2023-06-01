@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Tuple, List, Iterator
 
-from swegram_main.lib.utils import read, is_a_ud_tree
 from swegram_main.config import UD_TAGS, PT_TAGS, SUC_TAGS, DEPRELS, XFEATS, FEATS
+from swegram_main.lib.utils import read, is_a_ud_tree
 
 
 class UploadedTextValidationError(Exception):
@@ -126,11 +126,5 @@ def check_text(model: str, text: Iterator) -> None:
         print("Process checking uploaded text done.")
 
     if errors:
-        import pdb; pdb.set_trace()
         raise UploadedTextValidationError("\n".join(errors))
     return any(normalized), any(tagged), any(parsed)
-
-
-# if __name__ == "__main__":
-#     t = checker(Path("10-sv.conll"), "efselab")
-#     print(t)

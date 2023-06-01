@@ -1,63 +1,29 @@
 """Finalize the conll file after annotation
 
 """
+import fileinput
 import json
 import os
 import shutil
-from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
-from typing import Iterator, Optional, List, Dict
+from typing import Iterator, Optional, List, Dict, Tuple
 
+from swegram_main.config import (
+    AGGREGATION_CONLLS, EMPTY_METADATA, JSON_CONLL_CORPUS_KEY, JSON_CONLL_METADATA_KEY, JSON_CONLL_TEXT_KEY
+)
+from swegram_main.data.metadata import parse_metadata, convert_labels_to_string
 from swegram_main.data.texts import TextDirectory as TD
-from swegram_main.lib.utils import change_suffix, cut, read, read_conll_file, XlsxWriter
+from swegram_main.lib.utils import change_suffix, cut, read, read_conll_file, XlsxAnnotationClient
 
 
-class XlsxAnnotationWriter(XlsxWriter):
-
-    def __init__(self, output_path: Path) -> None:
-        super().__init__(output_path)
-
-    def load(self, conll: Path, language: str, normalized: bool, annotation: str):
-        text, labels = read_conll_file(conll)[0]
-        meta_sheet = self.wb["Sheet"]
-        meta_sheet.title = "Annotation-metadata"
-        meta_sheet["A1"] = "Swegram Annotation"
-        metadata = OrderedDict({
-            "Language": language,
-            "Normalization": normalized,
-            "Annotation": annotation,
-            "Labels": labels
-        })
-        for row, (key, value) in enumerate(metadata.items(), 2):
-            self.load_cell(meta_sheet, row, 1, key)
-            self.load_cell(meta_sheet, row, 2, value)
-        self.load_text(text)
-        self.wb.save(filename=self.output_name)
-
-    def load_text(self, text: List[List[List[str]]]) -> None:
-        sheet = self.wb.create_sheet(title="content")
-        row = 1
-        for paragraph in text:
-            for sentence in paragraph:
-                for token in sentence:
-                    fields = token.split("\t")
-                    for col, field in enumerate(fields, 1):
-                        self.load_cell(sheet, row, col, field)
-                    row += 1
-                row += 1
-            row += 1
-
-
-def postprocess(text: TD, model: str, save_as: str) -> None:
+def postprocess(text: TD, model: str, save_as: str) -> Tuple[str, bool, str]:
     if text.spell.exists():
         tokens = read(text.tok)
         normalized = True
     else:
         tokens = None
         normalized = False
-
-    language = "sv" if model.lower() in ["efselab", "histnorm_sv"] else "en"
 
     if text.conll.exists():
         if model.lower() == "efselab":
@@ -80,26 +46,40 @@ def postprocess(text: TD, model: str, save_as: str) -> None:
     else:
         raise FileNotFoundError(f"No annotated files detected for {text.filepath}")
 
-    save(save_as, text.conll, language, normalized, annotation)
+    if text.meta:
+        insert_metadata(text.conll, text.meta)
+
+    save(save_as, text.conll, model, normalized, annotation)
+    return normalized, annotation
 
 
-def save(save_as: str, conll: Path, language: str, normalized: bool, annotation: str) -> None:
+def insert_metadata(filepath: Path, metadata: Dict[str, str]) -> None:
+    with fileinput.input(filepath, inplace=True) as input_file:
+        for line in input_file:
+            if input_file.isfirstline():
+                print(convert_labels_to_string(metadata))
+            print(line.strip())
+
+
+def save(save_as: str, conll: Path, model: str, normalized: bool, annotation: str) -> None:
+    language = "sv" if model.lower() in ["efselab", "histnorm_sv"] else "en"
     if save_as == "json":
-        save_as_json(conll, language, normalized, annotation)
+        save_as_json(conll, model, language, normalized, annotation)
     elif save_as == "xlsx":
-        save_as_xlsx(conll, language, normalized, annotation)
+        save_as_xlsx(conll, model, language, normalized, annotation)
     elif save_as != "txt":
         raise TypeError(f"Only support txt, json, xlsx, but got {save_as} instead.")
 
 
-def save_as_json(conll: Path, language: str, normalized: bool, annotation: str) -> None:
+def save_as_json(conll: Path, model: str, language: str, normalized: bool, annotation: str) -> None:
     """Save as json format"""
-    text, labels = read_conll_file(conll)[0]
     json_object = json.dumps(
         {
-            "Timestamp": str(datetime.now()), "Language": language,
+            "Timestamp": str(datetime.now()), "Model": model, "Language": language,
             "Normalization": normalized, "Annotation": annotation,
-            "Metadata": labels, "text": text
+            JSON_CONLL_CORPUS_KEY: [
+                {JSON_CONLL_METADATA_KEY: labels, JSON_CONLL_TEXT_KEY: text} for text, labels in read_conll_file(conll)
+            ]
         },
         indent=4
     )
@@ -108,9 +88,33 @@ def save_as_json(conll: Path, language: str, normalized: bool, annotation: str) 
         output_file.write(json_object)
 
 
-def save_as_xlsx(conll: Path, language: str, normalized: bool, annotation: str) -> None:
+def save_as_xlsx(conll: Path, model: str, language: str, normalized: bool, annotation: str) -> None:
     """Save as xlsx format"""
-    XlsxAnnotationWriter(change_suffix(conll, "xlsx")).load(conll, language, normalized, annotation)
+    XlsxAnnotationClient(change_suffix(conll, "xlsx")).dump(conll, model, language, normalized, annotation)
+
+
+def get_aggregate_filename(file_path: Path, basename: str) -> str:
+    return os.path.join(os.path.abspath(os.path.dirname(file_path)), basename)
+
+
+def get_conll(file_path: Path) -> str:
+    with open(file_path, "r", encoding="utf-8") as conll_file:
+        lines = conll_file.readlines()
+        while lines:
+            first_line = lines.pop(0)
+            if first_line.strip() and parse_metadata(first_line):
+                return "".join([first_line, *lines])
+            elif first_line.strip():
+                return "".join([f"{EMPTY_METADATA}\n", first_line, *lines])
+        raise Exception(f"Empty conll file: {file_path}")
+
+
+def aggregate_conlls(file_paths: List[Path]) -> str:
+    filename = get_aggregate_filename(file_paths[0], AGGREGATION_CONLLS)
+    with open(filename, "w", encoding="utf-8") as output_file:
+        for file_path in file_paths:
+            output_file.write(get_conll(file_path))
+    return filename
 
 
 def postprocess_helper(

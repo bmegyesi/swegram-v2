@@ -11,7 +11,7 @@ from openpyxl import worksheet
 from swegram_main.data.features import Feature
 from swegram_main.data.texts import Corpus
 from swegram_main.handler.handler import load
-from swegram_main.lib.utils import XlsxWriter
+from swegram_main.lib.utils import XlsxClient
 
 
 class Visualization:
@@ -180,7 +180,7 @@ class Visualization:
             self.append_in_text(feature)
 
 
-class XlsxStatisticWriter(XlsxWriter):
+class XlsxStatisticWriter(XlsxClient):
 
     def __init__(self, output_path: Path) -> None:
         super().__init__(output_path)
@@ -192,11 +192,11 @@ class XlsxStatisticWriter(XlsxWriter):
         meta_sheet.title = "Statistic-metadata"
         meta_sheet["A1"] = "Swegram statistics"
         for row, (key, value) in enumerate(header.items(), 2):
-            self.load_cell(meta_sheet, row, 1, key)
+            self.dump_cell(meta_sheet, row, 1, key)
             if isinstance(value, str):
-                self.load_cell(meta_sheet, row, 2, value)
+                self.dump_cell(meta_sheet, row, 2, value)
             elif isinstance(value, list):
-                self.load_column_list(meta_sheet, row, 2, value)
+                self.dump_column_list(meta_sheet, row, 2, value)
 
         for unit, aspects in data.items():
             self.load_unit(unit, aspects)
@@ -205,16 +205,16 @@ class XlsxStatisticWriter(XlsxWriter):
 
     def load_unit(self, unit: str, aspects: Any) -> None:
         sheet = self.wb.create_sheet(title=unit)
-        self.load_cell(sheet, 1, 1, f"Statistic-{unit}")
+        self.dump_cell(sheet, 1, 1, f"Statistic-{unit}")
         self.load_aspects(sheet, 2, unit, aspects)
 
     def load_aspects(self, sheet: worksheet, row: int, unit: str, aspects: Any) -> int:
         if isinstance(aspects[0], OrderedDict):
             for aspect, features in zip(self.aspects, aspects):
-                self.load_cell(sheet, row, 1, f"{unit}-{aspect}")
+                self.dump_cell(sheet, row, 1, f"{unit}-{aspect}")
                 row += 1
                 for feature_name, feature in features.items():
-                    self.load_column_list(sheet, row, 1, [feature_name, feature.scalar, feature.mean, feature.median])
+                    self.dump_column_list(sheet, row, 1, [feature_name, feature.scalar, feature.mean, feature.median])
                     row += 1
             row += 1
         elif isinstance(aspects[0], list):

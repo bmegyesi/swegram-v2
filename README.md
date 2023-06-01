@@ -49,10 +49,11 @@ optional arguments:
                         The output format
 
 swegram annotate -h
-  --normalize       process normalization
-  --tokenize        process tokenization
-  --tag             process pos-tagging
-  --parse           process syntactic parsing
+  --normalize  Process spelling checker after tokenization and normalized tokens will be used for upcoming annotation actions.
+  --tokenize   Process sentence segmentation and tokenization.
+  --tag        Process part-of-speech tagging.
+  --parse      Process syntactic dependency parsing.
+  --aggregate  Aggregate all annotated texts into one file.
 
 
 swegram statistic -h

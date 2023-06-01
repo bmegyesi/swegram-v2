@@ -1,23 +1,60 @@
 """module of preprocessing text handling before applying any linguistic annotations
 """
+import json
 import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional, Union
 
+from swegram_main.config import JSON_CONLL_CORPUS_KEY, JSON_CONLL_METADATA_KEY, JSON_CONLL_TEXT_KEY
+from swegram_main.data.metadata import convert_labels_to_string
 from swegram_main.data.texts import TextDirectory as TD
 from swegram_main.pipeline.checker import checker
-from swegram_main.lib.utils import cut, FileContent, MetaFormatError
+from swegram_main.lib.utils import cut, FileContent, MetaFormatError, XlsxAnnotationClient
+
+
+TEXT_TYPE = Dict[str, Union[Dict[str, str], List[List[List[str]]]]]
 
 
 class RestoreFileError(Exception):
     """Restore file error"""
 
 
-def preprocess(input_path: Path, output_dir: Path, model) -> List[TD]:
+class LoadingAnnotatedJsonError(Exception):
+    """Load Annotated Json File Error"""
+
+
+def convert_json_conll(filepath: Path, output_dir: Path) -> Path:
+    with open(filepath, mode="r", encoding="utf-8") as input_file:
+        try:
+            output_path = output_dir.joinpath(f"{filepath.stem}.conll")
+            corpus: List[TEXT_TYPE] = json.load(input_file)[JSON_CONLL_CORPUS_KEY]
+            with open(output_path, mode="w", encoding="utf-8") as output_file:
+                for text_instance in corpus:
+                    output_file.write(f"{convert_labels_to_string(text_instance[JSON_CONLL_METADATA_KEY])}\n")
+                    for paragraph in text_instance[JSON_CONLL_TEXT_KEY]:
+                        for sentence in paragraph:
+                            for token in sentence:
+                                output_file.write(token)
+                            output_file.write("\n")
+                        output_file.write("\n")
+
+        except KeyError as err:
+            raise LoadingAnnotatedJsonError(f"Incorrect input json format: {err}")
+
+        return output_path
+
+
+def preprocess(input_path: Path, output_dir: Path, model: str) -> List[TD]:
     text_index = 0
     text_instances: List[TD] = []
+    if input_path.suffix == ".json":
+        input_path = convert_json_conll(input_path, output_dir)
+        import pdb; pdb.set_trace()
+    elif input_path.suffix == ".xlsx":
+        input_path = XlsxAnnotationClient.load_corpus(input_path, output_dir)
+
     try:
         file_content = FileContent(input_path).get()
         meta = None

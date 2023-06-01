@@ -3,17 +3,19 @@ import logging
 import os
 import shutil
 import tempfile
-from collections import Counter, defaultdict
+from collections import Counter, OrderedDict, defaultdict
 from hashlib import md5
 from pathlib import Path
 from typing import (
     Any, Callable, Dict, Generator, Iterator, List, Optional,
-    TypeVar, Tuple, Union
+    TextIO, TypeVar, Tuple, Union
 )
 
 from openpyxl import Workbook, worksheet
+from openpyxl.reader.excel import load_workbook
 
-from swegram_main.data.metadata import parse_metadata
+from swegram_main.config import XLSX_CONLL_SHEET_PREFIX
+from swegram_main.data.metadata import convert_xlsx_labels_to_string, parse_metadata
 from swegram_main.lib.converter import Converter
 from swegram_main.lib.logger import get_logger
 
@@ -38,6 +40,10 @@ class AnnotationError(Exception):
     """Annotation error"""
 
 
+class LoadXlsxFormatError(Exception):
+    """Load Xlsx Format Error"""
+
+
 class FileContent:
 
     def __init__(self, filepath: Path) -> None:
@@ -57,19 +63,96 @@ class FileContent:
                 yield metadata
 
 
-class XlsxWriter:
+class XlsxClient:
 
     def __init__(self, output_path: Path) -> None:
         self.wb = Workbook()
         self.output_name = output_path
 
-    def load_cell(self, sheet: worksheet, row: int, column: int, value: str) -> None:
+    def dump_cell(self, sheet: worksheet, row: int, column: int, value: str) -> None:
         cell = sheet.cell(row=row, column=column)
         cell.value = value
 
-    def load_column_list(self, sheet: worksheet, row: int, base_column: int, values: List[str]) -> None:
+    def dump_column_list(self, sheet: worksheet, row: int, base_column: int, values: List[str]) -> None:
         for column, value in enumerate(values, base_column):
-            self.load_cell(sheet, row, column, value)
+            self.dump_cell(sheet, row, column, value)
+
+
+class XlsxAnnotationClient(XlsxClient):
+
+    def __init__(self, output_path: Path) -> None:
+        super().__init__(output_path)
+
+    def dump(self, conll: Path, model: str, language: str, normalized: bool, annotation: str):
+        text, labels = read_conll_file(conll)[0]
+        meta_sheet = self.wb["Sheet"]
+        meta_sheet.title = "Annotation-metadata"
+        meta_sheet["A1"] = "Swegram Annotation"
+        metadata = OrderedDict({
+            "Model": model,
+            "Language": language,
+            "Normalization": normalized,
+            "Annotation": annotation,
+        })
+        for row, (key, value) in enumerate(metadata.items(), 2):
+            self.dump_cell(meta_sheet, row, 1, key)
+            self.dump_cell(meta_sheet, row, 2, value)
+
+        # dump conll text in xlsx file
+        for index, (text, labels) in enumerate(read_conll_file(conll), 1):
+            self.dump_text(text, labels, f"text_{index}")
+        self.wb.save(filename=self.output_name)
+
+    def dump_labels(self, sheet: worksheet, labels: Dict[str, str]) -> None:
+        self.dump_cell(sheet, 1, 1, "Metadata")
+        if labels:
+            for index, (key, value) in enumerate(labels.items(), 1):
+                self.dump_cell(sheet, 1, index * 2, key)
+                self.dump_cell(sheet, 1, index * 2 + 1, value)
+        else:
+            self.dump_cell(sheet, 1, 2, None)
+
+    def dump_text(self, text: List[List[List[str]]], labels: Dict[str, str], title: str) -> None:
+        sheet = self.wb.create_sheet(title=title)
+        self.dump_labels(sheet, labels)
+        row = 2
+        for paragraph in text:
+            for sentence in paragraph:
+                for token in sentence:
+                    fields = token.split("\t")
+                    for col, field in enumerate(fields, 1):
+                        self.dump_cell(sheet, row, col, field)
+                    row += 1
+                row += 1
+            row += 1
+
+    @staticmethod
+    def load_corpus(input_path: Path, outdir_path: Path) -> Path:
+        output_path = outdir_path.joinpath(f"{input_path.stem}.conll")
+        try:
+            wb = load_workbook(input_path)
+            with open(output_path, mode="w", encoding="utf-8") as output_file:
+                for sheet_name in wb.sheetnames:
+                    if sheet_name.startswith(XLSX_CONLL_SHEET_PREFIX):
+                        sheet = wb[sheet_name]
+                        convert_sheet2conll(sheet, output_file)
+
+        except KeyError as err:
+            raise LoadXlsxFormatError(f"Incorrect xlsx conll format: {err}")
+
+        return output_path
+
+
+def convert_sheet2conll(sheet: worksheet, output_file: TextIO) -> None:
+    rows = sheet.rows
+    label_list = [cell.value for cell in next(rows) if cell.value][1:]
+    output_file.write(f"{convert_xlsx_labels_to_string(label_list)}\n")
+    for row in rows:
+        fields = [c.value for c in row if c.value]
+        if fields:
+            output_file.write("\t".join(fields))
+        else:
+            output_file.write("\n")
 
 
 def get_md5(filepath: Path) -> str:
