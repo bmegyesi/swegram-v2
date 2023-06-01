@@ -45,3 +45,16 @@ def parse_metadata_helper(metadata: str) -> Dict[str, str]:
 def convert_labels_to_list(labels: Dict[str, str]) -> List[str]:
     """Convert the dict of labels into a list of labels for later control/check"""
     return [*labels.keys(), *[f"{key}:{value}" for key, value in labels.items()]]
+
+
+def convert_labels_to_string(labels: Dict[str, str]) -> str:
+    label_list = [f"{key}{METADATA_DELIMITER_TAG} {value}" for key, value in labels.items()]
+    return f"<{METADATA_DELIMITER_LEBAL.join(label_list)}>"
+
+def convert_xlsx_labels_to_string(labels: List[str]) -> str:
+    label_list = []
+    while labels:
+        key, value = labels[:2]
+        label_list.append(f"{key}{METADATA_DELIMITER_TAG} {value}")
+        labels = labels[2:]
+    return f"<{METADATA_DELIMITER_LEBAL.join(label_list)}>"

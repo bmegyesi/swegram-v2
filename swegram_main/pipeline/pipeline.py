@@ -108,7 +108,7 @@ class Pipeline:
                 raise Exception(f"Inconsistent annotation phases across texts: {annotation_tags}")
 
         if aggregate:
-            conll_filename = aggregate_conlls([text.conll for text in self.texts], save_as)
+            conll_filename = aggregate_conlls([text.conll for text in self.texts])
             if save_as != "txt":
                 save(save_as, Path(conll_filename), self.model, normalization_tags[0], annotation_tags[0])
 

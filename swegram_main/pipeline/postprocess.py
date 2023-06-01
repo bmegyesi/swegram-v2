@@ -1,69 +1,20 @@
 """Finalize the conll file after annotation
 
 """
+import fileinput
 import json
 import os
 import shutil
-from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from typing import Iterator, Optional, List, Dict, Tuple
 
-from openpyxl import worksheet
-
-from swegram_main.config import EMPTY_METADATA, AGGREGATION_CONLLS, AGGREGATION_JSONS, AGGREGATION_SHEETS
-from swegram_main.data.metadata import parse_metadata
+from swegram_main.config import (
+    AGGREGATION_CONLLS, EMPTY_METADATA, JSON_CONLL_CORPUS_KEY, JSON_CONLL_METADATA_KEY, JSON_CONLL_TEXT_KEY
+)
+from swegram_main.data.metadata import parse_metadata, convert_labels_to_string
 from swegram_main.data.texts import TextDirectory as TD
-from swegram_main.lib.utils import change_suffix, cut, read, read_conll_file, XlsxWriter
-
-
-class XlsxAnnotationWriter(XlsxWriter):
-
-    def __init__(self, output_path: Path) -> None:
-        super().__init__(output_path)
-
-    def load(self, conll: Path, model: str, language: str, normalized: bool, annotation: str):
-        text, labels = read_conll_file(conll)[0]
-        meta_sheet = self.wb["Sheet"]
-        meta_sheet.title = "Annotation-metadata"
-        meta_sheet["A1"] = "Swegram Annotation"
-        metadata = OrderedDict({
-            "Model": model,
-            "Language": language,
-            "Normalization": normalized,
-            "Annotation": annotation,
-        })
-        for row, (key, value) in enumerate(metadata.items(), 2):
-            self.load_cell(meta_sheet, row, 1, key)
-            self.load_cell(meta_sheet, row, 2, value)
-
-        # load conll text in xlsx file
-        for index, (text, labels) in enumerate(read_conll_file(conll), 1):
-            self.load_text(text, labels, f"text_{index}")
-        self.wb.save(filename=self.output_name)
-
-    def load_labels(self, sheet: worksheet, labels: Dict[str, str]) -> None:
-        self.load_cell(sheet, 1, 1, "Metadata")
-        if labels:
-            for index, (key, value) in enumerate(labels.items(), 1):
-                self.load_cell(sheet, 1, index * 2, key)
-                self.load_cell(sheet, 1, index * 2 + 1, value)
-        else:
-            self.load_cell(sheet, 1, 2, None)
-
-    def load_text(self, text: List[List[List[str]]], labels: Dict[str, str], title: str) -> None:
-        sheet = self.wb.create_sheet(title=title)
-        self.load_labels(sheet, labels)
-        row = 2
-        for paragraph in text:
-            for sentence in paragraph:
-                for token in sentence:
-                    fields = token.split("\t")
-                    for col, field in enumerate(fields, 1):
-                        self.load_cell(sheet, row, col, field)
-                    row += 1
-                row += 1
-            row += 1
+from swegram_main.lib.utils import change_suffix, cut, read, read_conll_file, XlsxAnnotationClient
 
 
 def postprocess(text: TD, model: str, save_as: str) -> Tuple[str, bool, str]:
@@ -95,8 +46,19 @@ def postprocess(text: TD, model: str, save_as: str) -> Tuple[str, bool, str]:
     else:
         raise FileNotFoundError(f"No annotated files detected for {text.filepath}")
 
+    if text.meta:
+        insert_metadata(text.conll, text.meta)
+
     save(save_as, text.conll, model, normalized, annotation)
     return normalized, annotation
+
+
+def insert_metadata(filepath: Path, metadata: Dict[str, str]) -> None:
+    with fileinput.input(filepath, inplace=True) as input_file:
+        for line in input_file:
+            if input_file.isfirstline():
+                print(convert_labels_to_string(metadata))
+            print(line.strip())
 
 
 def save(save_as: str, conll: Path, model: str, normalized: bool, annotation: str) -> None:
@@ -115,8 +77,8 @@ def save_as_json(conll: Path, model: str, language: str, normalized: bool, annot
         {
             "Timestamp": str(datetime.now()), "Model": model, "Language": language,
             "Normalization": normalized, "Annotation": annotation,
-            "Corpus": [
-                {"Metadata": labels, "text": text} for text, labels in read_conll_file(conll)
+            JSON_CONLL_CORPUS_KEY: [
+                {JSON_CONLL_METADATA_KEY: labels, JSON_CONLL_TEXT_KEY: text} for text, labels in read_conll_file(conll)
             ]
         },
         indent=4
@@ -128,7 +90,7 @@ def save_as_json(conll: Path, model: str, language: str, normalized: bool, annot
 
 def save_as_xlsx(conll: Path, model: str, language: str, normalized: bool, annotation: str) -> None:
     """Save as xlsx format"""
-    XlsxAnnotationWriter(change_suffix(conll, "xlsx")).load(conll, model, language, normalized, annotation)
+    XlsxAnnotationClient(change_suffix(conll, "xlsx")).dump(conll, model, language, normalized, annotation)
 
 
 def get_aggregate_filename(file_path: Path, basename: str) -> str:
@@ -153,7 +115,6 @@ def aggregate_conlls(file_paths: List[Path]) -> str:
         for file_path in file_paths:
             output_file.write(get_conll(file_path))
     return filename
-
 
 
 def postprocess_helper(
