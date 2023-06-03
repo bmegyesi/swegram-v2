@@ -12,15 +12,19 @@ sys.path.insert(1, BASE_DIR)
 sys.path.insert(1, BASE_DIR.joinpath("tools", "efselab"))
 
 
+class EnvironmentVariableMissingError(Exception):
+    """Environment Variable Missing Error"""
+
+
 def main():
     try:
         swegram_workspace = os.environ["SWEGRAM_WORKSPACE"]
         logger.info(f"SWEGRAM_WORKSPACE: {swegram_workspace}")
-    except KeyError:
-        raise Exception("Environment SWEGRAM_WORKSPACE is not set.")
+    except KeyError as err:
+        raise EnvironmentVariableMissingError("SWEGRAM_WORKSPACE is not set.") from err
 
     if BASE_DIR.joinpath("tools").exists():
         logger.info("Remove tools")
-        subprocess.run(f"rm -rf {BASE_DIR.joinpath('tools')}".split())
+        subprocess.run(f"rm -rf {BASE_DIR.joinpath('tools')}".split(), check=False)
     logger.info("Install tools")
-    subprocess.run(f"{BASE_DIR.joinpath('build_dependencies', 'install.sh')}".split())
+    subprocess.run(f"{BASE_DIR.joinpath('build_dependencies', 'install.sh')}".split(), check=False)

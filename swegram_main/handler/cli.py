@@ -28,7 +28,7 @@ def main():
     logger.info(f"Output Directory: {args.output_dir if args.output_dir else os.getcwd()}")
 
     if args.command == "annotate":
-        logger.info(f"Normalization: {True if args.NORMALIZE else False}")
+        logger.info(f"Normalization: {bool(args.NORMALIZE)}")
         pipeline = Pipeline(input_path=args.input_path, output_dir=args.output_dir, language=args.language)
         if args.NORMALIZE:
             pipeline.normalize()
