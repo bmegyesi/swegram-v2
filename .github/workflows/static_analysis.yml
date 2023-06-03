@@ -24,5 +24,6 @@ jobs:
       run: |
         pylint swegram_main
     - name: Analysing the code with test
+      run: |
         pytest tests
 
