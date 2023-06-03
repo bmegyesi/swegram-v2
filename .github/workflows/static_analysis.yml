@@ -25,5 +25,8 @@ jobs:
         pylint swegram_main
     - name: Analysing the code with test
       run: |
+        pip install .
+        export SWEGRAM_WORKSPACE=$(pwd)
+        swegram-build
         pytest tests
 
