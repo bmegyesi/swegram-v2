@@ -40,8 +40,8 @@ def parse_from_tagged_file(filepath: Path) -> None:
             write_tagged_conll(filepath)
         except TaggingError:
             print("Try with original tag file.")
-        shutil.copy(PARSING_MODEL + ".mco", tagged_conll_dir.name)
-        parsed_filename = os.path.join(tagged_conll_dir.name, f"{filepath.stem}{os.path.extsep}conll")
+        shutil.copy(PARSING_MODEL + ".mco", tagged_conll_dir)
+        parsed_filename = os.path.join(tagged_conll_dir, f"{filepath.stem}{os.path.extsep}conll")
         parser_cmdline = [
             "java",
             "-Xmx2000m",
@@ -49,7 +49,7 @@ def parse_from_tagged_file(filepath: Path) -> None:
             "-m", "parse",
             "-i", filepath.absolute().as_posix(),
             "-o", parsed_filename,
-            "-w", tagged_conll_dir.name,
+            "-w", tagged_conll_dir,
             "-c", os.path.basename(PARSING_MODEL)
         ]
         subprocess.run(parser_cmdline, check=False)

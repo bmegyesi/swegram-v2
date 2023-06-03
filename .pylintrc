@@ -12,7 +12,6 @@ ignore=CVS
 # regex matches against paths and can be in Posix or Windows format.
 ignore-paths=
     swegram_main.pipeline.lib.compounds,
-    swegram_main.handler.db,
 
 # Files or directories matching the regex patterns are skipped. The regex
 # matches against base names, not paths.

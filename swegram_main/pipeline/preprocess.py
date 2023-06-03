@@ -184,7 +184,7 @@ def restore(text: TD, output_dir: Path, model: str) -> TD:
     input_path = text.filepath
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        workspace = Path(temp_dir.name)
+        workspace = Path(temp_dir)
         normalized, tagged, parsed = checker(input_path, model)
         if parsed:
             from_ = "parsed"
