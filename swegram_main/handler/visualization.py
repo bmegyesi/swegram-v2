@@ -68,7 +68,7 @@ class Visualization:
         if save_as == "txt" or pprint:
             self.save(data)
         elif save_as == "json":
-            with open(self.outfile_name, "w") as output_file:
+            with open(self.outfile_name, code="w", encoding="utf-8") as output_file:
                 data["metadata"] = self.get_json_info()
                 json_object = json.dumps(self.serialize_json_data(data), indent=4)
                 output_file.write(json_object)
@@ -88,7 +88,7 @@ class Visualization:
         return data
 
     def append_in_text(self, content: str, mode: str = "a+") -> None:
-        with open(self.outfile_name, mode) as output_file:
+        with open(self.outfile_name, mode, encoding="utf-8") as output_file:
             output_file.write(f"{content}\n")
 
     def get_info(self) -> str:
@@ -164,7 +164,7 @@ class Visualization:
             self.append_in_text("")
 
     def save_title(self, unit: str, aspect_name: str, index: Optional[str]) -> None:
-        title = f"{' ':>2}{'-'.join([e for e in [unit.title(), index, aspect_name] if e]):>40}" \
+        title = f"{' ':>2}{'-'.join(e for e in (unit.title(), index, aspect_name) if e):>40}" \
                 f"{'|':>4}{'-'*13}|{'-'*13}|{'-'*13}|"
         if self.pprint:
             print(title)
@@ -172,7 +172,9 @@ class Visualization:
             self.append_in_text(title)
 
     def save_feature(self, fn: str, f: Feature) -> None:
-        c = lambda v: v or ""
+        def c(v: Any) -> Any:
+            return v or ""
+
         feature = f"{' ':>2}{fn:>40}{'|':>4}{c(f.scalar):>10}{'|':>4}{c(f.mean):>10}{'|':>4}{c(f.median):>10}{'|':>4}"
         if self.pprint:
             print(feature)
@@ -181,9 +183,6 @@ class Visualization:
 
 
 class XlsxStatisticWriter(XlsxClient):
-
-    def __init__(self, output_path: Path) -> None:
-        super().__init__(output_path)
 
     def load(self, header: Dict[str, Union[str, List[str]]], aspects: List[str], data: Any) -> None:
 
@@ -198,8 +197,8 @@ class XlsxStatisticWriter(XlsxClient):
             elif isinstance(value, list):
                 self.dump_column_list(meta_sheet, row, 2, value)
 
-        for unit, aspects in data.items():
-            self.load_unit(unit, aspects)
+        for unit, aspect_list in data.items():
+            self.load_unit(unit, aspect_list)
 
         self.wb.save(filename=self.output_name)
 

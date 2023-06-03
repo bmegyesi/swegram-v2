@@ -16,7 +16,7 @@ import subprocess
 from pathlib import Path
 from swegram_main.lib.utils import write, AnnotationError
 from swegram_main.config import HISTNORM_SV
-from tools.udpipe.histnorm.engGramp2 import enggram_spellcheck
+from tools.udpipe.histnorm.engGramp2 import enggram_spellcheck  # pylint: disable=import-error, wrong-import-order
 
 
 RESOURCE = os.path.join(HISTNORM_SV, "resources", "swedish", "levenshtein")

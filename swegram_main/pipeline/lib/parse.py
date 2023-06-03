@@ -21,8 +21,8 @@ from swegram_main.config import EFSELAB_DIR, UDPIPE, UDPIPE_MODEL
 
 
 EFSELAB_MODEL = os.path.join(EFSELAB_DIR, "swe-pipeline")
-PARSING_MODEL = os.path.join(EFSELAB_MODEL, "old-swe-ud")
 MALT = os.path.join(EFSELAB_MODEL, "maltparser-1.9.0/maltparser-1.9.0.jar")
+PARSING_MODEL = os.path.join(EFSELAB_MODEL, "old-swe-ud")
 
 
 class ParsingError(Exception):
@@ -34,25 +34,26 @@ def parse_from_tagged_file(filepath: Path) -> None:
     """
     if filepath.suffix != ".tag":
         raise ParsingError(f"Expected to get .tag, but got {filepath.suffix}.")
-    tagged_conll_dir = tempfile.TemporaryDirectory()
-    try:
-        write_tagged_conll(filepath)
-    except TaggingError:
-        print("Try with original tag file.")
-    shutil.copy(PARSING_MODEL + ".mco", tagged_conll_dir.name)
-    parsed_filename = os.path.join(tagged_conll_dir.name, f"{filepath.stem}{os.path.extsep}conll")
-    parser_cmdline = [
-        "java",
-        "-Xmx2000m",
-        "-jar", MALT,
-        "-m", "parse",
-        "-i", filepath.absolute().as_posix(),
-        "-o", parsed_filename,
-        "-w", tagged_conll_dir.name,
-        "-c", os.path.basename(PARSING_MODEL)
-    ]
-    subprocess.run(parser_cmdline)
-    shutil.copy(parsed_filename, filepath.parent)
+
+    with tempfile.TemporaryDirectory() as tagged_conll_dir:
+        try:
+            write_tagged_conll(filepath)
+        except TaggingError:
+            print("Try with original tag file.")
+        shutil.copy(PARSING_MODEL + ".mco", tagged_conll_dir.name)
+        parsed_filename = os.path.join(tagged_conll_dir.name, f"{filepath.stem}{os.path.extsep}conll")
+        parser_cmdline = [
+            "java",
+            "-Xmx2000m",
+            "-jar", MALT,
+            "-m", "parse",
+            "-i", filepath.absolute().as_posix(),
+            "-o", parsed_filename,
+            "-w", tagged_conll_dir.name,
+            "-c", os.path.basename(PARSING_MODEL)
+        ]
+        subprocess.run(parser_cmdline, check=False)
+        shutil.copy(parsed_filename, filepath.parent)
 
 
 def parse(parser: str, filepath: Path) -> None:
@@ -63,7 +64,7 @@ def parse(parser: str, filepath: Path) -> None:
         elif parser.lower() == "udpipe":
             response = subprocess.run(
                 f"{UDPIPE} --parse --input=conllu {UDPIPE_MODEL} {filepath}".split(),
-                capture_output=True
+                capture_output=True, check=False
             )
             if response.returncode != 0:
                 raise AnnotationError(response.stderr.decode())
@@ -73,4 +74,4 @@ def parse(parser: str, filepath: Path) -> None:
             )
 
     except Exception as err:
-        raise AnnotationError(f"Failed to tokenize, {err}")
+        raise AnnotationError(f"Failed to tokenize, {err}") from err
