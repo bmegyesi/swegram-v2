@@ -43,17 +43,23 @@ class LexicalFeatures:
     ASPECT = "lexical"
 
     ENGLISH_FEATURES: List[F] = [
-        prepare_lexical_features(*args) for args in [
+        prepare_lexical_features(*args) for args in (
             ("A1 lemma INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "1", "arg"),
             ("A2 lemma INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "2", "arg"),
             ("B1 lemma INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "3", "arg"),
             ("B2 lemma INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "4", "arg"),
             ("C1 lemma INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "5", "arg"),
             ("C2 lemma INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "6", "arg"),
-            ("Difficult Word INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "advance_cefr", "attribute"),
-            ("Difficult Noun or Verb INCSC", lemma_incsc, mixin_merge_digits_or_counters, "lemmas", "advance_noun_or_verb", "attribute"),
+            (
+                "Difficult Word INCSC", lemma_incsc, mixin_merge_digits_or_counters,
+                "lemmas", "advance_cefr", "attribute"
+            ),
+            (
+                "Difficult Noun or Verb INCSC", lemma_incsc, mixin_merge_digits_or_counters,
+                "lemmas", "advance_noun_or_verb", "attribute"
+            ),
             ("Out of Kelly-list INCSC", lemma_incsc, mixin_merge_digits_or_counters, "diff", True, "arg")
-        ]
+        )
     ]
 
     KELLY_LOG_FREQ_FEATURE = "Kelly log-frequency"

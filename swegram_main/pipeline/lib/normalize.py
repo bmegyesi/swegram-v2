@@ -15,15 +15,11 @@ import subprocess
 
 from pathlib import Path
 from swegram_main.lib.utils import write, AnnotationError
-from swegram_main.config import EFSELAB, UDPIPE, UDPIPE_MODEL, HISTNORM_SV
-from tools.udpipe.histnorm.engGramp2 import enggram_spellcheck
+from swegram_main.config import HISTNORM_SV
+from tools.udpipe.histnorm.engGramp2 import enggram_spellcheck  # pylint: disable=import-error, wrong-import-order
 
 
 RESOURCE = os.path.join(HISTNORM_SV, "resources", "swedish", "levenshtein")
-
-
-def _convert_english_normalized_filepath(filepath: Path) -> None:
-    ...
 
 
 def normalize(normalizer: str, filepath: Path) -> None:
@@ -36,7 +32,7 @@ def normalize(normalizer: str, filepath: Path) -> None:
                 f"{os.path.join(RESOURCE, 'swedish.train.txt')} " \
                 f"{os.path.join(RESOURCE, 'swedish.corp')} noweights " \
                 f"{os.path.join(RESOURCE, 'threshold.swedish.elevtexter.txt')}".split(),
-                capture_output = True
+                capture_output = True, check=False
             )
             if response.returncode != 0:
                 raise AnnotationError(f"Failed to normalize, {response.stderr}")
@@ -46,4 +42,4 @@ def normalize(normalizer: str, filepath: Path) -> None:
             enggram_spellcheck(filepath, output_file)
 
     except Exception as err:
-        raise AnnotationError(f"Failed to normalize, {err}")
+        raise AnnotationError(f"Failed to normalize, {err}") from err

@@ -15,7 +15,7 @@ def checker(filepath: Path, model: str) -> Tuple[bool, bool, bool]:
     return check_text(model, read(filepath))
 
 
-def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool, bool, bool, List[str]]:
+def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool, bool, bool, List[str]]:  # pylint: disable=too-many-locals
     errors = []
     reference = f"[Line Reference: {text_index} {index}]"
     # split the columns given the model
@@ -40,11 +40,11 @@ def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool
     if i != index:
         errors.append(f"{reference} COLUMN_INDEX_ERROR: Expected to get {index}, but got {i}")
 
-    normalized = True if token == "_" or norm != "_" else False
+    normalized = token == "_" or norm != "_"
 
-    tagged = True if upos_tag != "_" and xpos_tag != "_" else False
+    tagged = upos_tag != "_" and xpos_tag != "_"
     if tagged:
-        parsed = True if head != "_" and deprel != "_" else False
+        parsed = head != "_" and deprel != "_"
         if upos_tag not in UD_TAGS:
             errors.append(f"{reference} COLUMN_UPOS_ERROR: Unknown upos {upos_tag}")
 
@@ -54,9 +54,8 @@ def check_line(line: str, index: str, text_index: str, model: str) -> Tuple[bool
             for suc_feat in suc_features.split("|"):
                 if suc_feat not in XFEATS:
                     errors.append(f"{reference} COLUMN_XFEAT_ERROR: Unknown xfeat: {suc_feat}")
-        else:
-            if xpos_tag not in PT_TAGS:
-                errors.append(f"{reference} COLUMN_XPOS_ERROR: Unknown xpos {xpos_tag}")
+        elif xpos_tag not in PT_TAGS:
+            errors.append(f"{reference} COLUMN_XPOS_ERROR: Unknown xpos {xpos_tag}")
 
         if ud_features != "_":
             for ud_feat in ud_features.split("|"):

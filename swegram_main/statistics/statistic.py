@@ -21,6 +21,13 @@ from swegram_main.statistics.statistic_types import C, F
 LINGUISTIC_ASPECTS = [RF, MF, LF, SF]  # CF is loaded separately
 
 
+class InvalidWorkingLanguage(Exception):
+    """Working language error"""
+
+class InvalidLinguisticUnit(Exception):
+    """Linguistic Unit Error"""
+
+
 class StatisticLoading:
 
     def __init__(self, load_function: callable) -> None:
@@ -33,7 +40,7 @@ class StatisticLoading:
         elif "en" in args:
             language = "en"
         else:
-            raise Exception("Unknown working language for statistics.")
+            raise InvalidWorkingLanguage(f"Only valid for en and sv, but got {language}.")
 
         # skip loading when the element doesn't exist in the instnace
         if not getattr(instance, instance.elements):
@@ -43,7 +50,7 @@ class StatisticLoading:
             instance = CF().load_instance(instance, language)
             instance = load_statistic(instance, language)
         else:
-            raise Exception(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
+            raise InvalidLinguisticUnit(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
         return instance
 
 
@@ -57,7 +64,7 @@ def load_statistic(instance: C, language: str) -> C:
 
 
 def get_features_data(instance: C, aspect: str, features: F) -> Dict[str, Feature]:
-    data: OrderedDict[str, Feature] = OrderedDict()
+    data: Dict[str, Feature] = OrderedDict()
     for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
         if isinstance(instance, Sentence):
             kwargs = parse_args(kwarg_list, getattr, instance)

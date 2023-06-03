@@ -16,7 +16,11 @@ PT = TypeVar("PT", bound=List[List[str]]) # Paragraph Line Type
 TT = TypeVar("TT", bound=List[List[List[str]]]) # Text Line Type
 
 
-def _load_token(text_index: str, token_index: str, form: str, norm: str, lemma: str,
+class InputError(Exception):
+    """Input Error"""
+
+
+def _load_token(text_index: str, token_index: str, form: str, norm: str, lemma: str,  # pylint: disable=too-many-arguments
     upos: str, xpos: str, feats: str, ufeats: str, head: str, deprel: str, deps: str, misc: str) -> Token:
     return Token(text_index=text_index, token_index=token_index, form=form, norm=norm, lemma=lemma,
     upos=upos, xpos=xpos, feats=feats, ufeats=ufeats, head=head, deprel=deprel, deps=deps, misc=misc)
@@ -78,13 +82,13 @@ def load(
     if input_path.is_dir():
         texts = load_dir(input_path, language, include_tags, exclude_tags)
         if not texts:
-            raise Exception(f"Input directory {input_path} doesn't contain any conll files")
+            raise InputError(f"Input directory {input_path} doesn't contain any conll files")
     elif input_path.is_file():
         if input_path.suffix != ".conll":
-            raise Exception(f"Only conll file valid, got {input_path.suffix.lstrip('.')}")
+            raise InputError(f"Only conll file valid, got {input_path.suffix.lstrip('.')}")
         texts = load_file(input_path, language, include_tags, exclude_tags)
     else:
-        raise Exception(f"Invalid input path: {input_path}")
+        raise InputError(f"Invalid input path: {input_path}")
     return Corpus(texts=texts, language=language)
 
 

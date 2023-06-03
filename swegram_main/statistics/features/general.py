@@ -42,6 +42,10 @@ class SerializationError(Exception):
     """Serialization Error"""
 
 
+class SyntaticAnnotationParsingError(Exception):
+    """Syntatic Annnotation Parsing Error"""
+
+
 def _syllable_count_en(word: str) -> int:
     word = word.lower()
     count = 1 if word[0] in ENGLISH_VOWELS else 0
@@ -64,7 +68,7 @@ def _syllable_count_sv(word: str) -> int:
     return 1
 
 
-def _serialize_tokens(tokens: List[Token], lang: str) -> S:
+def _serialize_tokens(tokens: List[Token], lang: str) -> S:  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
 
     _syllable_count = _syllable_count_en if lang == "en" else _syllable_count_sv
     polysyllables, syllables, misspells, compounds, words = 0, 0, 0, 0, len(tokens)
@@ -127,7 +131,10 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
         if "-" in token.token_index:
             compounds += 1
 
-        types.add(norm) if norm != "_" else types.add(form)
+        if norm != "_":
+            types.add(norm)
+        else:
+            types.add(form)
 
         if upos == "PUNCT":
             words -= 1
@@ -164,7 +171,7 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
             cefr_list.append(cefr)
             if cefr in ADVANCE_CEFR_LEVELS:
                 advance_cefr += 1
-                if upos in ["NOUN", "VERB"]:
+                if upos in {"NOUN", "VERB"}:
                     advance_noun_or_verb += 1
         if lang == "sv":
             wpm = WPM_SV.get(entry)
@@ -183,14 +190,18 @@ def _serialize_tokens(tokens: List[Token], lang: str) -> S:
             elif heads[index] > index:
                 right_arcs += 1
             else:
-                raise Exception("Error during syntax annotation parsing")
+                raise SyntaticAnnotationParsingError(
+                    f"Token head index points to itself: index, {index}, heads, {heads}"
+                )
             if token.deprel.startswith(tuple(MODIFIER_DEPREL_LABELS)):
                 if heads[index] < index:
                     post_modifier += 1
                 elif heads[index] > index:
                     pre_modifier += 1
                 else:
-                    raise Exception("Error during syntax annotation parsing")
+                    raise SyntaticAnnotationParsingError(
+                        f"Token head index points to itself: index, {index}, heads, {heads}"
+                    )
             elif token.deprel == "case":
                 preposition_nodes.add(index)
                 preposition_nodes = preposition_nodes.union(get_child_nodes(index, copy(heads)))
@@ -237,10 +248,10 @@ def _union(blocks: List[B], field: str) -> List[str]:
 def _serialize(blocks: List[B], lang: str) -> S:
     if isinstance(blocks[0], Token):
         return _serialize_tokens(blocks, lang)
-    elif isinstance(blocks[0], Sentence):
+    if isinstance(blocks[0], Sentence):
         sents = len(blocks)
     elif isinstance(blocks[0], (Paragraph, Text)):
-        sents = sum([block.sents for block in blocks])
+        sents = sum(block.sents for block in blocks)
     else:
         raise SerializationError(f"Unknown block type: {type(blocks[0])}")
     scalars = merge_digits_for_fields(blocks, CountFeatures.SCALAR_FIELDS[:-1])  # sents is computed separately

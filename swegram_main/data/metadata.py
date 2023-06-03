@@ -35,10 +35,9 @@ def parse_metadata_helper(metadata: str) -> Dict[str, str]:
             key, value = tag.split(METADATA_DELIMITER_TAG, maxsplit=1)
             if key.strip() in labels:
                 raise MetadataError(f"Duplicate metadata tags in same line, {metadata}")
-            else:
-                labels[key.strip()] = value.strip()
-        except ValueError:
-            raise MetadataError(f"Invalid Metadata Format: {metadata}")
+            labels[key.strip()] = value.strip()
+        except ValueError as err:
+            raise MetadataError(f"Invalid Metadata Format: {metadata}") from err
     return labels
 
 
