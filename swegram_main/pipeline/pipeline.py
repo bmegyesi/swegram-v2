@@ -64,7 +64,7 @@ class Pipeline:
                 tokenize(self.model, text)
 
     def normalize(self) -> None:
-        normalizer = "histnorm_en" if self.model in ["histnorm_en", "udpipe"] else "histnorm_sv"
+        normalizer = "histnorm_en" if self.model in {"histnorm_en", "udpipe"} else "histnorm_sv"
         for text in self.texts:
             if not text.spell.exists():
                 normalize(normalizer, text)
@@ -101,11 +101,11 @@ class Pipeline:
 
         if len(set(normalization_tags)) != 1:
             if normalization_tags:
-                raise Exception(f"Inconsistent normalization across texts: {normalization_tags}")
-            raise Exception("Missing annotated texts")
+                raise PipelineError(f"Inconsistent normalization across texts: {normalization_tags}")
+            raise PipelineError("Missing annotated texts")
         if len(set(annotation_tags)) != 1:
             if annotation_tags:
-                raise Exception(f"Inconsistent annotation phases across texts: {annotation_tags}")
+                raise PipelineError(f"Inconsistent annotation phases across texts: {annotation_tags}")
 
         if aggregate:
             conll_filename = aggregate_conlls([text.conll for text in self.texts])

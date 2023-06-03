@@ -27,7 +27,7 @@ class LoadingAnnotatedJsonError(Exception):
 
 def convert_json_conll(filepath: Path, output_dir: Path) -> Path:
     with open(filepath, mode="r", encoding="utf-8") as input_file:
-        try:
+        try:  # pylint: disable=too-many-try-statements
             output_path = output_dir.joinpath(f"{filepath.stem}.conll")
             corpus: List[TEXT_TYPE] = json.load(input_file)[JSON_CONLL_CORPUS_KEY]
             with open(output_path, mode="w", encoding="utf-8") as output_file:
@@ -41,7 +41,7 @@ def convert_json_conll(filepath: Path, output_dir: Path) -> Path:
                         output_file.write("\n")
 
         except KeyError as err:
-            raise LoadingAnnotatedJsonError(f"Incorrect input json format: {err}")
+            raise LoadingAnnotatedJsonError(f"Incorrect input json format: {err}") from err
 
         return output_path
 
@@ -51,11 +51,10 @@ def preprocess(input_path: Path, output_dir: Path, model: str) -> List[TD]:
     text_instances: List[TD] = []
     if input_path.suffix == ".json":
         input_path = convert_json_conll(input_path, output_dir)
-        import pdb; pdb.set_trace()
     elif input_path.suffix == ".xlsx":
         input_path = XlsxAnnotationClient.load_corpus(input_path, output_dir)
 
-    try:
+    try:  # pylint: disable=too-many-try-statements
         file_content = FileContent(input_path).get()
         meta = None
         component = next(file_content)
@@ -81,7 +80,11 @@ def preprocess(input_path: Path, output_dir: Path, model: str) -> List[TD]:
     except StopIteration:
         text_instances.append(text)
 
-    restore_text = lambda text: text if input_path.suffix != ".conll" else restore(text, output_dir, model)
+    def restore_text(text: TD) -> TD:
+        if input_path.suffix != ".conll":
+            return text
+        return restore(text, output_dir, model)
+
     return [restore_text(text) for text in text_instances if os.path.getsize(text.filepath)]
 
 
@@ -89,22 +92,22 @@ def restore_tokenized_line(line: str, model: str) -> str:
     if model.lower() == "efselab":
         _, _, token, *_ = line.split("\t")
         return f"{token}\n"
-    elif model.lower() == "udpipe":
+    if model.lower() == "udpipe":
         _, index, token, _, lemma, *columns = line.split("\t")
         return "\t".join([index, token, lemma, *columns])
-    else:
-        raise RestoreFileError(f"Failed to parse tokenized line: {line}")
+
+    raise RestoreFileError(f"Failed to parse tokenized line: {line}")
 
 
 def restore_normalized_line(line: str, model: str) -> str:
     if model.lower() == "efselab":
         _, _, _, norm, *_ = line.split("\t")
         return f"{norm}\n"
-    elif model.lower() == "udpipe":
+    if model.lower() == "udpipe":
         _, index, token, norm, _, *columns = line.split("\t")
         return "\t".join([index, token, norm, *columns])
-    else:
-        raise RestoreFileError(f"Failed to parse normalized line: {line}")
+    
+    raise RestoreFileError(f"Failed to parse normalized line: {line}")
 
 
 def restore_tagged_line(line: str, model: str, normalized: bool) -> str:
@@ -116,17 +119,17 @@ def restore_tagged_line(line: str, model: str, normalized: bool) -> str:
             suc_column = suc_tag
         if normalized:
             return "\t".join([index, norm, lemma, ud_tag, suc_column, ud_features]) + "\n"
-        else:
-            return "\t".join([index, token, lemma, ud_tag, suc_column, ud_features]) + "\n"
-    elif model.lower() == "udpipe":
+        return "\t".join([index, token, lemma, ud_tag, suc_column, ud_features]) + "\n"
+
+    if model.lower() == "udpipe":
         if normalized:
             _, index, _, *columns = line.split("\t")
             return "\t".join([index, *columns])
-        else:
-            _, index, token, _, *columns = line.split("\t")
-            return "\t".join([index, token, *columns])
-    else:
-        raise RestoreFileError(f"Unknow model to restore tagged line: {model}")
+
+        _, index, token, _, *columns = line.split("\t")
+        return "\t".join([index, token, *columns])
+
+    raise RestoreFileError(f"Unknow model to restore tagged line: {model}")
 
 
 def _restore(
@@ -135,8 +138,11 @@ def _restore(
 ) -> None:
     """Restore the uploaded annotated text into a format that allows pipeline process further
     """
-    restore_tokenized_line_helper = lambda line: restore_tokenized_line(line, model)
-    restore_normalized_line_helper = lambda line: restore_normalized_line(line, model)
+    def restore_tokenized_line_helper(line: str) -> str:
+        return restore_tokenized_line(line, model)
+    def restore_normalized_line_helper(line: str) -> str:
+        return restore_normalized_line(line, model)
+
     if from_ == "tokenized":
         cut(
             restore_tokenized_line_helper, filepath,
@@ -176,17 +182,18 @@ def restore(text: TD, output_dir: Path, model: str) -> TD:
     """restore annotated text
     """
     input_path = text.filepath
-    temp_dir = tempfile.TemporaryDirectory()
-    workspace = Path(temp_dir.name)
-    normalized, tagged, parsed = checker(input_path, model)
-    if parsed:
-        from_ = "parsed"
-    elif tagged:
-        from_ = "tagged"
-    elif normalized:
-        from_ = "normalized"
-    else:
-        from_= "tokenized"
-    _restore(from_, input_path, workspace, model, normalized)
-    shutil.copytree(workspace, output_dir, dirs_exist_ok=True)
-    return text
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        workspace = Path(temp_dir.name)
+        normalized, tagged, parsed = checker(input_path, model)
+        if parsed:
+            from_ = "parsed"
+        elif tagged:
+            from_ = "tagged"
+        elif normalized:
+            from_ = "normalized"
+        else:
+            from_= "tokenized"
+        _restore(from_, input_path, workspace, model, normalized)
+        shutil.copytree(workspace, output_dir, dirs_exist_ok=True)
+        return text

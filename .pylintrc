@@ -111,6 +111,7 @@ disable=
     consider-using-assignment-expr,
     consider-using-alias,
     consider-alternative-union-syntax,
+    logging-fstring-interpolation,
 
 
 [REPORTS]
