@@ -39,32 +39,31 @@ class Converter:
         converted = self._convert()
         if isinstance(converted, dict):
             meta = self.parse_meta(converted)
-            if meta:
-                yield from chain(meta, self.parse_blocks(converted))
-            else:
-                yield from self.parse_blocks(converted)
+            yield from chain(meta, self.parse_blocks(converted))
         else:
-            with open(self.filepath, "r") as input_file:
+            with open(self.filepath, mode="r", encoding="utf-8") as input_file:
                 line = input_file.readline()
                 while line:
                     yield line
                     line = input_file.readline()
 
     def _convert(self):
-        try:
+        try:  # pylint: disable=too-many-try-statements
             suffix = self.filepath.suffix.lstrip(".")
             if suffix in ["txt", CONLLU_FOMRAT]:
-                return
-            elif suffix not in VALID_FORMATS:
+                return None
+            if suffix not in VALID_FORMATS:
                 raise InvalidFormat
-            response = subprocess.run(f"{PANDOC} -f {suffix} -t json {self.filepath}".split(), capture_output=True)
+            response = subprocess.run(
+                f"{PANDOC} -f {suffix} -t json {self.filepath}".split(), capture_output=True, check=False
+            )
             if response.stderr:
-                raise Exception(response.stderr.decode())
+                raise ConvertError(response.stderr.decode())
             return json.loads(response.stdout.decode())
-        except InvalidFormat:
-            raise ConvertError(f"The format {suffix} is not supported.")
+        except InvalidFormat as err:
+            raise ConvertError(f"The format {suffix} is not supported.") from err
         except Exception as err:
-            raise ConvertError(f"Failed to covert: {err}")
+            raise ConvertError(f"Failed to covert: {err}") from err
 
     def parse_meta(self, json_obj: Any):
         if "meta" in json_obj:

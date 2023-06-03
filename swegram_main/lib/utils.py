@@ -44,6 +44,10 @@ class LoadXlsxFormatError(Exception):
     """Load Xlsx Format Error"""
 
 
+class FeaturePreparationError(Exception):
+    """Feature Preparation Error"""
+
+
 class FileContent:
 
     def __init__(self, filepath: Path) -> None:
@@ -79,9 +83,6 @@ class XlsxClient:
 
 
 class XlsxAnnotationClient(XlsxClient):
-
-    def __init__(self, output_path: Path) -> None:
-        super().__init__(output_path)
 
     def dump(self, conll: Path, model: str, language: str, normalized: bool, annotation: str):
         text, labels = read_conll_file(conll)[0]
@@ -138,7 +139,7 @@ class XlsxAnnotationClient(XlsxClient):
                         convert_sheet2conll(sheet, output_file)
 
         except KeyError as err:
-            raise LoadXlsxFormatError(f"Incorrect xlsx conll format: {err}")
+            raise LoadXlsxFormatError(f"Incorrect xlsx conll format: {err}") from err
 
         return output_path
 
@@ -162,7 +163,7 @@ def get_md5(filepath: Path) -> str:
 
 
 def get_conll_md5(filepath: Path) -> str:
-    with open(filepath, "r") as input_file:
+    with open(filepath, mode="r", encoding="utf-8") as input_file:
         lines = [line for line in input_file.readlines() if not line.startswith("#")]
         return md5("\n".join(lines).encode()).hexdigest()
 
@@ -228,7 +229,7 @@ def read_conll_file(input_path: Path) -> T:
         elif meta:
             logger.warning(f"Medata data {meta}: text is empty")
 
-    try:
+    try:  # pylint: disable=too-many-try-statements
         meta, component = _initialize_conllu_reading(file_content)
         while True:
             newline = 0
@@ -238,20 +239,18 @@ def read_conll_file(input_path: Path) -> T:
                         newline += 1
                     elif component.startswith("#"):
                         pass
+                    elif not newline:
+                        sentence.append(component)
+                    elif newline == 2:
+                        _append_paragraph()
+                        sentences, sentence = [], [component]
+                        newline = 0
+                    elif newline == 1 and sentence:
+                        sentences.append(sentence)
+                        sentence = [component]
+                        newline = 0
                     else:
-                        if not newline:
-                            sentence.append(component)
-                        elif newline == 2:
-                            _append_paragraph()
-                            sentences, sentence = [], [component]
-                            newline = 0
-                        elif newline == 1:
-                            if sentence:
-                                sentences.append(sentence)
-                                sentence = [component]
-                                newline = 0
-                        else:
-                            raise ConllFormatError(f"Too many blank lines, max 2 newlines , but got {newline}")
+                        raise ConllFormatError(f"Too many blank lines, max 2 newlines , but got {newline}")
                 elif isinstance(component, dict):
                     _append_text(meta)
                     meta = component
@@ -269,7 +268,7 @@ def read_conll_file(input_path: Path) -> T:
 
 def cut(
     func: Callable, filepath: Path, output_path: Optional[Path] = None, append_token_index: bool = False,
-    append_text_index: bool = False, *args, **kwargs
+    append_text_index: bool = False
 ) -> None:
     """insertion in the annotation files"""
     lines = read(filepath)
@@ -277,7 +276,7 @@ def cut(
     paragraph_index, sentence_index = 1, 1
     num_newlines = 0
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8") as output_file:
-        try:
+        try:  # pylint: disable=too-many-try-statements
             while True:
                 line = next(lines)
                 if line.strip() and not line.strip().startswith("#"):
@@ -320,7 +319,7 @@ def change_suffix(filepath: Path, suffix: str) -> Path:
 ####################################################
 def mean(numbers: N) -> float:
     if isinstance(numbers, Counter):
-        return r2(sum([k * v for k, v in numbers.items()]), sum(numbers.values()))
+        return r2(sum(k * v for k, v in numbers.items()), sum(numbers.values()))
     return r2(sum(numbers), max(len(numbers), 1))
 
 
@@ -369,7 +368,7 @@ def merge_dicts(blocks: List[object], field: str, data_type: type = int) -> defa
             elif issubclass(data_type, dict):
                 df[key].update(value)
             else:
-                raise Exception(f"Unsopported data type: {data_type}")
+                raise AnnotationError(f"Unsopported data type: {data_type}")
     return df
 
 
@@ -408,7 +407,7 @@ def get_path(index: int, heads: List[Union[int, None]]) -> List[int]:
     while index:
         path.append(heads[index])
         if len(path) > len(heads):
-            raise Exception(f"Failed to get dependency path for index {index} in heads {heads}")
+            raise AnnotationError(f"Failed to get dependency path for index {index} in heads {heads}")
         index = heads[index]
     return path
 
@@ -426,7 +425,7 @@ def get_child_nodes(index: int, heads: List[Union[int, None]]) -> List[int]:
 
 
 def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
-    heads = list(map(int, heads))
+    heads = [int(head) for head in heads]
     children = list(range(1, len(heads)+1))
     if 0 not in heads:
         return f"{error_prefix} Root is missing."
@@ -463,8 +462,8 @@ def prepare_feature(*args: Union[str, callable]) -> FP:
                 kwargs[arg_type].append((arg_key, arg_value))
             else:
                 kwargs[arg_type] = [(arg_key, arg_value)]
-        except ValueError:
-            raise Exception(f"Failed to parse args for feature, args: {args}")
+        except ValueError as err:
+            raise FeaturePreparationError(f"Failed to parse args for feature, args: {args}") from err
     return feature_name, feature_func, attribute_func, kwargs, attribute_kwargs
 
 
@@ -476,7 +475,7 @@ def parse_args(kwarg_list: K, func: callable, content: Any, **kwargs) -> Dict[st
             func(content, attribute, **kwargs)
         ) for key, attribute in kwarg_list.get("attribute", [])
     ])
-    return {key: value for key, value in args}
+    return dict(args)
 
 
 def incsc(c: Union[int, float], t: Union[int, float]) -> float:

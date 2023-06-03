@@ -19,7 +19,7 @@ class State:
 
 
 @dataclass
-class Text:
+class Text:  # pylint: disable=too-many-instance-attributes
 
     # data
     paragraphs: List[Paragraph]

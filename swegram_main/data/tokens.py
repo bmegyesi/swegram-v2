@@ -3,7 +3,7 @@ from typing import Optional
 
 
 @dataclass
-class Token:
+class Token:  # pylint: disable=too-many-instance-attributes
     """Data structure for token instance"""
     text_index: str
     token_index: str
