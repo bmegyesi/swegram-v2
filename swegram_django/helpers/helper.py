@@ -6,8 +6,9 @@ import logging
 
 from django.core import serializers
 from django.db.models import Q
-from swegram_main.models import TextStats
+from swegram_main.models import TextStatsModel
 from swegram_main.api.helpers.download_utils import download_helper, download_stats_helper
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -58,7 +59,7 @@ def search_text_helper(query: str) -> dict:
         return json.loads(
             serializers.serialize(
               'json',
-              TextStats.objects.all().filter(**parsed_query)
+              TextStatsModel.objects.all().filter(**parsed_query)
             )
         )
 
@@ -67,7 +68,7 @@ def get_text_helper() -> dict:
     """get the current text states"""
     return json.loads(
         serializers.serialize(
-            'json', TextStats.objects.all()
+            'json', TextStatsModel.objects.all()
         )
     )
 
@@ -121,7 +122,7 @@ def _fetch_text_ids_and_filenames(texts) -> list:
 
 def _remove_non_existing_texts(texts) -> list:
     """remove the texts that does not exist in the database"""
-    return [TextStats.objects.get(pk=t.get('pk')) for t in texts if TextStats.objects.filter(pk=t.get('pk'))]
+    return [TextStatsModel.objects.get(pk=t.get('pk')) for t in texts if TextStatsModel.objects.filter(pk=t.get('pk'))]
 
 
 def _fetch_data(metadata, texts) -> dict:
@@ -188,7 +189,7 @@ def get_text_list(request, category=''):
         text_list = []
         for text in body.get('texts', dict()).get(body.get('lang'), []):
             try:
-                text_object = TextStats.objects.get(pk=text.get("pk"))
+                text_object = TextStatsModel.objects.get(pk=text.get("pk"))
                 if text_object.activated:
                     text_list.append(text_object)
             except Exception as err:
@@ -205,3 +206,6 @@ def get_text_list(request, category=''):
     except Exception as err:
         logger.error("Failed to get text list from database"
                      f"error message: {str(err)}")
+
+
+    

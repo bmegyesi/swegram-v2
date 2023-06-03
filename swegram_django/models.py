@@ -17,47 +17,58 @@ and use json.dumps and json.loads to parse.
 class UploadedFile(models.Model):
 
     class Meta:
-       app_label = 'swegram_main'
-    
+       app_label = "swegram_main"
+
     md5_checksum = models.CharField(max_length=32, blank=False, primary_key=True)
     normalized = models.BooleanField(blank=False)
 
 
 # class Text is a solution to solve the problem of selecting and update the activity of selected texts on real time
-class TextStats(models.Model):
+class TextStatsModel(models.Model):
     
     class Meta:
-        app_label = 'swegram_main'
+        app_label = "swegram_main"
     
-    text_id      =   models.BigIntegerField(blank=True, null=True)
+    # primary key will be unique to keep same text with different creation
+    text_id             = models.CharField(max_length=64)  # md5_checksum
+    language            = models.CharField(max_length=16)
+    filename            = models.CharField(max_length=64)
+    filesize            = models.IntegerField(blank=0, null=True)
+    states              = models.JSONField(null=True)
+    labels              = models.JSONField(null=True)
+    number_of_paragraphs    = models.IntegerField(blank=0, null=True)
+    number_of_sentences     = models.IntegerField(blank=0, null=True)
+
     activated    =   models.BooleanField(default=False)
     date_added   =   models.DateTimeField(auto_now_add=True)
 
-    lang         =   models.CharField(max_length=512)
-    filename     =   models.CharField(max_length=512)
-    file_size    =   models.CharField(max_length=512)
-    normalized   =   models.BooleanField(default=False)
-    parsed       =   models.BooleanField(default=False)
-    has_label    =   models.BooleanField(default=False)
-    # labels       =   models.JSONField(null=True)
-    labels       =   models.TextField(null=True)
 
-    #number_of_paragraphs = models.CharField(max_length=32)
-    #number_of_sentences  = models.CharField(max_length=32)
- 
-    number_of_paragraphs = models.IntegerField(blank=True, null=True)
-    number_of_sentences  = models.IntegerField(blank=True, null=True)
+    @property
+    def has_label(self) -> bool:
+        return True if self.labels else False
+
+    @property
+    def normalized(self) -> bool:
+        return self.states.normalized
+
+    @property
+    def tagged(self) -> bool:
+        return self.states.tagged
+
+    @property
+    def parsed(self) -> bool:
+        return self.states.parsed
 
     def __repr__(self):
         return self.filename
-     
 
-class Text(models.Model):
+
+class TextModel(models.Model):
 
     class Meta:
-        app_label = 'swegram_main'
+        app_label = "swegram_main"
 
-    stats               = models.OneToOneField(TextStats, on_delete=models.CASCADE)
+    stats               = models.OneToOneField(TextStatsModel, on_delete=models.CASCADE)
 
     # features
     # general             = models.JSONField(null=True)
@@ -77,20 +88,18 @@ class Text(models.Model):
     lexical_average     = models.TextField(null=True)
     syntactic           = models.TextField(null=True)
     syntactic_average   = models.TextField(null=True)
-    content             = models.TextField(null=True) 
-
+    content             = models.TextField(null=True)
 
     def __str__(self):
         return self.content
-    
 
-    
-class Paragraph(models.Model):
+
+class ParagraphModel(models.Model):
 
     class Meta:
-        app_label = 'swegram_main'
+        app_label = "swegram_main"
 
-    text = models.ForeignKey(Text, on_delete=models.CASCADE)
+    text = models.ForeignKey(TextModel, on_delete=models.CASCADE)
 
     # general             = models.JSONField(null=True)
     # readability         = models.JSONField(null=True)
@@ -109,19 +118,20 @@ class Paragraph(models.Model):
     lexical_average     = models.TextField(null=True)
     syntactic           = models.TextField(null=True)
     syntactic_average   = models.TextField(null=True)
-    
+
     content             = models.TextField(null=True)
 
     def __str__(self):
         return self.content
 
-class Sentence(models.Model):
+
+class SentenceModel(models.Model):
 
     class Meta:
-        app_label = 'swegram_main'
+        app_label = "swegram_main"
     
-    text        = models.ForeignKey(Text, on_delete=models.CASCADE)
-    paragraph   = models.ForeignKey(Paragraph, on_delete=models.CASCADE)
+    text        = models.ForeignKey(TextModel, on_delete=models.CASCADE)
+    paragraph   = models.ForeignKey(ParagraphModel, on_delete=models.CASCADE)
     
     text_index  = models.CharField(max_length=512)
     # types       = models.JSONField(null=True)
@@ -135,24 +145,23 @@ class Sentence(models.Model):
     # syntactic   = models.JSONField(null=True)
 
     general     = models.TextField(null=True)
-    readability = models.TextField(null=True) 
-    morph       = models.TextField(null=True) 
+    readability = models.TextField(null=True)
+    morph       = models.TextField(null=True)
     lexical     = models.TextField(null=True)
     syntactic   = models.TextField(null=True)
-    
+
     content     = models.TextField(null=True)
-    
+
     def __str__(self):
         return self.content
 
 
-
-class Token(models.Model):
+class TokenModel(models.Model):
     
     class Meta:
-        app_label = 'swegram_main'
+        app_label = "swegram_main"
     
-    sentence = models.ForeignKey(Sentence, on_delete=models.CASCADE)
+    sentence = models.ForeignKey(SentenceModel, on_delete=models.CASCADE)
   
     compound_originals   = models.BooleanField(default=False)
     normalized           = models.BooleanField(default=False)
@@ -176,4 +185,4 @@ class Token(models.Model):
     
     def __str__(self):
         return self.form
-    
+
