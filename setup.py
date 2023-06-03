@@ -15,7 +15,7 @@ def get_requirements() -> List[str]:
 
 setup(
     name="swegram",
-    version="1.0.0",
+    version="1.0.2",
     description="CLI library for Swegram",
     long_description=(Base / "README.md").read_text(encoding="utf-8"),
     packages=find_packages(exclude=["tools*", "test*", "swegram/*", "swegram_django*"]),

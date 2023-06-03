@@ -1,6 +1,7 @@
 *.db
 tools/*
 swegram_django/*
+resources/corpus/europarl-v7.sv-en*
 
 # Created by https://www.gitignore.io/api/macos,django,python,virtualenv,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=macos,django,python,virtualenv,visualstudiocode
