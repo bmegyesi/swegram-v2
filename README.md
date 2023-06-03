@@ -6,8 +6,8 @@ Swegram is a tool that offers the ability to annotate and analyse Swedish and En
 
 
 ## Setup ENVIRONMENT VARIABLES
-```
-SWEGRAM_WORKSPACE=$(pwd)
+```console
+export SWEGRAM_WORKSPACE=$(pwd)
 ```
 
 
