@@ -2,25 +2,31 @@
 
 set -x
 
+if [ -z ${SWEGRAM_WORKSPACE} ]; then
+    SWEGRAM_WORKSPACE=$(pwd)
+fi
+
+echo $SWEGRAM_WORKSPACE
+
 # Download and install pandoc
-python3 build_dependencies/install_pandoc.py
+python3 $SWEGRAM_WORKSPACE/build_dependencies/install_pandoc.py
 
 # Download and make udpipe
-python3 build_dependencies/install_udpipe.py
+python3 $SWEGRAM_WORKSPACE/build_dependencies/install_udpipe.py
 
-mkdir -p tools/udpipe
-touch tools/__init__.py
-cp -r build_dependencies/en/* tools/udpipe
-chmod +x tools/udpipe/udpipe
+mkdir -p $SWEGRAM_WORKSPACE/tools/udpipe
+touch $SWEGRAM_WORKSPACE/tools/__init__.py
+cp -r $SWEGRAM_WORKSPACE/build_dependencies/en/* $SWEGRAM_WORKSPACE/tools/udpipe
+chmod +x $SWEGRAM_WORKSPACE/tools/udpipe/udpipe
 
 # Download and install efselab
-python3 build_dependencies/get_efselab.py
+python3 $SWEGRAM_WORKSPACE/build_dependencies/get_efselab.py
 
-cp -r build_dependencies/sv/HistNorm tools
+cp -r $SWEGRAM_WORKSPACE/build_dependencies/sv/HistNorm $SWEGRAM_WORKSPACE/tools
 
-mv tools/efselab-master tools/efselab
-cp build_dependencies/sv/swe-pipeline-ud2.tar.gz tools/efselab
-cd tools/efselab
+mv $SWEGRAM_WORKSPACE/tools/efselab-master $SWEGRAM_WORKSPACE/tools/efselab
+cp $SWEGRAM_WORKSPACE/build_dependencies/sv/swe-pipeline-ud2.tar.gz $SWEGRAM_WORKSPACE/tools/efselab
+cd $SWEGRAM_WORKSPACE/tools/efselab
 
 # Build lemmatizer
 make

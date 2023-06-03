@@ -1,5 +1,4 @@
 
-import os
 from pathlib import Path
 from setuptools import setup, find_packages
 from typing import List
@@ -16,14 +15,12 @@ def get_requirements() -> List[str]:
 
 setup(
     name="swegram",
-    version="1.0.0.dev5",
-    # author="",
-    # author_email="",
+    version="1.0.0",
     description="CLI library for Swegram",
-    # long_description=(Base / "README.md").read_text(encoding="utf-8"),
-    packages=find_packages(exclude=["tools*", "test*"]),
+    long_description=(Base / "README.md").read_text(encoding="utf-8"),
+    packages=find_packages(exclude=["tools*", "test*", "swegram/*", "swegram_django*"]),
     license=(Base / "LICENSE").read_text(encoding="utf-8"),
-    # url="url",
+    url="https://github.com/bmegyesi/swegram-v2",
     install_requires=get_requirements(),
     package_data={
         "swegram_main.statistics.kelly": ["kelly.en", "kelly.sv", "wpm.sv"],
@@ -69,7 +66,8 @@ setup(
     include_package_data=True,
     entry_points={
         "console_scripts": [
-            "swegram=swegram_main.handler.cli:main"
+            "swegram=swegram_main.handler.cli:main",
+            "swegram-build=swegram_main.handler.build:main"
         ]
     }
 )

@@ -12,7 +12,7 @@ from django.shortcuts import render
 from swegram_main.handle_texts.features import Texts
 
 
-from .models import TextStats
+from .models import TextStatsModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -70,6 +70,9 @@ def swegram_main_english(request):
     return render(request, "swegram_main_english/main.html", context)
 
 def __root_path():
+    print('PRODUCTION', settings.PRODUCTION)
+    print('beta', settings.BETA)
+    print('else')
     if settings.PRODUCTION:
         return ''
     elif settings.BETA:

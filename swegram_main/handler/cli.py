@@ -1,10 +1,12 @@
 
 
 import os
+
 from swegram_main.handler.parser import main_parser
 from swegram_main.handler.visualization import Visualization
 from swegram_main.lib.logger import get_logger
 from swegram_main.pipeline.pipeline import Pipeline
+
 
 ANNOTATION_PARSER = {
     "en": "udpipe",
@@ -69,6 +71,3 @@ def main():
 
     else:
         raise CommandLineError(f"Unknown command, {args.command}")
-
-if __name__ == "__main__":
-    main()

@@ -5,14 +5,14 @@ import codecs
 import logging
 import os
 
-
 from swegram_main.config import HISTNORM_SV
 
-WORDFORM_SV = os.path.join(HISTNORM_SV, 'resources', 'swedish', 'levenshtein', 'saldo-total_wordforms.txt') 
+
+WORDFORM_SV = os.path.join(HISTNORM_SV, "resources", "swedish", "levenshtein", "saldo-total_wordforms.txt") 
 
 
 def file_to_list(file):
-    with codecs.open(file, 'r', encoding='utf-8') as f:
+    with codecs.open(file, "r", encoding="utf-8") as f:
         return f.readlines()
 
 
@@ -70,7 +70,7 @@ def cut(n, list, stdout):
         return cut_list
 
 def find_compounds(tagged_file):
-  
+
     debug = True
     require_dict_occurrence = True  # Requires compounds to be present in a dict
 

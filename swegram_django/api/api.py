@@ -10,7 +10,7 @@ from functools import reduce
 from django.core import serializers
 from django.db.models import Q
 from django.http import JsonResponse, FileResponse
-from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.views.decorators.http import require_http_methods
 from swegram_main.api.helpers.helper import (
   get_text_helper, 
@@ -19,7 +19,7 @@ from swegram_main.api.helpers.helper import (
   download_text_wrapper,
   download_stats_wrapper
 )
-from swegram_main.models import TextStats
+from swegram_main.models import TextStatsModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ def update_text(request):
     _text_states = json.loads(request.body)['textStates']
     text_states = {int(key): value for key, value in _text_states.items()}
     try:
-        matched_texts = TextStats.objects.filter(
+        matched_texts = TextStatsModel.objects.filter(
         reduce(
             operator.or_, 
             (
@@ -80,7 +80,7 @@ def update_text(request):
 @require_http_methods(["DELETE"])
 def delete_text(_, text_id):
     try:
-        TextStats.objects.get(text_id=int(text_id)).delete()
+        TextStatsModel.objects.get(text_id=int(text_id)).delete()
         return JsonResponse({"sucess": "Successfully deleted!"})
     except Exception as err:
         return JsonResponse({"failure": f"Deletion failed: {str(err)}"})
@@ -90,7 +90,7 @@ def delete_text(_, text_id):
 @require_http_methods(["GET"])
 def get_text(_, text_id):
     try:
-        text = TextStats.objects.get(text_id=int(text_id))
+        text = TextStatsModel.objects.get(text_id=int(text_id))
         return JsonResponse(serializers.serialize('json', [text]), safe=False)
     except Exception as err:
         return JsonResponse({"error": f"get text given text id {text_id} fails: {str(err)}"})
@@ -121,3 +121,27 @@ def download_texts(request):
 def download_stats(request):
     """download statistics"""
     return _download(request, download_stats_wrapper)
+
+
+import asyncio
+from django.http import HttpResponse
+from swegram_main.handle_texts.upload_file import annotate_uploaded_file
+@ensure_csrf_cookie
+@require_http_methods(["POST"])
+def upload_text(request, lang):
+    asyncio.run(_upload(request))
+    return JsonResponse({"success": 1, "text_stats_list": []})
+    
+
+
+
+from swegram_main.config import UPLOAD_LOCATION
+async def _upload(request):
+    f = request.FILES['file_to_annotate']
+    fname = str(f)
+    dest = UPLOAD_LOCATION + fname
+    with open(dest, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+    return HttpResponse("Upload success")

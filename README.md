@@ -7,7 +7,7 @@ Swegram is a tool that offers the ability to annotate and analyse Swedish and En
 
 ## Setup ENVIRONMENT VARIABLES
 ```
-source setup.sh
+SWEGRAM_WORKSPACE=$(pwd)
 ```
 
 
@@ -19,10 +19,12 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-Go to the root path where setup.py is located.
-
 ```console
-pip install .
+# Install swegram package
+pip install swegram --upgrade
+
+# Build dependencies
+swegram-build
 ```
 
 Check the usage of swegram cli
@@ -80,14 +82,3 @@ SWIG 3.0.8 or newer for language bindings other than C++
 * [efselab](https://github.com/robertostling/efselab)
 * [pandoc](https://pandoc.org)
 
-In order to build dependencies, run
-
-```
-./build_dependencies/install.sh
-```
-
-
-## to do
-
-1. Compounds
-2. Database
