@@ -68,7 +68,7 @@ def prepare_verb(group_name: str, feature_name: str, *args: str, dict_type: str 
 
 
 def _psos_counter(psos: str, pos_dict: defaultdict) -> int:
-    return sum([pos_dict[pos] for pos in psos.split()])
+    return sum(pos_dict[pos] for pos in psos.split())
 
 
 def pos_incsc(target_psos: Union[str, int], base_psos: str, pos_dict: defaultdict) -> float:
@@ -82,7 +82,7 @@ class MorphFeatures:
 
     MORPH_GROUPS = ["VERBFORM", "PoS-PoS", "SubPoS-ALL", "PoS-ALL", "PoS-MultiPoS", "MultiPoS-MultiPoS"]
     _COMMON_VERBFORM_FEATURES: List[F] = [
-        prepare_feature(*prepare_verb("VERBFORM", *args)) for args in [
+        prepare_feature(*prepare_verb("VERBFORM", *args)) for args in (
             (
                 "Modal VERB to VERB",
                 "target_psos", "AUX", "arg",
@@ -113,7 +113,7 @@ class MorphFeatures:
                 "target_psos", "sup_verb", "attribute",
                 "base_psos", "AUX VERB", "arg"
             )
-        ]
+        )
     ]
 
     _COMMON_FEATURES: List[F] = [
@@ -127,7 +127,7 @@ class MorphFeatures:
             ) for pos in SINGLE_PSOS
         ],
         *[
-            prepare_feature(*prepare_verb("PoS-PoS", *args)) for args in [
+            prepare_feature(*prepare_verb("PoS-PoS", *args)) for args in (
                 (
                     "NOUN to VERB",
                     "target_psos", "NOUN", "arg",
@@ -143,7 +143,7 @@ class MorphFeatures:
                     "target_psos", "PRON", "arg",
                     "base_psos", "PREP", "arg"
                 )
-            ]
+            )
         ],
         *[
             prepare_feature(
@@ -155,7 +155,7 @@ class MorphFeatures:
             ) for pos in VARIATION_PSOS_BASE
         ],
         *[
-            prepare_feature(*prepare_verb("MultiPoS-MultiPoS", *args, dict_type=dict_type)) for dict_type, *args in [
+            prepare_feature(*prepare_verb("MultiPoS-MultiPoS", *args, dict_type=dict_type)) for dict_type, *args in (
                 (
                     "upos_dict", "CCONJ & SCONJ INCSC",
                     "target_psos", "CCONJ SCONJ", "arg",
@@ -186,7 +186,7 @@ class MorphFeatures:
                     "target_psos", "rel_pron", "attribute",
                     "base_psos", UD_TAG_STRING, "arg"
                 ),
-            ]
+            )
         ]
     ]
 
@@ -201,7 +201,7 @@ class MorphFeatures:
         ),
         *_COMMON_FEATURES,
         *[
-            prepare_feature(*prepare_verb("SubPoS-ALL", *args)) for args in [
+            prepare_feature(*prepare_verb("SubPoS-ALL", *args)) for args in (
                 (
                     "S-VERB INCSC",
                     "target_psos", "s_verb", "attribute",
@@ -212,7 +212,7 @@ class MorphFeatures:
                     "target_psos", "neut_noun", "attribute",
                     "base_psos", UD_TAG_STRING, "arg"
                 )
-            ]
+            )
         ]
     ]
 

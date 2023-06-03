@@ -41,8 +41,8 @@ def _sum(iterable: List[D]) -> int:
     """allow sum to take kwarg as well"""
     if isinstance(iterable, int):
         return iterable
-    elif isinstance(iterable[0], list):
-        return sum([_sum(i) for i in iterable])
+    if isinstance(iterable[0], list):
+        return sum(_sum(i) for i in iterable)
     return sum(_convert_depth_list(iterable))
 
 
@@ -50,8 +50,8 @@ def _max(iterable: List[D]) -> int:
     """allow max to take kwarg as well"""
     if isinstance(iterable, int):
         return iterable
-    elif isinstance(iterable[0], list):
-        return max([_max(i) for i in iterable])
+    if isinstance(iterable[0], list):
+        return max(_max(i) for i in iterable)
     return max(_convert_depth_list(iterable))
 
 
@@ -60,7 +60,7 @@ class SyntacticFeatures:
     ASPECT = "syntactic"
 
     FEATURES = [
-        prepare_feature(*args) for args in [
+        prepare_feature(*args) for args in (
             (
                 "Dependency length", _sum, merge_digits,
                 "iterable", "depth_list", "attribute",
@@ -117,7 +117,7 @@ class SyntacticFeatures:
                 "c", "preposition_nodes", "attribute",
                 "t", "token_count", "attribute"
             ),
-        ]
+        )
     ]
 
     SWEDISH_FEATURES = ENGLISH_FEATURES = FEATURES

@@ -94,8 +94,8 @@ def enkel_nominal_quota(xpos_dict: Dict[str, int]) -> float:
 
 def full_nominal_quota(xpos_dict: Dict) -> float:
     """full"""
-    nn_pp_pc = sum([xpos_dict.get(pos, 0) for pos in ["PP", "NN", "PC"]])
-    pn_ab_vb = sum([xpos_dict.get(pos, 0) for pos in ["PN", "AB", "VB"]])
+    nn_pp_pc = sum(xpos_dict.get(pos, 0) for pos in ("PP", "NN", "PC"))
+    pn_ab_vb = sum(xpos_dict.get(pos, 0) for pos in ("PN", "AB", "VB"))
     return r2(nn_pp_pc / pn_ab_vb) if pn_ab_vb else 0.0
 
 
@@ -107,7 +107,7 @@ def ovix(types: int, tokens: int) -> float:
 
 
 def lix(sents: int, words: int, word_dict: defaultdict) -> float:
-    long_words = sum([v for k, v in word_dict.items() if len(k) > LONG_WORD_THRESHOLD])
+    long_words = sum(v for k, v in word_dict.items() if len(k) > LONG_WORD_THRESHOLD)
     try:
         return r2(words / sents + long_words * 100 / words)
     except ZeroDivisionError:
@@ -119,7 +119,7 @@ class ReadabilityFeatures:
     ASPECT = "readability"
 
     ENGLISH_FEATURES: List[F] = [
-        prepare_feature(*args) for args in [
+        prepare_feature(*args) for args in (
             (
                 "Bilogarithm TTR", bilog, merge_digits,
                 "types", "type_count", "attribute",
@@ -159,11 +159,11 @@ class ReadabilityFeatures:
                 "sents", "sents", "attribute",
                 "polysyllables", "polysyllables", "attribute",
             )
-        ]
+        )
     ]
 
     SWEDISH_FEATURES: List[F] = [
-        prepare_feature(*args) for args in [
+        prepare_feature(*args) for args in (
             (
                 "LIX", lix, mixin_merge_digits_or_dicts,
                 "sents", "sents", "attribute",
@@ -188,5 +188,5 @@ class ReadabilityFeatures:
                 "Full nominalkvot", full_nominal_quota, merge_dicts,
                 "xpos_dict", "xpos_dict", "attribute"
             )
-        ]
+        )
     ]
