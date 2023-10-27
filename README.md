@@ -73,15 +73,20 @@ swegram statistic -h
 
 ## Run annotate and statistic actions with swegram
 
-* To annotate text
+* For example, if you want to annotate one text file called "10-sv.txt" in the existing reosource folder named "resources/corpus/raw", type the following command
 ```
-swegram --language sv --input-path resources/corpus/raw/10-sv.txt --output-dir output annotate
+swegram --language sv --input-path resources/corpus/raw/10-sv.txt --output-dir output-folder annotate
 ```
 
-* To analyze the annotated text in the output folder and get statistics
+* If you have executed the command above and have the annotated file in the folder named output-folder, you can use the following command to analyze the annotated text(s) and get statistics.
+
+```tips
 Please remove all metafiles in the output folder, namely all files do not end up with ".conll".
-```
 rm output/*.tok output/*.tag output/*.txt
+```
+
+Now, type the following command:
+```
 swegram --language sv --input-path output statistic
 ``` 
 
