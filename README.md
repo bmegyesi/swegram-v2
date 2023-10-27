@@ -71,16 +71,17 @@ swegram statistic -h
   --print               Flag to print the result on console
 ```
 
-## Test annotate and statistic action with swegram
+## Run annotate and statistic actions with swegram
 
-* To test the annotation
+* To annotate text
 ```
 swegram --language sv --input-path resources/corpus/raw/10-sv.txt --output-dir output annotate
 ```
 
-* To test the statistic
+* To analyze the annotated text in the output folder and get statistics
 Please remove all metafiles in the output folder, namely all files do not end up with ".conll".
 ```
+rm output/*.tok output/*.tag output/*.txt
 swegram --language sv --input-path output statistic
 ``` 
 
