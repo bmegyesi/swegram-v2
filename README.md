@@ -25,6 +25,9 @@ pip install swegram --upgrade
 
 # Build dependencies
 swegram-build
+
+# Export pythonpath
+export PYTHONPATH="$PYTHONPATH:$(pwd):$(pwd)/tools/efselab"
 ```
 
 Check the usage of swegram cli
@@ -65,8 +68,21 @@ swegram statistic -h
   --aspects             Checking statistics on the basis of selection of certain aspect(s). The following aspects are valid to be chosen: general, readability, morph, lexical, syntactic
   --include-features    Only certain features will be included
   --exclude-features    Certain features will be excluded
-  --print               Flag to print the result on console 
+  --print               Flag to print the result on console
 ```
+
+## Test annotate and statistic action with swegram
+
+* To test the annotation
+```
+swegram --language sv --input-path resources/corpus/raw/10-sv.txt --output-dir output annotate
+```
+
+* To test the statistic
+Please remove all metafiles in the output folder, namely all files do not end up with ".conll".
+```
+swegram --language sv --input-path output statistic
+``` 
 
 
 ## Dependencies
