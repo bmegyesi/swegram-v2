@@ -2,7 +2,7 @@
 from pathlib import Path
 from setuptools import setup, find_packages
 from typing import List
-
+from swegram_main.version import VERSION
 
 Base = Path(__file__).parent.resolve()
 
@@ -15,7 +15,7 @@ def get_requirements() -> List[str]:
 
 setup(
     name="swegram",
-    version="1.0.2",
+    version=VERSION,
     description="CLI library for Swegram",
     long_description=(Base / "README.md").read_text(encoding="utf-8"),
     packages=find_packages(exclude=["tools*", "test*", "swegram/*", "swegram_django*"]),

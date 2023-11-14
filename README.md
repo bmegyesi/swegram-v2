@@ -6,7 +6,7 @@ Swegram is a tool that offers the ability to annotate and analyse Swedish and En
 
 
 ## Setup ENVIRONMENT VARIABLES
-```console
+```bash
 export SWEGRAM_WORKSPACE=$(pwd)
 ```
 
@@ -14,12 +14,12 @@ export SWEGRAM_WORKSPACE=$(pwd)
 ## Install swegram command line interface
 
 Before installation, it is strongly recommended to use a virtual environment
-```
+```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-```console
+```bash
 # Install swegram package
 pip install swegram --upgrade
 

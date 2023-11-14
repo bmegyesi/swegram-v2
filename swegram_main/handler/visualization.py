@@ -67,7 +67,7 @@ class Visualization:
         self.outfile_name = self.outdir.joinpath(f"statistic-{self.input_path.with_suffix(f'.{save_as}').name}")
         if save_as == "txt" or pprint:
             self.save(data)
-        elif save_as == "json":
+        if save_as == "json":
             with open(self.outfile_name, code="w", encoding="utf-8") as output_file:
                 data["metadata"] = self.get_json_info()
                 json_object = json.dumps(self.serialize_json_data(data), indent=4)
@@ -152,8 +152,9 @@ class Visualization:
                 print()
 
     def save_instance(self, index: Optional[str], unit: str, aspect_instances: List[OrderedDict]) -> None:
+        self._save_instance_head()
         for aspect_name, instance in zip(self.aspects, aspect_instances):
-            self.save_title(unit, aspect_name, index)
+            self.save_aspect_title(unit, aspect_name, index)
             for fn, f in instance.items():
                 self.save_feature(fn, f)
             if self.pprint:
@@ -163,7 +164,7 @@ class Visualization:
         if self.save_as == "txt":
             self.append_in_text("")
 
-    def save_title(self, unit: str, aspect_name: str, index: Optional[str]) -> None:
+    def save_aspect_title(self, unit: str, aspect_name: str, index: Optional[str]) -> None:
         title = f"{' ':>2}{'-'.join(e for e in (unit.title(), index, aspect_name) if e):>40}" \
                 f"{'|':>4}{'-'*13}|{'-'*13}|{'-'*13}|"
         if self.pprint:
@@ -180,6 +181,18 @@ class Visualization:
             print(feature)
         if self.save_as == "txt":
             self.append_in_text(feature)
+
+    def _save_instance_head(self):
+        af = "UNIT-ASPECT/Features"
+        scalar = "Scalar"
+        mean = "Mean"
+        median = "Median"
+
+        heading = f"{' ':>2}{af:>40}{'|':>4}{scalar:>10}{'|':>4}{mean:>10}{'|':>4}{median:>10}{'|':>4}"
+        if self.pprint:
+            print(heading)
+        if self.save_as == "txt":
+            self.append_in_text(heading)
 
 
 class XlsxStatisticWriter(XlsxClient):
@@ -210,7 +223,8 @@ class XlsxStatisticWriter(XlsxClient):
     def load_aspects(self, sheet: worksheet, row: int, unit: str, aspects: Any) -> int:
         if isinstance(aspects[0], OrderedDict):
             for aspect, features in zip(self.aspects, aspects):
-                self.dump_cell(sheet, row, 1, f"{unit}-{aspect}")
+                for col, content in enumerate([f"{unit}-{aspect}", "Scalar", "Mean", "Median"], 1):
+                    self.dump_cell(sheet, row, col, content)
                 row += 1
                 for feature_name, feature in features.items():
                     self.dump_column_list(sheet, row, 1, [feature_name, feature.scalar, feature.mean, feature.median])
