@@ -19,7 +19,7 @@ setup(
     description="CLI library for Swegram",
     long_description=(Base / "README.md").read_text(encoding="utf-8"),
     packages=find_packages(exclude=["tools*", "test*", "swegram/*", "swegram_django*"]),
-    license=(Base / "LICENSE").read_text(encoding="utf-8"),
+    # license=(Base / "LICENSE").read_text(encoding="utf-8"),
     url="https://github.com/bmegyesi/swegram-v2",
     install_requires=get_requirements(),
     package_data={

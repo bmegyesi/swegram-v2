@@ -15,66 +15,64 @@ export SWEGRAM_WORKSPACE=$(pwd)
 
 Before installation, it is strongly recommended to use a virtual environment
 ```bash
+# Create virtual environment (Highly recommended)
 python3 -m venv venv
 source venv/bin/activate
-```
-
-```bash
 # Install swegram package
 pip install swegram --upgrade
-
 # Build dependencies
 swegram-build
-
 # Export pythonpath
 export PYTHONPATH="$PYTHONPATH:$(pwd):$(pwd)/tools/efselab"
 ```
 
 Check the usage of swegram cli
+
+* swegram -h
+
 ```console
-(venv) ➜ swegram -h                                                               
 usage: SWGRAM 1.0 [-h] -l {en,sv} -i INPUT_PATH [-o OUTPUT_DIR] [--output-format {txt,xlsx,json,csv}] {annotate,statistic} ...
-
 Swegram command line interface description
-
 positional arguments:
-  {annotate,statistic}  Swegram subparser
-    annotate            Annotation parser help
-    statistic           Statistic parser help
+{annotate,statistic}  Swegram subparser
+annotate              Annotation parser help
+statistic             Statistic parser help
+```
 
+```
 optional arguments:
-  -h, --help            show this help message and exit
-  -l {en,sv}, --language {en,sv}
-                        choose the language for annotation
-  -i INPUT_PATH, --input-path INPUT_PATH
-                        The input path to files/directory where working files are stored
-  -o OUTPUT_DIR, --output-dir OUTPUT_DIR
-                        The output directory where working files are stored
-  --save-as {txt,xlsx,json}
-                        The output format
+-h, --help            show this help message and exit
+-l {en,sv}, --language {en,sv}          choose the language for annotation
+-i INPUT_PATH, --input-path INPUT_PATH  The input path to files/directory where working files are stored
+-o OUTPUT_DIR, --output-dir OUTPUT_DIR  The output directory where working files are stored
+--save-as {txt,xlsx,json}               The output format
+```
 
 swegram annotate -h
-  --normalize  Process spelling checker after tokenization and normalized tokens will be used for upcoming annotation actions.
-  --tokenize   Process sentence segmentation and tokenization.
-  --tag        Process part-of-speech tagging.
-  --parse      Process syntactic dependency parsing.
-  --aggregate  Aggregate all annotated texts into one file.
-
+```
+--normalize  Process spelling checker after tokenization and normalized tokens will be used for upcoming annotation actions.
+--tokenize   Process sentence segmentation and tokenization.
+--tag        Process part-of-speech tagging.
+--parse      Process syntactic dependency parsing.
+--aggregate  Aggregate all annotated texts into one file.
+```
 
 swegram statistic -h
-  --include-metadata    Include certain texts by selecting metadata. For instance, "--include-metadata key1 key2:value2" only selects the texts that contain key1 or key2:value2 in the metadata
-  -- exclude-metadata   Exclude certain texts by deselecting metadata
-  -u --units            Checking statistics of features given certain linguistic unit(s). The following units are valid to be chosen: corpus, text, paragraph, sentence
-  --aspects             Checking statistics on the basis of selection of certain aspect(s). The following aspects are valid to be chosen: general, readability, morph, lexical, syntactic
-  --include-features    Only certain features will be included
-  --exclude-features    Certain features will be excluded
-  --print               Flag to print the result on console
+```console
+--include-metadata    Include certain texts by selecting metadata. For instance, "--include-metadata key1 key2:value2" only selects the texts that contain key1 or key2:value2 in the metadata
+-- exclude-metadata   Exclude certain texts by deselecting metadata
+-u --units            Checking statistics of features given certain linguistic unit(s). The following units are valid to be chosen: corpus, text, paragraph, sentence
+--aspects             Checking statistics on the basis of selection of certain aspect(s). The following aspects are valid to be chosen: general, readability, morph, lexical, syntactic
+--include-features    Only certain features will be included
+--exclude-features    Certain features will be excluded
+--print               Flag to print the result on console
 ```
 
 ## Run annotate and statistic actions with swegram
 
 * For example, if you want to annotate one text file called "10-sv.txt" in the existing Resource folder named "resources/corpus/raw", the final conll file will be generated in a folder called output-folder, type the following command
-```
+
+```bash
 swegram --language sv --input-path resources/corpus/raw/10-sv.txt --output-dir output-folder annotate
 ```
 
@@ -86,10 +84,9 @@ rm output/*.tok output/*.tag output/*.txt
 ```
 
 Now, type the following command:
-```
+```bash
 swegram --language sv --input-path output statistic
 ``` 
-
 
 ## Dependencies
 
@@ -103,4 +100,3 @@ SWIG 3.0.8 or newer for language bindings other than C++
 
 * [efselab](https://github.com/robertostling/efselab)
 * [pandoc](https://pandoc.org)
-
