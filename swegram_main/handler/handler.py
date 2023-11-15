@@ -66,7 +66,7 @@ def load_file(input_file: Path, language: str, include_tags: List[str], exclude_
 
 def load_dir(input_dir: Path, language: str, include_tags: List[str], exclude_tags: List[str]) -> List[Text]:
     """Load texts from one directory containing conll file"""
-    conll_files = [input_dir.joinpath(filename) for filename in os.listdir(input_dir)] 
+    conll_files = [input_dir.joinpath(filename) for filename in os.listdir(input_dir) if filename.endswith(".conll")]
     return [text for conll_file in conll_files for text in load_file(conll_file, language, include_tags, exclude_tags)]
 
 
