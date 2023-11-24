@@ -1,13 +1,16 @@
-name: static_analysis
+name: Pypi deployment
 
-on: [push]
+on:
+  push:
+    paths:
+      - swegram_main/version.py
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9"]
+        python-version: ["3.8"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -19,13 +22,14 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
 
-    - name: Analysing the code with pylint
+    - name: Build
       run: |
-        pylint swegram_main
+        python setup.py bdist_wheel
 
-    - name: Analysing the code with test
+    - name: Twine Check
       run: |
-        source setup.sh
-        pip install .
-        swegram-build
-        pytest tests -vvvv
+        twine check dist/*.whl
+
+    - name: Depoly
+      run: |
+        twine upload dist/* --verbose
