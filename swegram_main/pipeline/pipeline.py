@@ -112,7 +112,6 @@ class Pipeline:
             if save_as != "txt":
                 save(save_as, Path(conll_filename), self.model, normalization_tags[0], annotation_tags[0])
 
-
     def run(self, action: str, post_action: bool = True) -> None:
         if action == "tokenize":
             self.tokenize()

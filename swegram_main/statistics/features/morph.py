@@ -216,7 +216,7 @@ class MorphFeatures:
         ]
     ]
 
-    ENGLISH_FEATUERS: List[F] = [
+    ENGLISH_FEATURES: List[F] = [
         *_COMMON_VERBFORM_FEATURES,
         *_COMMON_FEATURES,
         prepare_feature(
