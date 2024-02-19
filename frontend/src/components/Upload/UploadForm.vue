@@ -249,18 +249,27 @@ export default {
       form.append('pasted_text', this.pastedText);
 
       this.isUploading = true;
-      axios.post(this.uploadURL(), form).then((response) => {
-        this.handleUploadSuccess(response.data);
-      });
+      if (this.formData.annotated) {
+        axios.put(this.uploadURL(), form).then((response) => {
+          this.handleUploadSuccess(response.data);
+        });
+      } else {
+        axios.post(this.uploadURL(), form).then((response) => {
+          this.handleUploadSuccess(response.data);
+        });
+      }
     },
     uploadURL() {
-      // const tokenization = this.formData.checkTokenize ? 'tokenized' : 'untokenized';
-      if (this.formData.annotated) {
-        return `/upload/${this.$route.params.toolVersion}`; // This uploads annotated file, lang needed to be modified
-      }
-      return `/upload_annotate/${this.$route.params.toolVersion}`; // This actually means upload AND annotate
-    //   return '/upload_annotate/'; // This actually means upload AND annotate
-    },
+      return `/api/text/${this.$route.params.toolVersion}`
+    }
+    // uploadURL() {
+    //   // const tokenization = this.formData.checkTokenize ? 'tokenized' : 'untokenized';
+    //   if (this.formData.annotated) {
+    //     return `/api/text/${this.$route.params.toolVersion}`; // This uploads annotated file, lang needed to be modified
+    //   }
+    //   return `/api/text/${this.$route.params.toolVersion}`; // This actually means upload AND annotate
+    // //   return '/upload_annotate/'; // This actually means upload AND annotate
+    // },
   },
 };
 </script>

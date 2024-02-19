@@ -66,7 +66,7 @@ export default {
     checkCurrentTextParsed(newValue) {
       if (newValue !== '0' && newValue) {
         axios
-          .get(`/api/get_text/${newValue}`)
+          .get(`/api/text/${newValue}`)
           .then((response) => {
             this.currentTextParsed = JSON.parse(response.data)[0].fields.parsed;
           })
@@ -93,7 +93,7 @@ export default {
       if (this.currentText !== null && this.currentText !== '0') {
         this.tokens = [];
         axios
-          .get(`/visualise_text/${this.currentText}/${this.currentPage}/`)
+          .get(`/api/text/${this.currentText}/${this.currentPage}/`)
           .then((response) => {
             const { data } = response;
             this.currentSentences = data.current_sentences;
