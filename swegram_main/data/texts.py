@@ -53,7 +53,7 @@ class Text:  # pylint: disable=too-many-instance-attributes
 
     @property
     def has_label(self):
-        return True if self.labels else False
+        return bool(self.labels)
 
     @property
     def metadata(self):
