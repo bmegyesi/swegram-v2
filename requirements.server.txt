@@ -1,0 +1,7 @@
+-r requirements.txt
+cryptography
+fastapi
+uvicorn
+databases[mysql]
+mysql-connector-python
+mysqlclient

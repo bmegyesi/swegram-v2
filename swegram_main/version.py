@@ -1,3 +1,3 @@
 """version module"""
 
-VERSION = "1.0.7"
+VERSION = "2.0.0"
