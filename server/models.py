@@ -6,7 +6,7 @@ from sqlalchemy import Text as LONGTEXT
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import relationship, Session
 
-from server.helper import get_size_and_format
+from server.lib.load_data import get_size_and_format
 
 
 Base = declarative_base()
@@ -162,6 +162,10 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin):
                     token["path"] = " -> ".join(
                         [tokens[i-1]["form"] if i else "ROOT" for i in sentence["depth_list"][t_index-1]]
                     )
+                    token["text_id"] = token["text_index"]
+                    token["token_id"] = token["index"]
+                    del token["text_index"]
+                    del token["index"]
                     token["normalized"] = self.normalized
                     token_instance = Token(sentence_id=sentence_instance.id, **token)
                     db.add(token_instance)
@@ -192,6 +196,9 @@ class Sentence(Base, SharedMethodMixin, SharedAttributeMixin):
     paragraph_id = Column(Integer, ForeignKey("paragraphs.id", ondelete="CASCADE"))
     paragraph = relationship("Paragraph", back_populates="sentences")
 
+    def serialize_tokens(self):
+        return [token.as_dict() for token in self.tokens]
+
 
 class Token(Base, SharedMethodMixin):
     __tablename__ = "tokens"
@@ -200,8 +207,8 @@ class Token(Base, SharedMethodMixin):
 
     compound_originals = Column(Boolean, default=False)
     normalized = Column(Boolean, default=False)
-    index = Column(String(255))
-    text_index = Column(String(255))
+    token_id = Column(String(255))
+    text_id = Column(String(255))
 
     form = Column(String(length=255), default="_")
     norm = Column(String(length=255), default="_")

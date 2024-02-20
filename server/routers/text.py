@@ -17,7 +17,7 @@ def read_text(text_id: int = Path(..., title="Text id"), db: Session = Depends(g
         text = db.query(Text).get(ident=text_id)
         if not text:
             raise AttributeError
-        return JSONResponse(text.json())
+        return JSONResponse(text.as_dict())
     except AttributeError:
         raise HTTPException(status_code=404, detail=f"Text {text_id} not found.")
 
