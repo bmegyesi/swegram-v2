@@ -4,6 +4,7 @@ USER 0:0
 
 ENV PYTHONPATH="$PYTHONPATH:/root/server:/tools/efselab"
 ENV SWEGRAM_WORKSPACE=/root
+ENV PRODUCTION=1
 
 # Python packages
 RUN ln -s /usr/bin/python3.10 /usr/bin/python

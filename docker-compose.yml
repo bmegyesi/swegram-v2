@@ -24,7 +24,7 @@ services:
 
 
   backend:
-    image: fastapi:latest
+    image: swegram-backend:latest  # Image needs to be built with network
     container_name: fastapi-backend
     restart: always
     privileged: true

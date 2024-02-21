@@ -1,3 +1,4 @@
+import os
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,7 +10,7 @@ from server.routers.texts import router as texts_router
 
 
 app = FastAPI()
-
+PROD_PREFIX = "/api" if os.environ.get("PRODUCTION") else ""
 
 # Enable CORS for all origins
 app.add_middleware(
@@ -24,7 +25,6 @@ app.add_middleware(
 
 # Create tables
 Base.metadata.create_all(bind=engine)
-app.include_router(states_router, prefix="/api/states", tags=["states"], dependencies=[Depends(get_db)])
-app.include_router(text_router, prefix="/api/text", tags=["text"], dependencies=[Depends(get_db)])
-app.include_router(texts_router, prefix="/api/texts", tags=["texts"], dependencies=[Depends(get_db)])
-
+app.include_router(states_router, prefix=f"{PROD_PREFIX}/states", tags=["states"], dependencies=[Depends(get_db)])
+app.include_router(text_router, prefix=f"{PROD_PREFIX}/text", tags=["text"], dependencies=[Depends(get_db)])
+app.include_router(texts_router, prefix=f"{PROD_PREFIX}/texts", tags=["texts"], dependencies=[Depends(get_db)])
