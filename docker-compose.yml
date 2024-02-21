@@ -1,0 +1,54 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: mysql:latest
+    # NOTE: use of "mysql_native_password" is not recommended: https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
+    # (this is just an example, not intended to be a production configuration)
+    container_name: mysql-server
+    restart: always
+    privileged: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/rruan1/swegram/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: swegram_corpus
+      MYSQL_USER: swegram
+      MYSQL_PASSWORD: swegram_pass
+    profiles:
+      - client
+
+
+  backend:
+    image: fastapi:latest
+    container_name: fastapi-backend
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - client
+
+
+  vue-nginx-proxy:
+    build: frontend
+    container_name: vue-nginx
+    ports:
+      - "8080:80"
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - client
+
+
+    
+
+
+
+

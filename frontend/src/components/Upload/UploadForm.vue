@@ -260,16 +260,8 @@ export default {
       }
     },
     uploadURL() {
-      return `/api/text/${this.$route.params.toolVersion}`
-    }
-    // uploadURL() {
-    //   // const tokenization = this.formData.checkTokenize ? 'tokenized' : 'untokenized';
-    //   if (this.formData.annotated) {
-    //     return `/api/text/${this.$route.params.toolVersion}`; // This uploads annotated file, lang needed to be modified
-    //   }
-    //   return `/api/text/${this.$route.params.toolVersion}`; // This actually means upload AND annotate
-    // //   return '/upload_annotate/'; // This actually means upload AND annotate
-    // },
+      return `/api/text/${this.$route.params.toolVersion}`;
+    },
   },
 };
 </script>
