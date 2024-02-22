@@ -23,16 +23,16 @@ services:
       - client
 
 
-  backend:
-    image: swegram-backend:latest  # Image needs to be built with network
-    container_name: fastapi-backend
-    restart: always
-    privileged: true
-    network_mode: host
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    profiles:
-      - client
+  # backend:
+  #   image: swegram-backend:latest  # Image needs to be built with network
+  #   container_name: swegram-backend-fastapi
+  #   restart: always
+  #   privileged: true
+  #   network_mode: host
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   profiles:
+  #     - client
 
 
   vue-nginx-proxy:
@@ -45,10 +45,3 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     profiles:
       - client
-
-
-    
-
-
-
-
