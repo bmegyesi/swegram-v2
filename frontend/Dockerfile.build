@@ -1,0 +1,10 @@
+FROM node:16.20
+
+USER 0:0
+
+COPY . /root
+
+WORKDIR /root
+RUN npm install
+
+ENTRYPOINT [ "npm", "run", "build" ]
