@@ -13,7 +13,7 @@ services:
       - "3306:3306"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /home/rruan1/swegram/data:/var/lib/mysql
+      # - /home/rruan1/swegram/data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: pass
       MYSQL_DATABASE: swegram_corpus
@@ -23,20 +23,25 @@ services:
       - client
 
 
-  # backend:
-  #   image: swegram-backend:latest  # Image needs to be built with network
-  #   container_name: swegram-backend-fastapi
-  #   restart: always
-  #   privileged: true
-  #   network_mode: host
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   profiles:
-  #     - client
+  backend:
+    image: swegram-backend:latest  # Image needs to be built with network
+    depends_on:
+      - db
+    container_name: swegram-backend-fastapi
+    restart: always
+    privileged: true
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    profiles:
+      - client
 
 
   vue-nginx-proxy:
     build: frontend
+    depends_on:
+      - db
+      - backend
     container_name: vue-nginx
     ports:
       - "8080:80"

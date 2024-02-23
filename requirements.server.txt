@@ -1,4 +1,3 @@
-swegram
 cryptography
 fastapi
 uvicorn

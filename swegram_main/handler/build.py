@@ -25,6 +25,6 @@ def main():
 
     if BASE_DIR.joinpath("tools").exists():
         logger.info("Remove tools")
-        subprocess.run(f"rm -rf {BASE_DIR.joinpath('tools')}".split(), check=False)
+        subprocess.run(f"rm -rf {BASE_DIR.joinpath('tools')}".split(), check=True)
     logger.info("Install tools")
     subprocess.run(f"{BASE_DIR.joinpath('build_dependencies', 'install.sh')}".split(), check=False)

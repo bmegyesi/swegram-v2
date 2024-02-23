@@ -12,7 +12,7 @@ from swegram_main.lib.utils import write, AnnotationError
 def tokenize(tokenizer: str, filepath: Path) -> None:
     try:
         if tokenizer.lower() == "efselab":
-            subprocess.run(f"python3 {EFSELAB} --tokenized -o {filepath.parent} {filepath}".split(), check=False)
+            subprocess.run(f"python3 {EFSELAB} --tokenized -o {filepath.parent} {filepath}".split(), check=True)
             
         elif tokenizer.lower() == "udpipe":
             response = subprocess.run(

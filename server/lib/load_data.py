@@ -12,6 +12,8 @@ from swegram_main.data.sentences import Sentence
 from swegram_main.data.texts import Text
 from swegram_main.data.tokens import Token
 from swegram_main.handler.handler import load_dir
+from swegram_main.lib.logger import get_logger
+from swegram_main.pipeline.pipeline import Pipeline
 
 
 SPLIT_HEADER = "------WebKitFormBoundary"
@@ -124,7 +126,6 @@ def save_text(raw_text: str, target_path: Path) -> None:
 
 def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
     """Annotate text and return a dict to be stored into database"""
-    cmd_list = ["swegram"]
     states = {
         "tokenized": kwargs.get("checkTokenize", True),
         "normalized": kwargs.get("checkNormalization", False),
@@ -132,27 +133,32 @@ def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
         "parsed": kwargs.get("checkPOS", False)
     }
 
-    # Add language
-    cmd_list.extend(["--language", language])
+    normalize = kwargs.get("checkNormalization")
+    parse = kwargs.get("checkPOS")
+    tokenize = kwargs.get("checkTokenize")
 
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", suffix=".txt") as input_file:
         with tempfile.TemporaryDirectory() as output_dir:
             save_text(kwargs["raw_text"], input_file.name)
             input_file.flush()
 
-            # Add input-path and output-dir
-            cmd_list.extend(["--input-path", input_file.name, "--output-dir", output_dir, "annotate"])
+            pipeline = Pipeline(
+                input_path=Path(input_file.name), output_dir=Path(output_dir), language=language
+            )
 
-            # Add possible flags for annotation
-            if kwargs.get("checkTokenize"):
-                cmd_list.extend(["--tokenize"])
-            if kwargs.get("checkNormalization"):
-                cmd_list.extend(["--normalize"])
-            if kwargs.get("checkPOS"):
-                cmd_list.extend(["--tag", "--parse"])
+            if normalize:
+                pipeline.normalize()
 
-            # Run annotate command
-            subprocess.run(cmd_list, check=True)
+            # parse <- tag <- tokenize
+            # tag is not an optional in frontend
+            if parse:
+                pipeline.parse()
+            elif tokenize and not normalize:
+                pipeline.tokenize()
+            else:
+                raise Exception(f"Invalid annotation request, {kwargs}")
+            pipeline.postprocess()
+
             texts: List[Text] = load_dir(input_dir=Path(output_dir), language=language, include_tags=[], exclude_tags=[])
             filename = kwargs.get("filename", f"Pasted at {str(datetime.now())}")
             return [{

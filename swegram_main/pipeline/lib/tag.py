@@ -86,7 +86,7 @@ def tag(tagger_model: str, filepath: Path) -> None:
         if tagger_model.lower() == "efselab":
             subprocess.run(
                 f"python3 {EFSELAB} --lemmatized --tagged --skip-tokenization " \
-                f"-o {filepath.parent} {filepath}".split(), check=False
+                f"-o {filepath.parent} {filepath}".split(), check=True
             )
             write_tagged_conll(change_suffix(filepath, "tag"))
 
