@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from server.lib.fetch_data import fetch_data
+from server.lib.fetch_features import post_states as _post_states
 from server.routers.database import get_db
 from server.models import Text
 
@@ -27,3 +28,11 @@ def update_states(
             del text_states[_id]
     db.commit()
     return JSONResponse(text_states)
+
+
+@router.post("/")
+def post_states(
+    data: Dict[str, Any] = Body(...), db: Session = Depends(get_db)
+) -> JSONResponse:
+    """Post states"""
+    return JSONResponse(_post_states(data, db))

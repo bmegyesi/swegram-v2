@@ -39,4 +39,6 @@ RUN pip install .
 RUN swegram-build
 RUN rm -rf build_dependencies build requirements.txt swegram.egg-info
 
+EXPOSE 8000
+
 ENTRYPOINT [ "bash", "-c", "cd /root && python main.py" ]

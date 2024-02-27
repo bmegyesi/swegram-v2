@@ -171,6 +171,9 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin):
                     db.add(token_instance)
         db.commit()
 
+    def __str__(self) -> str:
+        return "\n".join([str(paragraph) for paragraph in self.paragraphs])
+
 
 class Paragraph(Base, SharedMethodMixin, SharedAttributeMixin):
     __tablename__ = "paragraphs"
@@ -182,6 +185,9 @@ class Paragraph(Base, SharedMethodMixin, SharedAttributeMixin):
 
     text_id = Column(Integer, ForeignKey("texts.id", ondelete="CASCADE"))
     text = relationship("Text", back_populates="paragraphs")
+
+    def __str__(self) -> str:
+        return " ".join([str(sentence) for sentence in self.sentences])
 
 
 class Sentence(Base, SharedMethodMixin, SharedAttributeMixin):
@@ -198,6 +204,9 @@ class Sentence(Base, SharedMethodMixin, SharedAttributeMixin):
 
     def serialize_tokens(self):
         return [token.as_dict() for token in self.tokens]
+
+    def __str__(self) -> str:
+        return " ".join([str(token) for token in self.tokens])
 
 
 class Token(Base, SharedMethodMixin):
@@ -230,3 +239,6 @@ class Token(Base, SharedMethodMixin):
 
     sentence_id = Column(Integer, ForeignKey("sentences.id", ondelete="CASCADE"))
     sentence = relationship("Sentence", back_populates="tokens")
+
+    def __str__(self) -> str:
+        return self.form

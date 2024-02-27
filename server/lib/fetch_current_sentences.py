@@ -8,10 +8,9 @@ from sqlalchemy.orm import Session
 from server.models import Text, Sentence
 from swegram_main.config import PAGE_SIZE
 
+
 def fetch_current_sentences(text_id: int, page: int, db: Session) -> Dict[str, Any]:
     """The default size to show the sentence for visualization is 20"""
-
-
 
     try:
         text = db.query(Text).get(ident=text_id)

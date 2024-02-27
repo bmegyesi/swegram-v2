@@ -8,17 +8,19 @@ services:
     # (this is just an example, not intended to be a production configuration)
     container_name: mysql-server
     restart: always
-    privileged: true
+    # network_mode: host
+    # privileged: true
     ports:
       - "3306:3306"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      # - /home/rruan1/swegram/data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: pass
       MYSQL_DATABASE: swegram_corpus
       MYSQL_USER: swegram
       MYSQL_PASSWORD: swegram_pass
+    networks:
+      - swegram-network
     profiles:
       - client
 
@@ -29,10 +31,14 @@ services:
       - db
     container_name: swegram-backend-fastapi
     restart: always
-    privileged: true
-    network_mode: host
+    # network_mode: host
+    # privileged: true
+    ports:
+      - "8000:8000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - swegram-network
     profiles:
       - client
 
@@ -43,10 +49,17 @@ services:
       - db
       - backend
     container_name: vue-nginx
+    # network_mode: host
     ports:
-      - "8080:80"
-    network_mode: host
+      - "80:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - swegram-network
     profiles:
       - client
+
+
+networks:
+  swegram-network:
+    driver: bridge

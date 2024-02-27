@@ -5,7 +5,7 @@ from time import sleep
 
 if __name__ == "__main__":
 
-    os.environ["PRODUCTION"] = "1"
+    # os.environ["PRODUCTION"] = "1"
     sleep(20)
     while True:
         try:

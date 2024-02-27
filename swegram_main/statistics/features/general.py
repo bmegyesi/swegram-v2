@@ -290,7 +290,7 @@ class CountFeatures:
     SENTENCE_FEATURES = [
         ("Token-count", "token_count"),
         ("Type-count", "type_count"),
-        ("Spelling erros", "misspells"),
+        ("Spelling errors", "misspells"),
         ("Compound errors", "compounds"),
         # ("Word length")  # Word length is computed separately
     ]

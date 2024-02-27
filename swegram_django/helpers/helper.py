@@ -78,7 +78,7 @@ def _fetch_selected_text_ids(texts) -> list:
     return [t.text_id for t in texts if t.activated]
 
 
-def _update_metadata(metadata, texts) -> list:
+def _update_metadata(metadata, texts) -> dict:
     """update metadata"""
     options = []
     value = 1

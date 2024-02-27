@@ -178,7 +178,7 @@ export default {
         localStorage.setItem('textList', JSON.stringify({}));
       }
       const lang = this.$route.params.toolVersion;
-      const baseURL = '/get_text_stats/';
+      const baseURL = '/api/states/';
       axios
         .post(baseURL, {
           textList: JSON.parse(localStorage.textList),
