@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from server.models import Text
+from server.lib.utils import get_texts
 from swegram_main.config import SUC_TAGS, PT_TAGS, PAGE_SIZE
 from swegram_main.lib.utils import mean, median
 
@@ -37,14 +38,10 @@ class State(BaseModel):
     total_text_items: int = 0
 
 
-def _get_texts(db: Session, language: str) -> State:
-    return db.query(Text).filter( Text.language == language ).filter( Text.activated == True )
-
-
 def post_states(data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """post states"""
     language = data["lang"]
-    texts = _get_texts(db, language) 
+    texts = get_texts(db, language) 
     normalized, parsed, tokenized = [Annotation() for _ in range(3)]
     _texts, paragraphs, sentences = 0, 0, 0
     for text in texts:
@@ -69,7 +66,7 @@ def post_states(data: Dict[str, Any], db: Session) -> Dict[str, Any]:
 def get_features(element: str, index: int, data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     size = PAGE_SIZE
     language = data["lang"]
-    texts = [t for t in _get_texts(db, language)]
+    texts = get_texts(db, language)
     start_index = (index - 1) * size
     statistics_data, content = [], []
     if texts:
@@ -114,7 +111,7 @@ def get_features(element: str, index: int, data: Dict[str, Any], db: Session) ->
 
 def get_features_for_elements(elements: str, data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     language = data["lang"]
-    texts = [t for t in _get_texts(db, language)]
+    texts = [t for t in get_texts(db, language)]
     if elements == "texts":
         contents = texts
     elif elements == "paras":
