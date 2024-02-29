@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from server.models import Base
 from server.routers.database import engine, get_db
+from server.routers.download import router as download_router
 from server.routers.features import router as features_router
 from server.routers.frequencies import router as frequencies_router
 from server.routers.lengths import router as lengths_router
@@ -28,6 +29,7 @@ app.add_middleware(
 
 # Create tables
 Base.metadata.create_all(bind=engine)
+app.include_router(download_router, prefix=f"{PROD_PREFIX}/download", tags=["download"], dependencies=[Depends(get_db)])
 app.include_router(features_router, prefix=f"{PROD_PREFIX}/features", tags=["features"], dependencies=[Depends(get_db)])
 app.include_router(frequencies_router, prefix=f"{PROD_PREFIX}/frequencies", tags=["frequencies"], dependencies=[Depends(get_db)])
 app.include_router(lengths_router, prefix=f"{PROD_PREFIX}/lengths", tags=["lengths"], dependencies=[Depends(get_db)])

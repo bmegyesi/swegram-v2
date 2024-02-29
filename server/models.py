@@ -242,3 +242,11 @@ class Token(Base, SharedMethodMixin):
 
     def __str__(self) -> str:
         return self.form
+    
+    def conll(self, language: str) -> str:
+        # language = self.sentence.paragraph.text.language
+        feats = self.feats if language == "en" else f"{self.feats}\t{self.ufeats}"
+        return "\t".join([
+            self.text_id, self.token_id, self.form, self.norm, self.lemma,
+            self.upos, self.xpos, feats, self.head, self.deprel, self.deps, self.misc
+        ])

@@ -205,13 +205,22 @@ export default {
     fetchFeatures() {
       // get feature panel according to selected parameters (level, lang, overview|detail)
     },
+    handleDownloadCallback(filename) {
+      console.log(filename);
+      const downloadCallbackUrl = '/api/download/file/'
+      axios({
+        method: 'delete',
+        data: {"name": filename},
+        url: downloadCallbackUrl,
+      })
+    },
     handleDownloadEvent() {
       if (!localStorage.textList) {
         localStorage.setItem('textList', JSON.stringify({}));
       }
       if (!this.downloadDisabled && this.tooltipDisabled) {
         if (this.downloadType.includes('texts')) {
-          const textDownloadURL = '/download_text/';
+          const textDownloadURL = '/api/download/texts/';
           axios({
             method: 'post',
             data: {
@@ -229,6 +238,10 @@ export default {
               // the name of downloaded text
               link.download = `text-file${this.outputForm}`;
               link.click();
+              return response.headers.filename;
+            })
+            .then((filename) => {
+              this.handleDownloadCallback(filename);
             });
         } if (this.downloadType.includes('statistics')) {
           const statsDownloadURL = '/download_stats/';
