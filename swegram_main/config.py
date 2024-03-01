@@ -60,6 +60,8 @@ ASPECTS = ["general", "readability", "morph", "lexical", "syntactic"]
 
 PAGE_SIZE = 10 # the default page size is 10 items
 
+
+COLUMN_DELIMITER = ","
 METADATA_INITIAL = "<"
 METADATA_FINAL = ">"
 EMPTY_METADATA = f"{METADATA_INITIAL}{METADATA_FINAL}"

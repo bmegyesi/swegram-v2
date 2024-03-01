@@ -1,6 +1,6 @@
 """data models module"""
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 from sqlalchemy import Column, Integer, String, Boolean, Sequence, ForeignKey, JSON, func, Enum
 from sqlalchemy import Text as LONGTEXT
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
@@ -106,7 +106,7 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin):
     date = Column(String(length=225), default=func.now())
     content = Column(LONGTEXT, nullable=True)
     labels = Column(JSON, nullable=True)
-    has_label = Column(Boolean, default=False)
+    has_label = Column(Boolean, default=False) # can be deleted
     _filesize = Column(Integer, nullable=True)
 
     tokenized = Column(Boolean, default=True)
@@ -137,6 +137,14 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin):
             }
         }
 
+    def header(self):
+        TAGS = [
+            "text_id", "token_id", "form", "norm", "lemma", "upos",
+            "xpos", "feats", "ufeats", "head", "deprel", "deps", "misc"
+        ]
+        if self.language == "en":
+            TAGS.remove("ufeats")
+        return TAGS
 
     def load_data(self, paragraphs: List[Dict[str, Any]], db: Session) -> None:
 
@@ -243,10 +251,13 @@ class Token(Base, SharedMethodMixin):
     def __str__(self) -> str:
         return self.form
     
-    def conll(self, language: str) -> str:
+    def conll(self, language: str, to_string: bool = True) -> Union[str, List[str]]:
         # language = self.sentence.paragraph.text.language
         feats = self.feats if language == "en" else f"{self.feats}\t{self.ufeats}"
-        return "\t".join([
+        fields =[
             self.text_id, self.token_id, self.form, self.norm, self.lemma,
             self.upos, self.xpos, feats, self.head, self.deprel, self.deps, self.misc
-        ])
+        ]
+        if to_string:
+            return "\t".join(fields)
+        return fields

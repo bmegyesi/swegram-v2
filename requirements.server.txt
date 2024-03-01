@@ -5,3 +5,4 @@ gunicorn
 databases[mysql]
 mysql-connector-python
 mysqlclient
+pandas
