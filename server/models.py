@@ -106,7 +106,7 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin):
     date = Column(String(length=225), default=func.now())
     content = Column(LONGTEXT, nullable=True)
     labels = Column(JSON, nullable=True)
-    has_label = Column(Boolean, default=False) # can be deleted
+    has_label = Column(Boolean, default=False)
     _filesize = Column(Integer, nullable=True)
 
     tokenized = Column(Boolean, default=True)

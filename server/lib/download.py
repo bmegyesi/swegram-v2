@@ -1,14 +1,15 @@
 import csv
 import tempfile
 from datetime import datetime
-from typing import Any, Callable, Dict, List, IO, Optional, Tuple
+from typing import Any, Callable, Dict, List, IO, Optional, Tuple, Union
 
 from fastapi.responses import FileResponse
 import pandas as pd
 from sqlalchemy.orm import Session
 
+from server.lib.fetch_features import get_features_for_items
 from server.lib.utils import get_texts
-from server.models import Text
+from server.models import Text, Paragraph, Sentence
 from swegram_main.config import COLUMN_DELIMITER
 from swegram_main.config import METADATA_DELIMITER_LEBAL as LEBAL
 from swegram_main.config import METADATA_DELIMITER_TAG as TAG
@@ -25,10 +26,50 @@ async def download_texts(data: Dict[str, Any], db: Session) -> FileResponse:
     texts = get_texts(db=db, language=language)
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as tmp:
         tmp_name = tmp.name
-        Writer(file=tmp, texts=texts, language=language, download_format=download_format).generate()
+        Writer(file=tmp, texts=texts, language=language, download_format=download_format).download_texts()
         tmp.flush()
 
     return FileResponse(tmp_name, headers={"filename": tmp_name})
+
+
+async def download_statistics(data: Dict[str, Any], db: Session) -> FileResponse:
+    language = data["lang"]
+    download_format = data["outputForm"]
+    features = get_chosen_aspects_and_features(selected_indeces=data["chosenFeatures"], references=data["featureList"])
+    texts = get_texts(db=db, language=language)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as tmp:
+        tmp_name = tmp.name
+        Writer(file=tmp, texts=texts, language=language, download_format=download_format).download_statistics(
+            data["overviewOrDetail"], data["levels"], features
+        )
+        tmp.flush()
+
+    return FileResponse(tmp_name, headers={"filename": tmp_name})
+
+
+def _value2label(features: List[Any], v2l: Dict[int, str]) -> None:
+
+    for feature_item in features:
+        if "children" in feature_item:
+            _value2label(feature_item["children"], v2l)
+        v2l[feature_item["value"]] = feature_item["label"]
+
+
+def get_chosen_aspects_and_features(
+    selected_indeces: List[List[int]], references: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    features = {}
+    v2l = {}
+    _value2label(references, v2l)
+    for index_item in selected_indeces:
+        _aspect_index, *_feature_index = index_item
+        _aspect = v2l[_aspect_index]
+        _feature = "_".join([v2l[fi] for fi in _feature_index])
+        if _aspect in features:
+            features[_aspect].append(_feature)
+        else:
+            features[_aspect] = [_feature]
+    return features
 
 
 class Writer:
@@ -81,17 +122,95 @@ class Writer:
                 df = pd.DataFrame(arrays)
                 df.to_excel(self.writer, header=False, index=False, sheet_name=sheet_name)
 
-    def generate(self):
+    def download_texts(self) -> None:
         self._write_file_header()
         for index, text in enumerate(self.texts):
             self._write_text_header(text, index)
             self._write_text_body(text)
 
-    def _raise_format_error(self):
-        raise DownloadError(f"Unknown format to download: {self.format}")
+    def download_statistics(
+        self, blocks: List[str], levels: List[str], features: Dict[str, Any]
+    ) -> None:
+        self.blocks = blocks
+        self.levels = [self._c(level) for level in levels]
+        self.features = features
 
-    def _write_file_header(self):
+        self._write_file_header(is_statistic_file=True)
+        self.write(self._get_feature_string("Level/Aspect/Feature Name", "Scalar", "Mean", "Median"))
+        if "overview" in blocks:
+            self.download_statistics_block_all()
+        if "detail" in blocks:
+            self.download_statistics_block_ones()
+
+    def _get_feature_string(
+        self, name: str, scalar: Union[int, float], mean: Union[int, float], median: Union[int, float]
+    ) -> str:
+        return f"{' ':>2}{name:>40}{'|':>4}{scalar:>10}{'|':>4}{mean:>10}{'|':>4}{median:>10}{'|':>4}"
+
+    def _txt_format(self, string: str) -> str:
+        return f"{string:^88}".replace(" ", "-")
+
+    def _write_feature(self, feature_item: Dict[str, Any]) -> None:
+        name, scalar, mean, median = [feature_item.get(attr, "") for attr in ["name", "scalar", "mean", "median"]]
+        self.write(self._get_feature_string(name, scalar, mean, median))
+
+    def download_statistics_aspect_body(self, aspect: Dict[str, Any]):
+        self.write(self._txt_format(f"Aspect: {aspect['aspect']}"))
+        for feature_item in aspect["data"]:
+            self._write_feature(feature_item)
+
+    def download_statistics_block_all(self):
+        self.write(self._txt_format("Overview"))
+        for level in self.levels:
+            self.write(self._txt_format(f"Linguistic level: {level}"))
+            aspects = get_features_for_items(level, self.texts, features=self.features)
+            for aspect in aspects:
+                self.download_statistics_aspect_body(aspect)
+
+    def _download_features_for_aspect(self, item: Union[Text, Paragraph, Sentence], aspect: str) -> None:
+        data = getattr(item, aspect)
+        self.write(self._txt_format(f"Aspect: {aspect}"))
+        for feature_name, feature_item in data.items():
+            feature_item.update({"name": feature_name})
+            self._write_feature(feature_item)
+
+
+    def download_statistics_block_ones(self):
+        self.aspects = [aspect for aspect in self.features]
+        self.write(self._txt_format("Detail"))
+        self.write("")
+        for text in self.texts:
+            if "text" in self.levels:
+                self.write(self._txt_format("Linguistic level: text"))
+                for aspect in self.aspects:
+                    self._download_features_for_aspect(text, aspect)
+                self.write("")
+            if "paragraph" in self.levels:
+                self.write(self._txt_format("Linguistic level: paragraph"))
+                for paragraph in text.paragraphs:
+                    for aspect in self.aspects:
+                        self._download_features_for_aspect(paragraph, aspect)
+                self.write("")
+            if "sentence" in self.levels:
+                self.write(self._txt_format("Linguistic level: sentence"))
+                for sentence in [s for p in text.paragraphs for s in p.sentences]:
+                    for aspect in self.aspects:
+                        self._download_features_for_aspect(sentence, aspect)
+                self.write("")
+            self.write("")
+
+    def _write_file_header(self, is_statistic_file: bool = False) -> None:
         file_headers = ["# Swegram", f"# Time: {_get_now()}", f"# Language: {self.language}"]
+
+        if is_statistic_file:
+            file_headers = [header_line.lstrip("# ") for header_line in file_headers ]
+            file_headers.extend([
+                " AND ".join(self.blocks),
+                f"Texts: {', '.join([t.filename for t in self.texts])}",
+                f"Linguistic levels: {', '.join(self.levels)}",
+                f"Features: {', '.join(self.features)}"
+            ])
+
         if self.format != ".xlsx":
             for header_line in file_headers:
                 self.write(header_line)
@@ -136,15 +255,17 @@ class Writer:
             self.write("")
 
     def _write_xlsx_text_body(self, text: Text) -> None:
-        arrays=[token.conll(self.language, to_string=False) for p in text.paragraphs for s in p.sentences for token in s.tokens]
-        print(arrays)
-        print(text.header())
-        breakpoint()
         self.write(
-            arrays=arrays,
+            arrays=[token.conll(self.language, to_string=False) for p in text.paragraphs for s in p.sentences for token in s.tokens],
             columns=text.header(), sheet_name=text.filename
         )
         self.writer.close()
+
+    def _raise_format_error(self):
+        raise DownloadError(f"Unknown format to download: {self.format}")
+
+    def _c(self, level: str) -> str:
+        return {"para": "paragraph", "sent": "sentence"}.get(level, level)        
 
 
 def _get_index_and_data(lines: List[str]) -> Tuple[List[str], List[List[str]]]:
@@ -167,7 +288,7 @@ def _get_original_filename(filename: str) -> str:
 
 
 def _get_now() -> str:
-    return datetime.now().strftime("%Y-%m-%d %H%M")
+    return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
 def _get_labels(text: Text) -> str:

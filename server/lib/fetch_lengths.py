@@ -34,7 +34,6 @@ def fetch_lengths(category: str, tagset: str, data: Dict[str, Any], db: Session)
         else:
             length_dict[length] = {pos: {_type: count}}
 
-    # breakpoint()
     length_list = [{
         "Length": {
             "total": length,

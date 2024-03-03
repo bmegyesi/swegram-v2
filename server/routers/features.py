@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from server.routers.database import get_db
-from server.lib.fetch_features import get_features, get_features_for_elements
+from server.lib.fetch_features import get_features, get_overview_features_for_level
 
 router = APIRouter()
 
@@ -19,10 +19,10 @@ def read_features_for_one_element(
     return JSONResponse(get_features(element, index, data, db))
 
 
-@router.post("/{elements}")
+@router.post("/{level}")
 def read_features_for_elements(
-    elements: str = Path(..., title="Element"),
+    level: str = Path(..., title="Element"),
     data: Dict[str, Any] = Body(...),
     db: Session = Depends(get_db)
 ) -> JSONResponse:
-    return JSONResponse(get_features_for_elements(elements, data, db))
+    return JSONResponse(get_overview_features_for_level(level, data, db))

@@ -244,7 +244,7 @@ export default {
               this.handleDownloadCallback(filename);
             });
         } if (this.downloadType.includes('statistics')) {
-          const statsDownloadURL = '/download_stats/';
+          const statsDownloadURL = '/api/download/statistics/';
           axios({
             method: 'post',
             data: {
