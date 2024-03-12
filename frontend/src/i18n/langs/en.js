@@ -51,6 +51,40 @@ const en = {
     posMultipos: 'PoS-MultiPoS',
     multiposMultipos: 'MultiPoS-MultiPoS',
 
+    posAll_adjIncsc: 'PoS-ALL ADJ INCSC',
+    posAll_advIncsc: 'PoS-ALL ADV INCSC',
+    posAll_nounIncsc: 'PoS-ALL NOUN INCSC',
+    posAll_partIncsc: 'PoS-ALL PART INCSC',
+    posAll_punctIncsc: 'PoS-ALL PUNCT INCSC',
+    posAll_sconjIncsc: 'PoS-ALL SCONJ INCSC',
+    posAll_verbIncsc: 'PoS-ALL VERB INCSC',
+
+    posPos_nounToVerb: 'PoS-PoS NOUN to VERB',
+    posPos_pronToNoun: 'PoS-PoS PRON to NOUN',
+    posPos_pronToPrep: 'PoS-PoS PRON to PREP',
+
+    'subposAll_s-verbIncsc': 'SUBPoS-ALL S-VERB INCSC',
+
+    verbform_modalVerbToVerb: 'VERBFORM Modal VERB to VERB',
+    verbform_presentParticipleToVerb: 'VERBFORM Present Participle to VERB',
+    verbform_pastParticipleToVerb: 'VERBFORM Past Participle to VERB',
+    verbform_presentVerbToVerb: 'VERBFORM Present VERB to VERB',
+    verbform_pastVerbToVerb: 'VERBFORM Past VERB to VERB',
+    verbform_supineVerbToVerb: 'VERBFORM Supine VERB to VERB',
+    verbform_sVerbToVerb: 'VERBFORM S-VERB to VERB',
+
+    posMultipos_adjVariation: 'PoS-MultiPoS ADJ Variation',
+    posMultipos_advVariation: 'PoS-MultiPoS ADV Variation',
+    posMultipos_nounVariation: 'PoS-MultiPoS NOUN Variation',
+    posMultipos_verbVariation: 'PoS-MultiPoS VERB Variation',
+
+    multiposMultipos_cconjSconjIncsc: 'MultiPoS-MultiPoS CCONJ & SCONJ INCSC',
+    multiposMultipos_functionalTokenIncsc: 'MultiPoS-MultiPoS Functional Token INCSC',
+    'multiposMultipos_lexToNon-lex': 'MultiPoS-MultiPoS Lex to Non-lex',
+    multiposMultipos_lexToToken: 'MultiPoS-MultiPoS Lex to Token',
+    multiposMultipos_nominalRatio: 'MultiPoS-MultiPoS Nominal Ratio',
+    multiposMultipos_relIncsc: 'MultiPoS-MultiPoS Rel INCSC',
+
     modalVerbToVerb: 'Modal VERB to VERB',
     presentParticipleToVerb: 'Present Participle to VERB',
     pastParticipleToVerb: 'Past Participle to VERB',
@@ -141,6 +175,40 @@ const en = {
     posAll: 'Incidence score for a part-of-speech',
     posMultipos: 'Incidence score for a part-of-speech to multiple parts-of-speech',
     multiposMultipos: 'Incidence score for multiple parts-of-speech to multiple parts-of-speech',
+
+    posAll_adjIncsc: 'Incidence score for adjectives',
+    posAll_advIncsc: 'Incidence score for adverbs',
+    posAll_nounIncsc: 'Incidence score for nouns',
+    posAll_partIncsc: 'Incidence score for particles',
+    posAll_punctIncsc: 'Incidence score for punctuations',
+    posAll_sconjIncsc: 'Incidence score for subordinating conjunctions',
+    posAll_verbIncsc: 'Incidence score for verbs',
+
+    posPos_nounToVerb: 'Incidence score for nouns to verbs',
+    posPos_pronToNoun: 'Incidence score for pronouns to nouns',
+    posPos_pronToPrep: 'Incidence score for pronouns to prepositions',
+  
+    'subposAll_s-verbIncsc': 'Incidence score for s-verbs',
+
+    verbform_modalVerbToVerb: 'Incidence score for modal verbs to verbs',
+    verbform_presentParticipleToVerb: 'Incidence score for present participles to verbs',
+    verbform_pastParticipleToVerb: 'Incidence score for past participles to verbs',
+    verbform_presentVerbToVerb: 'Incidence score for present verbs to verbs',
+    verbform_pastVerbToVerb: 'Incidence score for past verbs to verbs',
+    verbform_supineVerbToVerb: 'Incidence score for supine verbs to verbs',
+    verbform_sVerbToVerb: 'Incidence score for s-verbs to verbs',
+
+    posMultipos_adjVariation: 'Incidence score for adjectives to (ADJ + ADV + NOUN + VERB)',
+    posMultipos_advVariation: 'Incidence score for adverbs to (ADJ + ADV + NOUN + VERB)',
+    posMultipos_nounVariation: 'Incidence score for nouns to (ADJ + ADV + NOUN + VERB)',
+    posMultipos_verbVariation: 'Incidence score for verbs to (ADJ + ADV + NOUN + VERB)',
+
+    multiposMultipos_cconjSconjIncsc: 'Incidence score for conjunctions and subordinating conjunctions',
+    multiposMultipos_functionalTokenIncsc: 'Incidence score for functional tokens',
+    'multiposMultipos_lexToNon-lex': 'Incidence score for lexical tokens to non-lexical tokens',
+    multiposMultipos_lexToToken: 'Incidence score for lexical tokens',
+    multiposMultipos_nominalRatio: 'Incidence score for nominal ratio',
+    multiposMultipos_relIncsc: 'Incidence score for relative and interrogative words',
 
     modalVerbToVerb: 'Incidence score for modal verbs to verbs',
     presentParticipleToVerb: 'Incidence score for present participles to verbs',
