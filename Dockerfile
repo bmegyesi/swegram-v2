@@ -14,24 +14,11 @@ RUN apt update && apt install openjdk-17-jdk -y
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1 
 
-COPY build_dependencies /root/build_dependencies
-COPY server/ /root/server
-COPY app_run.py /root
-
-COPY requirements.server.txt /requirements.txt
-
-# Entry python script to run app
-COPY main.py /root
-
-RUN pip install -r /requirements.txt --index-url https://pypi.org/simple
-
 # Add dependencies
-COPY swegram_main /root/swegram_main
-COPY setup.py /root
 COPY build_dependencies /root/build_dependencies
-COPY README.md /root
-COPY LICENSE.md /root
-COPY requirements.txt /root
+COPY swegram_main /root/swegram_main
+COPY server /root/server
+COPY app_run.py main.py setup.py README.md LICENSE.md requirements.txt /root/
 
 WORKDIR /root
 RUN pip install wheel

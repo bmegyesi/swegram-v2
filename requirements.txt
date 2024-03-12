@@ -1,5 +1,13 @@
+cryptography
 Cython
+databases[mysql]
+fastapi
+gunicorn
 jellyfish
+mysql-connector-python
+mysqlclient
 openpyxl
+pandas
 python-Levenshtein
 requests
+uvicorn
