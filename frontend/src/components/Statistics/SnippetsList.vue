@@ -150,7 +150,7 @@ export default {
         localStorage.setItem('textList', JSON.stringify({}));
       }
       const lang = this.$route.params.toolVersion;
-      const overviewURL = `/overview/${this.$props.level}`;
+      const overviewURL = `/api/features/${this.$props.level}s`;
       axios
         .post(overviewURL, {
           texts: JSON.parse(localStorage.textList),

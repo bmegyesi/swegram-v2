@@ -137,7 +137,6 @@
               >
                 <template
                   slot="title"
-                  style="white-space: normal; line-height: 15px;"
                 >
                   <span
                     style="white-space: normal; line-height: 15px;"

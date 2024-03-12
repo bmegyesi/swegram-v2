@@ -195,7 +195,7 @@ export default {
       this.options = filteredOptions;
     },
     async handleTextDeleteClick(textId) {
-      await axios.delete(`/api/delete_text/${textId}`);
+      await axios.delete(`/api/text/${textId}`);
       this.textIDs = this.textIDs.filter((text) => text[0] !== textId);
       this.chosenTextIds = this.chosenTextIds.filter((text) => text !== textId);
       this.metaData = this.metaData.filter((meta) => meta[2] !== textId);
@@ -214,7 +214,7 @@ export default {
         localStorage.setItem('metadata', JSON.stringify({ en: {}, sv: {} }));
       }
       axios
-        .put('/api/update_texts/', {
+        .put('/api/texts/', {
           texts: JSON.parse(localStorage.textList)[lang],
           metadata: JSON.parse(localStorage.metadata)[lang],
         })
@@ -255,7 +255,7 @@ export default {
         .filter((textId) => textId[0] !== -10000)
         .map((i) => [i[0], this.chosenTextIds.includes(i[0])]);
       axios
-        .put('/api/update_states', {
+        .put(`/api/states/${this.$route.params.toolVersion}`, {
           textStates: Object.fromEntries(entries),
           texts: JSON.parse(localStorage.textList)[lang],
         });

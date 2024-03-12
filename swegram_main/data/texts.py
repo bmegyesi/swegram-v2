@@ -33,6 +33,12 @@ class Text:  # pylint: disable=too-many-instance-attributes
     labels: Optional[Dict[str, str]] = None
     activated: bool = False
 
+    # state
+    tokenized: bool = True
+    normalized: bool = False
+    tagged: bool = False
+    parsed: bool = False
+
     # statistics
     general: Optional[Any]                  = None
     readability: Optional[Any]              = None
@@ -40,9 +46,6 @@ class Text:  # pylint: disable=too-many-instance-attributes
     lexical: Optional[Any]                  = None
     syntactic: Optional[Any]                = None
 
-    @property
-    def states(self) -> State:
-        ...
 
     @property
     def filesize(self):
@@ -50,11 +53,11 @@ class Text:  # pylint: disable=too-many-instance-attributes
 
     @property
     def has_label(self):
-        return len(self.labels) != 0
+        return bool(self.labels)
 
     @property
     def metadata(self):
-        return convert_labels_to_list(self.labels)
+        return convert_labels_to_list(self.labels) if self.labels else []
 
     def __str__(self):
         return "\n  ".join([str(p) for p in self.paragraphs])

@@ -100,3 +100,18 @@ SWIG 3.0.8 or newer for language bindings other than C++
 
 * [efselab](https://github.com/robertostling/efselab)
 * [pandoc](https://pandoc.org)
+
+
+## Run swegram desktop version
+
+Tested with following requirements on ubuntu:20.04
+
+* docker (Docker version 20.10.22)
+
+
+Run desktop under the root of repository locally:
+```bash
+sudo bash run.sh
+```
+
+When the containers are up, go to the following [link](http://localhost/#/en)

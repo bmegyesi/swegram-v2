@@ -162,7 +162,7 @@ export default {
         localStorage.setItem('textList', JSON.stringify({}));
       }
       const lang = this.$route.params.toolVersion;
-      const dataURL = `/${this.$props.category}/${this.$props.tagset}`;
+      const dataURL = `/api/frequencies/${this.$props.category}/${this.$props.tagset}/`;
       axios
         .post(dataURL, {
           texts: JSON.parse(localStorage.textList),

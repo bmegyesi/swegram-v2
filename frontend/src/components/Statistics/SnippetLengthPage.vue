@@ -136,9 +136,8 @@ export default {
       }
       const lang = this.$route.params.toolVersion;
       axios
-        .post(`/${this.$props.category}/${this.$props.tagset}/`, {
+        .post(`/api/lengths/${this.$props.category}/${this.$props.tagset}/`, {
           texts: JSON.parse(localStorage.textList),
-          length: true,
           lang,
         })
         .then((response) => {

@@ -38,10 +38,45 @@ const sv = {
     outOfKellyListIncsc: 'Incidenspoäng till ord utanför KELLY-listan',
     kellyLogFrequency: 'Genomsnittet till logaritem för relativa frekvenser',
 
+    posAll_adjIncsc: 'Incidenspoäng för adjektiv',
+    posAll_advIncsc: 'Incidenspoäng för adverb',
+    posAll_nounIncsc: 'Incidenspoäng för substantiv',
+    posAll_partIncsc: 'Incidenspoäng för partiklar',
+    posAll_punctIncsc: 'Incidenspoäng för skiljetecken',
+    posAll_sconjIncsc: 'Incidenspoäng för underordnade konjunktioner',
+    posAll_verbIncsc: 'Incidenspoäng för verb',
+
+    verbform_modalVerbToVerb: 'Incidenspoäng för modala verb till verb',
+    verbform_presentParticipleToVerb: 'Incidenspoäng för presens particip till verb',
+    verbform_pastParticipleToVerb: 'Incidenspoäng för perfekt particip till verb',
+    verbform_presentVerbToVerb: 'Incidenspoäng för presens verb till verb',
+    verbform_pastVerbToVerb: 'Incidenspoäng för preteritum till verb',
+    verbform_supineVerbToVerb: 'Incidenspoäng för supinum till verb',
+    verbform_sVerbToVerb: 'Incidenspoäng för verb som avslutas med "s" till verb',
+
+    posPos_nounToVerb: 'Incidenspoäng för substantiv till verb',
+    posPos_pronToNoun: 'Incidenspoäng för pronomen till substantiv',
+    posPos_pronToPrep: 'Incidenspoäng för pronomen till prepositioner',
+
+    'subposAll_s-verbIncsc': 'Incidenspoäng för verb som avslutas med "s"',
+    subposAll_neuterGenderNounIncsc: 'Incidenspoäng för substantiv med neutrum-genus',
+
+    posMultipos_adjVariation: 'Incidenspoäng för adjektiv till (ADJ + ADV + NOUN + VERB)',
+    posMultipos_advVariation: 'Incidenspoäng för adverb till (ADJ + ADV + NOUN + VERB)',
+    posMultipos_nounVariation: 'Incidenspoäng för substantiv till (ADJ + ADV + NOUN + VERB)',
+    posMultipos_verbVariation: 'Incidenspoäng för verb till (ADJ + ADV + NOUN + VERB)',
+
+    multiposMultipos_cconjSconjIncsc: 'Incidenspoäng för konjunktioner och underordnad konjunktioner',
+    multiposMultipos_functionalTokenIncsc: 'Incidenspoäng för funktionella token',
+    'multiposMultipos_lexToNon-lex': 'Incidenspoäng för lexikala token till icke-lexikala token',
+    multiposMultipos_lexToToken: 'Incidenspoäng för lexikala token',
+    multiposMultipos_nominalRatio: 'Incidenspoäng för nominal ratio',
+    multiposMultipos_relIncsc: 'Incidenspoäng för ord som börjar relativ- eller interrogativsatser',
+
+    posAll: 'Incidenspoäng för en ordklass',
     verbform: 'Incidenspoäng för specifik verbform till verb',
     posPos: 'Incidenspoäng för två enskilda ordklasser',
     subposAll: 'Incidenspoäng för en underordnad ordklass',
-    posAll: 'Incidenspoäng för en ordklass',
     posMultipos: 'Incidenspoäng för en ordklass till flera ordklasser',
     multiposMultipos: 'Incidenspoäng för flera ordklasser till flera ordklasser',
 
@@ -134,8 +169,42 @@ const sv = {
     outOfKellyListIncsc: 'Ur Kellylistan',
     kellyLogFrequency: 'Kelly logfrekvens',
 
+    posAll_adjIncsc: 'PoS-ALLA ADJ INCSC',
+    posAll_advIncsc: 'PoS-ALLA ADV INCSC',
+    posAll_nounIncsc: 'PoS-ALLA NOUN INCSC',
+    posAll_partIncsc: 'PoS-ALLA PART INCSC',
+    posAll_punctIncsc: 'PoS-ALLA PUNCT INCSC',
+    posAll_sconjIncsc: 'PoS-ALLA SCONJ INCSC',
+    posAll_verbIncsc: 'PoS-ALLA VERB INCSC',
+
+    posPos_nounToVerb: 'PoS-PoS NOUN till VERB',
+    posPos_pronToNoun: 'PoS-PoS PRON till NOUN',
+    posPos_pronToPrep: 'PoS-PoS PRON till PREP',
+
+    'subposAll_s-verbIncsc': 'SUBPoS-ALLA S-VERB INCSC',
+
+    verbform_modalVerbToVerb: 'VERBFORM Modalt VERB till VERB',
+    verbform_presentParticipleToVerb: 'VERBFORM Presens particip till VERB',
+    verbform_pastParticipleToVerb: 'VERBFORM Perfekt particip till VERB',
+    verbform_presentVerbToVerb: 'VERBFORM VERB i presens till VERB',
+    verbform_pastVerbToVerb: 'VERBFORM VERB i preteritum till VERB',
+    verbform_supineVerbToVerb: 'VERBFORM VERB i supinum till VERB',
+    verbform_sVerbToVerb: 'VERBFORM S-VERB till VERB',
+
+    posMultipos_adjVariation: 'PoS-FLERPoS ADJ Variation',
+    posMultipos_advVariation: 'PoS-FLERPoS ADV Variation',
+    posMultipos_nounVariation: 'PoS-FLERPoS NOUN Variation',
+    posMultipos_verbVariation: 'PoS-FLERPoS VERB Variation',
+
+    multiposMultipos_cconjSconjIncsc: 'FLERPoS Konjunktion & subjunktion',
+    multiposMultipos_functionalTokenIncsc: 'FLERPoS Functionella token',
+    'multiposMultipos_lexToNon-lex': 'FLERPoS Lexikala - funktionella token',
+    multiposMultipos_lexToToken: 'FLERPoS Lexikala token',
+    multiposMultipos_nominalRatio: 'FLERPoS Nominal - verbal',
+    multiposMultipos_relIncsc: 'FLERPoS Interrogativa och relativa',
+
     verbform: 'VERBFORM',
-    posPos: 'PoS-poS',
+    posPos: 'PoS-PoS',
     subposAll: 'SUBPoS-ALLA',
     posAll: 'PoS-ALLA',
     posMultipos: 'PoS-FLERPoS',
@@ -256,7 +325,7 @@ const sv = {
     textPasteButton: 'Klistra in text',
   },
   uploadForm: {
-    pasteBoxPlaceholder: 'Paste a text here to annotate',
+    pasteBoxPlaceholder: 'Paste a text here till annotate',
     uploadTextFile: 'Ladda upp textfil',
     back: 'Gå tillbaka',
     annotate: 'Annotera',
@@ -271,7 +340,7 @@ const sv = {
     uploadFailedMsg: 'An error occured\n{0}',
     uploadErrNonText: 'Please upload text files only',
     uploadErrFileTooBig: 'Please upload a file less than 100MB',
-    beforeUploadWarning: 'Upload a big file could take up to several hours, are you sure you want to continue?',
+    beforeUploadWarning: 'Upload a big file could take up till several hours, are you sure you want till continue?',
   },
   ...elementSV,
 };

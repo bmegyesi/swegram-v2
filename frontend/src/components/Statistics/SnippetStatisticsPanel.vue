@@ -122,7 +122,7 @@ export default {
         localStorage.setItem('textList', JSON.stringify({}));
       }
       const lang = this.$route.params.toolVersion;
-      const featsURL = `/features/${this.$props.level}/${this.currentPage}`;
+      const featsURL = `/api/features/${this.$props.level}/${this.currentPage}`;
 
       axios
         .post(featsURL, {

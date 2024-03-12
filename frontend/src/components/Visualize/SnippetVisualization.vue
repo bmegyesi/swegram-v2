@@ -145,7 +145,7 @@ export default {
   },
   computed: {
     showMetadata() {
-      return true ? this.$props.metaData.length > 0 : false;
+      return this.$props.metaData.length > 0;
     },
   },
 };
