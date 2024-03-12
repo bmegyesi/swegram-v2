@@ -15,6 +15,9 @@ from swegram_main.config import METADATA_DELIMITER_LEBAL as LEBAL
 from swegram_main.config import METADATA_DELIMITER_TAG as TAG
 
 
+S = Union[int, float]
+
+
 class DownloadError(Exception):
     """Download Error"""
 
@@ -39,37 +42,14 @@ async def download_statistics(data: Dict[str, Any], db: Session) -> FileResponse
     texts = get_texts(db=db, language=language)
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as tmp:
         tmp_name = tmp.name
-        Writer(file=tmp, texts=texts, language=language, download_format=download_format).download_statistics(
+        Writer(
+            file=tmp, texts=texts, language=language, download_format=download_format
+        ).download_statistics(
             data["overviewOrDetail"], data["levels"], features
         )
         tmp.flush()
 
     return FileResponse(tmp_name, headers={"filename": tmp_name})
-
-
-def _value2label(features: List[Any], v2l: Dict[int, str]) -> None:
-
-    for feature_item in features:
-        if "children" in feature_item:
-            _value2label(feature_item["children"], v2l)
-        v2l[feature_item["value"]] = feature_item["label"]
-
-
-def get_chosen_aspects_and_features(
-    selected_indeces: List[List[int]], references: List[Dict[str, Any]]
-) -> Dict[str, Any]:
-    features = {}
-    v2l = {}
-    _value2label(references, v2l)
-    for index_item in selected_indeces:
-        _aspect_index, *_feature_index = index_item
-        _aspect = v2l[_aspect_index]
-        _feature = "_".join([v2l[fi] for fi in _feature_index])
-        if _aspect in features:
-            features[_aspect].append(_feature)
-        else:
-            features[_aspect] = [_feature]
-    return features
 
 
 class Writer:
@@ -136,11 +116,110 @@ class Writer:
         self.features = features
 
         self._write_file_header(is_statistic_file=True)
-        self.write(self._get_feature_string("Level/Aspect/Feature Name", "Scalar", "Mean", "Median"))
+
+        if self.format != ".xlsx":
+            self.write(self._get_feature_string("Level/Aspect/Feature Name", "Scalar", "Mean", "Median"))
+        else:
+            self.column_indeces = ["Level/Aspect/Feature Name", "Scalar", "Mean", "Median"]
         if "overview" in blocks:
             self.download_statistics_block_all()
         if "detail" in blocks:
             self.download_statistics_block_ones()
+
+        if self.format == ".xlsx":
+            self.writer.close()
+
+    def download_statistics_block_all(self):
+        if self.format != ".xlsx":
+            self.write(self._txt_format("Overview"))
+            for level in self.levels:
+                self.write(self._txt_format(f"Linguistic level: {level}"))
+                aspects = get_features_for_items(level, self.texts, features=self.features)
+                for aspect in aspects:
+                    self.download_statistics_aspect_body(aspect)
+        else:
+            for level in self.levels:
+                aspects = get_features_for_items(level, self.texts, features=self.features)
+                for aspect in aspects:
+                    self.download_statistics_aspect_body(aspect, sheet_name=f"overview-{level}-{aspect['aspect']}")
+
+    def download_statistics_block_ones(self):
+        self.aspects = [aspect for aspect in self.features]
+        if self.format != ".xlsx":
+            self.write(self._txt_format("Detail"))
+            self.write("")
+            for text in self.texts:
+                if "text" in self.levels:
+                    self.write(self._txt_format("Linguistic level: text"))
+                    self.write(str(text))
+                    for aspect in self.aspects:
+                        self._download_features_for_aspect(text, aspect)
+                    self.write("")
+                if "paragraph" in self.levels:
+                    self.write(self._txt_format("Linguistic level: paragraph"))
+                    for paragraph in text.paragraphs:
+                        self.write(str(paragraph))
+                        for aspect in self.aspects:
+                            self._download_features_for_aspect(paragraph, aspect)
+                    self.write("")
+                if "sentence" in self.levels:
+                    self.write(self._txt_format("Linguistic level: sentence"))
+                    for sentence in [s for p in text.paragraphs for s in p.sentences]:
+                        self.write(str(sentence))
+                        for aspect in self.aspects:
+                            self._download_features_for_aspect(sentence, aspect)
+                    self.write("")
+                self.write("")
+        else:
+            for text in self.texts:
+                if "text" in self.levels:
+                    for aspect in self.aspects:
+                        arrays = self._download_features_for_aspect(text, aspect)
+                        self.write(
+                            arrays=arrays, columns=self.column_indeces, sheet_name=f"detail-text-{aspect}"
+                        )
+                if "paragraph" in self.levels:
+                    for i, paragraph in enumerate(text.paragraphs):
+                        for aspect in self.aspects:
+                            arrays = self._download_features_for_aspect(paragraph, aspect)
+                            self.write(
+                                arrays=arrays,
+                                columns=self.column_indeces,
+                                sheet_name=f"detail-paragraph-{i}-{aspect}"
+                            )
+                if "sentence" in self.levels:
+                    for i, sentence in enumerate([s for p in text.paragraphs for s in p.sentences]):
+                        for aspect in self.aspects:
+                            arrays = self._download_features_for_aspect(sentence, aspect)
+                            self.write(
+                                arrays=arrays,
+                                columns=self.column_indeces,
+                                sheet_name=f"detail-sentence-{i}-{aspect}"
+                            )
+
+    def download_statistics_aspect_body(self, aspect: Dict[str, Any], sheet_name: Optional[str] = None):
+        if self.format != ".xlsx":
+            self.write(self._txt_format(f"Aspect: {aspect['aspect']}"))
+            for feature_item in aspect["data"]:
+                self._write_feature(feature_item)
+        else:
+            data = [self._write_feature(feature_item) for feature_item in aspect["data"]]
+            self.write(arrays=data, columns=self.column_indeces, sheet_name=sheet_name)
+
+    def _download_features_for_aspect(
+        self, item: Union[Text, Paragraph, Sentence], aspect: str
+    ) -> Optional[List[Tuple[str, S, S, S]]]:
+        data = getattr(item, aspect)
+        if self.format != ".xlsx":
+            self.write(self._txt_format(f"Aspect: {aspect}"))
+            for feature_name, feature_item in data.items():
+                feature_item.update({"name": feature_name})
+                self._write_feature(feature_item)
+        else:
+            return [
+                self._write_feature({"name": feature_name, **feature_item})
+                for feature_name, feature_item in data.items()
+            ]
 
     def _get_feature_string(
         self, name: str, scalar: Union[int, float], mean: Union[int, float], median: Union[int, float]
@@ -150,54 +229,11 @@ class Writer:
     def _txt_format(self, string: str) -> str:
         return f"{string:^88}".replace(" ", "-")
 
-    def _write_feature(self, feature_item: Dict[str, Any]) -> None:
+    def _write_feature(self, feature_item: Dict[str, Any]) -> Optional[Tuple[str, S, S, S]]:
         name, scalar, mean, median = [feature_item.get(attr, "") for attr in ["name", "scalar", "mean", "median"]]
+        if self.format == ".xlsx":
+            return name, scalar, mean, median
         self.write(self._get_feature_string(name, scalar, mean, median))
-
-    def download_statistics_aspect_body(self, aspect: Dict[str, Any]):
-        self.write(self._txt_format(f"Aspect: {aspect['aspect']}"))
-        for feature_item in aspect["data"]:
-            self._write_feature(feature_item)
-
-    def download_statistics_block_all(self):
-        self.write(self._txt_format("Overview"))
-        for level in self.levels:
-            self.write(self._txt_format(f"Linguistic level: {level}"))
-            aspects = get_features_for_items(level, self.texts, features=self.features)
-            for aspect in aspects:
-                self.download_statistics_aspect_body(aspect)
-
-    def _download_features_for_aspect(self, item: Union[Text, Paragraph, Sentence], aspect: str) -> None:
-        data = getattr(item, aspect)
-        self.write(self._txt_format(f"Aspect: {aspect}"))
-        for feature_name, feature_item in data.items():
-            feature_item.update({"name": feature_name})
-            self._write_feature(feature_item)
-
-
-    def download_statistics_block_ones(self):
-        self.aspects = [aspect for aspect in self.features]
-        self.write(self._txt_format("Detail"))
-        self.write("")
-        for text in self.texts:
-            if "text" in self.levels:
-                self.write(self._txt_format("Linguistic level: text"))
-                for aspect in self.aspects:
-                    self._download_features_for_aspect(text, aspect)
-                self.write("")
-            if "paragraph" in self.levels:
-                self.write(self._txt_format("Linguistic level: paragraph"))
-                for paragraph in text.paragraphs:
-                    for aspect in self.aspects:
-                        self._download_features_for_aspect(paragraph, aspect)
-                self.write("")
-            if "sentence" in self.levels:
-                self.write(self._txt_format("Linguistic level: sentence"))
-                for sentence in [s for p in text.paragraphs for s in p.sentences]:
-                    for aspect in self.aspects:
-                        self._download_features_for_aspect(sentence, aspect)
-                self.write("")
-            self.write("")
 
     def _write_file_header(self, is_statistic_file: bool = False) -> None:
         file_headers = ["# Swegram", f"# Time: {_get_now()}", f"# Language: {self.language}"]
@@ -294,3 +330,28 @@ def _get_now() -> str:
 def _get_labels(text: Text) -> str:
     labels = text.labels if text.labels else {}
     return LEBAL.join([f"{k}{TAG}{v}" for k, v in labels.items()])
+
+
+def _value2label(features: List[Any], v2l: Dict[int, str]) -> None:
+
+    for feature_item in features:
+        if "children" in feature_item:
+            _value2label(feature_item["children"], v2l)
+        v2l[feature_item["value"]] = feature_item["label"]
+
+
+def get_chosen_aspects_and_features(
+    selected_indeces: List[List[int]], references: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+
+    features, v2l = {}, {}
+    _value2label(references, v2l)
+    for index_item in selected_indeces:
+        _aspect_index, *_feature_index = index_item
+        _aspect = v2l[_aspect_index]
+        _feature = "_".join([v2l[fi] for fi in _feature_index])
+        if _aspect in features:
+            features[_aspect].append(_feature)
+        else:
+            features[_aspect] = [_feature]
+    return features
