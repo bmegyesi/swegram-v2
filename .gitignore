@@ -3,6 +3,7 @@ tools/*
 build_dependencies/en/udpipe
 resources/corpus/europarl-v7.sv-en*
 data/*
+*.code-workspace
 
 # Created by https://www.gitignore.io/api/macos,django,python,virtualenv,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=macos,django,python,virtualenv,visualstudiocode
