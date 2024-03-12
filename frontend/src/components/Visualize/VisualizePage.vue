@@ -68,7 +68,7 @@ export default {
         axios
           .get(`/api/text/${newValue}`)
           .then((response) => {
-            this.currentTextParsed = JSON.parse(response.data)[0].fields.parsed;
+            this.currentTextParsed = response.data.parsed;
           })
           .catch((error) => {
             console.log(error);

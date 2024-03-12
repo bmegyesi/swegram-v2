@@ -38,10 +38,45 @@ const sv = {
     outOfKellyListIncsc: 'Incidenspoäng till ord utanför KELLY-listan',
     kellyLogFrequency: 'Genomsnittet till logaritem för relativa frekvenser',
 
+    posAll_adjIncsc: 'Incidenspoäng för adjektiv',
+    posAll_advIncsc: 'Incidenspoäng för adverb',
+    posAll_nounIncsc: 'Incidenspoäng för substantiv',
+    posAll_partIncsc: 'Incidenspoäng för partiklar',
+    posAll_punctIncsc: 'Incidenspoäng för skiljetecken',
+    posAll_sconjIncsc: 'Incidenspoäng för underordnade konjunktioner',
+    posAll_verbIncsc: 'Incidenspoäng för verb',
+
+    verbform_modalVerbToVerb: 'Incidenspoäng för modala verb till verb',
+    verbform_presentParticipleToVerb: 'Incidenspoäng för presens particip till verb',
+    verbform_pastParticipleToVerb: 'Incidenspoäng för perfekt particip till verb',
+    verbform_presentVerbToVerb: 'Incidenspoäng för presens verb till verb',
+    verbform_pastVerbToVerb: 'Incidenspoäng för preteritum till verb',
+    verbform_supineVerbToVerb: 'Incidenspoäng för supinum till verb',
+    verbform_sVerbToVerb: 'Incidenspoäng för verb som avslutas med "s" till verb',
+
+    posPos_nounToVerb: 'Incidenspoäng för substantiv till verb',
+    posPos_pronToNoun: 'Incidenspoäng för pronomen till substantiv',
+    posPos_pronToPrep: 'Incidenspoäng för pronomen till prepositioner',
+
+    'subposAll_s-verbIncsc': 'Incidenspoäng för verb som avslutas med "s"',
+    subposAll_neuterGenderNounIncsc: 'Incidenspoäng för substantiv med neutrum-genus',
+
+    posMultipos_adjVariation: 'Incidenspoäng för adjektiv till (ADJ + ADV + NOUN + VERB)',
+    posMultipos_advVariation: 'Incidenspoäng för adverb till (ADJ + ADV + NOUN + VERB)',
+    posMultipos_nounVariation: 'Incidenspoäng för substantiv till (ADJ + ADV + NOUN + VERB)',
+    posMultipos_verbVariation: 'Incidenspoäng för verb till (ADJ + ADV + NOUN + VERB)',
+
+    multiposMultipos_cconjSconjIncsc: 'Incidenspoäng för konjunktioner och underordnad konjunktioner',
+    multiposMultipos_functionalTokenIncsc: 'Incidenspoäng för funktionella token',
+    'multiposMultipos_lexToNon-lex': 'Incidenspoäng för lexikala token till icke-lexikala token',
+    multiposMultipos_lexToToken: 'Incidenspoäng för lexikala token',
+    multiposMultipos_nominalRatio: 'Incidenspoäng för nominal ratio',
+    multiposMultipos_relIncsc: 'Incidenspoäng för ord som börjar relativ- eller interrogativsatser',
+
+    posAll: 'Incidenspoäng för en ordklass',
     verbform: 'Incidenspoäng för specifik verbform till verb',
     posPos: 'Incidenspoäng för två enskilda ordklasser',
     subposAll: 'Incidenspoäng för en underordnad ordklass',
-    posAll: 'Incidenspoäng för en ordklass',
     posMultipos: 'Incidenspoäng för en ordklass till flera ordklasser',
     multiposMultipos: 'Incidenspoäng för flera ordklasser till flera ordklasser',
 
