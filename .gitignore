@@ -1,6 +1,6 @@
 *.db
 tools/*
-swegram_django/*
+build_dependencies/en/udpipe
 resources/corpus/europarl-v7.sv-en*
 data/*
 
