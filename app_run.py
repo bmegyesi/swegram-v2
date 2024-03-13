@@ -1,6 +1,8 @@
 import os
+import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse, HTMLResponse
 
 from server.models import Base
 from server.routers.database import engine, get_db
@@ -26,9 +28,19 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-
 # Create tables
 Base.metadata.create_all(bind=engine)
+
+@app.get("/healthcheck")
+async def healthcheck():
+    return HTMLResponse(content="Application health check runs successfully", status_code=200)
+
+
+@app.get("/")
+async def index() -> RedirectResponse:
+    return RedirectResponse(url="/docs")
+
+
 app.include_router(download_router, prefix=f"{PROD_PREFIX}/download", tags=["download"], dependencies=[Depends(get_db)])
 app.include_router(features_router, prefix=f"{PROD_PREFIX}/features", tags=["features"], dependencies=[Depends(get_db)])
 app.include_router(frequencies_router, prefix=f"{PROD_PREFIX}/frequencies", tags=["frequencies"], dependencies=[Depends(get_db)])
@@ -39,6 +51,4 @@ app.include_router(texts_router, prefix=f"{PROD_PREFIX}/texts", tags=["texts"], 
 
 
 if __name__ == "__main__":
-    import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8000)

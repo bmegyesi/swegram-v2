@@ -8,8 +8,6 @@ services:
     # (this is just an example, not intended to be a production configuration)
     container_name: mysql-server
     restart: always
-    # network_mode: host
-    # privileged: true
     ports:
       - "3306:3306"
     volumes:
@@ -26,15 +24,20 @@ services:
 
 
   backend:
-    image: swegram-backend:latest  # Image needs to be built with network
+    image: rex0046/swegram-backend:1.0.1  # Image needs to be built with network
     depends_on:
       - db
     container_name: swegram-backend-fastapi
-    restart: always
-    network_mode: host
-    # privileged: true
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: swegram_corpus
+      MYSQL_USER: swegram
+      MYSQL_PASSWORD: swegram_pass
+      MYSQL_HOST: 172.18.0.1
     ports:
       - "8000:8000"
+    entrypoint: >
+      bash -c "cd /root && sleep 30 && python3 app_run.py"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -42,14 +45,12 @@ services:
     profiles:
       - client
 
-
   vue-nginx-proxy:
     build: frontend
     depends_on:
       - db
       - backend
     container_name: vue-nginx
-    network_mode: host
     ports:
       - "80:80"
     volumes:
@@ -62,3 +63,8 @@ services:
 networks:
   swegram-network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+          gateway: 172.18.0.1

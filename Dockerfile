@@ -2,8 +2,8 @@ FROM python:3.8
 
 USER 0:0
 
-ENV PYTHONPATH="/root:/root/server:/root/tools/efselab"
-ENV PATH="$PATH:/root:/root/server:/root/tools:/root/tools/efselab"
+ENV PYTHONPATH="/root:/root/tools/efselab"
+ENV PATH="$PATH:/root:/root/tools:/root/tools/efselab"
 ENV SWEGRAM_WORKSPACE=/root
 ENV PRODUCTION=1
 
@@ -28,4 +28,4 @@ RUN rm -rf build_dependencies build requirements.txt swegram.egg-info
 
 EXPOSE 8000
 
-ENTRYPOINT [ "bash", "-c", "cd /root && python main.py" ]
+ENTRYPOINT [ "bash", "-c", "cd /root && python app_run.py" ]
