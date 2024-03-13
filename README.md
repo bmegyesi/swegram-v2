@@ -111,7 +111,51 @@ Tested with following requirements on ubuntu:20.04
 
 Run desktop under the root of repository locally:
 ```bash
-sudo bash run.sh
+bash run.sh
+```
+
+## Run swegram with Docker Desktop on macOS
+
+Preparation:
+
+* Docker Desktop is installed. If not, please check [here](https://docs.docker.com/desktop/install/mac-install/) for installation. Only recent macOS versions are supported. It may be reuqired to update macOS. For our use case, please install according to the recommended setting.
+
+* These ports are supposed to be available for Swegram desktop.
+
+    * 80 (nginx proxy to serve frontend)
+    * 8000 (fastapi app as backend to handle requests)
+    * 3306 (mysql database)
+
+* [Docker hub](https://hub.docker.com/) account
+
+    This is used due to backend image is stored in docker hub.
+
+
+
+
+You can follow the guideline below to start swegram desktop on your mac.
+
+1. Generate static files to serve frontend pages:
+
+```bash
+cd frontend
+docker build -t vue-builder -f Dockerfile.build .
+docker run --rm -v $(pwd)/dist:/root/dist vue-bulder
+```
+
+2. Go to the repository root path, and run the following command to spin up the container
+
+```bash
+docker compose --profile client up -d
 ```
 
 When the containers are up, go to the following [link](http://localhost/#/en)
+
+
+```tips
+1. It is not able to build the docker image locally on macOS due to limitation of udpipe binary. The image will be pulled from [docker hub](https://hub.docker.com/)
+
+2. To exit swegram desktop. You can do
+
+docker compose --profile client down
+```
