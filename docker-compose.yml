@@ -24,7 +24,7 @@ services:
 
 
   backend:
-    image: rex0046/swegram-backend:1.0.1  # Image needs to be built with network
+    image: rex0046/swegram-backend:1.0.2  # Image needs to be built with network
     depends_on:
       - db
     container_name: swegram-backend-fastapi

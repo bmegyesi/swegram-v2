@@ -9,7 +9,15 @@ from sqlalchemy.orm import relationship, Session
 from server.lib.load_data import get_size_and_format
 
 
-Base = declarative_base()
+def _declarative_constructor(self, **kwargs) -> None:
+    """Don't raise a TypeError for unknown attribute names."""
+    cls_ = type(self)
+    for k in kwargs:
+        if not hasattr(cls_, k):
+            continue
+        setattr(self, k, kwargs[k])
+
+Base = declarative_base(constructor=_declarative_constructor)
 
 
 ##############################################
@@ -36,6 +44,14 @@ class SharedAttributeMixin:
     language = Column(Enum("sv", "en"))
     uuid = Column(String(length=255))
     elements = Column(String(length=255), nullable=True)
+    # JSON Aspect block
+    general = Column(JSON, nullable=True)
+    lexical = Column(JSON, nullable=True)
+    morph = Column(JSON, nullable=True)
+    readability = Column(JSON, nullable=True)
+    syntactic = Column(JSON, nullable=True)
+
+class TextAttributeMixin:
 
     ## integer block
     _3sg_pron = Column(Integer, nullable=True)
@@ -66,7 +82,6 @@ class SharedAttributeMixin:
     token_count = Column(Integer, nullable=True)
     type_count = Column(Integer, nullable=True)
     words = Column(Integer, nullable=True)
-
     # JSON counter block
     cefr_counter = Column(JSON, nullable=True)  # Counter({'1': 105, '2': 23, '3': 8, '4': 8, '6': 4, '5': 3})
     sentence_length_counter = Column(JSON, nullable=True)
@@ -84,19 +99,12 @@ class SharedAttributeMixin:
     word_dict = Column(JSON, nullable=True)
     xpos_dict = Column(JSON, nullable=True)
 
-    # JSON Aspect block
-    general = Column(JSON, nullable=True)
-    lexical = Column(JSON, nullable=True)
-    morph = Column(JSON, nullable=True)
-    readability = Column(JSON, nullable=True)
-    syntactic = Column(JSON, nullable=True)
-
     # Array block
     depth_list = Column(JSON, nullable=True)
     types = Column(JSON, nullable=True)
 
 
-class Text(Base, SharedMethodMixin, SharedAttributeMixin):
+class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
     __tablename__ = "texts"
 
     id = Column(Integer, Sequence("text_id_seq"), primary_key=True, index=True)
