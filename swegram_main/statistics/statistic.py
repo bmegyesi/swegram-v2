@@ -52,8 +52,10 @@ class StatisticLoading:
             if kwargs.get("parsed") is True:
                 instance = load_statistic(instance, language)
             return instance
-        else:
-            raise InvalidLinguisticUnit(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
+
+        raise InvalidLinguisticUnit(
+            f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}."
+        )
 
 
 def load_statistic(instance: C, language: str) -> C:

@@ -35,7 +35,7 @@ def load_token(line: str, language: str) -> Token:
 
 
 @StatisticLoading
-def load_sentence(text_id: str, lines: ST, language: str, parsed: bool = True) -> Sentence:
+def load_sentence(text_id: str, lines: ST, language: str, parsed: bool = True) -> Sentence:  # pylint: disable=unused-argument
     """Load sentence from conll text"""
     return Sentence(text_id=text_id, language=language, tokens=[load_token(line, language) for line in lines])
 
