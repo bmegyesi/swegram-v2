@@ -159,7 +159,9 @@ def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
                 raise Exception(f"Invalid annotation request, {kwargs}")
             pipeline.postprocess()
 
-            texts: List[Text] = load_dir(input_dir=Path(output_dir), language=language, include_tags=[], exclude_tags=[])
+            texts: List[Text] = load_dir(
+                input_dir=Path(output_dir), language=language, include_tags=[], exclude_tags=[], parsed=parse
+            )
             filename = kwargs.get("filename", f"Pasted at {str(datetime.now())}")
             return [{
                 **_serialize_item(text), **states, "filename": generate_filename(filename, index)}

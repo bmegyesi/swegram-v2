@@ -34,6 +34,7 @@ class StatisticLoading:
         self.function = load_function
 
     def __call__(self, *args, **kwargs) -> None:
+
         instance = self.function(*args, **kwargs)
         if "sv" in args:
             language = "sv"
@@ -48,10 +49,11 @@ class StatisticLoading:
 
         if isinstance(instance, (Sentence, Paragraph, Text, Corpus)):
             instance = CF().load_instance(instance, language)
-            instance = load_statistic(instance, language)
+            if kwargs.get("parsed") is True:
+                instance = load_statistic(instance, language)
+            return instance
         else:
             raise InvalidLinguisticUnit(f"Unknown instance type, excepted to get Sentence, Paragraph, Text, got {type(instance)}.")
-        return instance
 
 
 def load_statistic(instance: C, language: str) -> C:

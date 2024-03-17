@@ -173,11 +173,12 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
                 db.refresh(sentence_instance)
 
                 for t_index, token in enumerate(tokens, 1):
-                    token["dep_length"] = len(sentence["depth_list"][t_index-1]) - 1
+                    if self.parsed:
+                        token["dep_length"] = len(sentence["depth_list"][t_index-1]) - 1
+                        token["path"] = " -> ".join(
+                            [tokens[i-1]["form"] if i else "ROOT" for i in sentence["depth_list"][t_index-1]]
+                        )
                     token["length"] = len(token["form"])
-                    token["path"] = " -> ".join(
-                        [tokens[i-1]["form"] if i else "ROOT" for i in sentence["depth_list"][t_index-1]]
-                    )
                     token["text_id"] = token["text_index"]
                     token["token_id"] = token["index"]
                     del token["text_index"]

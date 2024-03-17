@@ -182,6 +182,7 @@ const sv = {
     posPos_pronToPrep: 'PoS-PoS PRON till PREP',
 
     'subposAll_s-verbIncsc': 'SUBPoS-ALLA S-VERB INCSC',
+    subposAll_neuterGenderNounIncsc: 'Substantiv i neutrum INCSC',
 
     verbform_modalVerbToVerb: 'VERBFORM Modalt VERB till VERB',
     verbform_presentParticipleToVerb: 'VERBFORM Presens particip till VERB',

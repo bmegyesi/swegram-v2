@@ -64,6 +64,7 @@ const en = {
     posPos_pronToPrep: 'PoS-PoS PRON to PREP',
 
     'subposAll_s-verbIncsc': 'SUBPoS-ALL S-VERB INCSC',
+    subposAll_neuterGenderNounIncsc: 'Neuter Gender NOUN INCSC',
 
     verbform_modalVerbToVerb: 'VERBFORM Modal VERB to VERB',
     verbform_presentParticipleToVerb: 'VERBFORM Present Participle to VERB',
@@ -189,6 +190,7 @@ const en = {
     posPos_pronToPrep: 'Incidence score for pronouns to prepositions',
   
     'subposAll_s-verbIncsc': 'Incidence score for s-verbs',
+    subposAll_neuterGenderNounIncsc: 'Incidence score for nouns whose gender is neuter',
 
     verbform_modalVerbToVerb: 'Incidence score for modal verbs to verbs',
     verbform_presentParticipleToVerb: 'Incidence score for present participles to verbs',

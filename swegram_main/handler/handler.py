@@ -35,39 +35,48 @@ def load_token(line: str, language: str) -> Token:
 
 
 @StatisticLoading
-def load_sentence(text_id: str, lines: ST, language: str) -> Sentence:
+def load_sentence(text_id: str, lines: ST, language: str, parsed: bool = True) -> Sentence:
     """Load sentence from conll text"""
     return Sentence(text_id=text_id, language=language, tokens=[load_token(line, language) for line in lines])
 
 
 @StatisticLoading
-def load_paragraph(text_id: str, lines: PT, language: str) -> Paragraph:
+def load_paragraph(text_id: str, lines: PT, language: str, parsed: bool = True) -> Paragraph:
     """Load paragraph from conll text"""
-    return Paragraph(text_id=text_id, language=language, sentences=[load_sentence(text_id, s, language) for s in lines])
+    return Paragraph(
+        text_id=text_id, language=language, sentences=[load_sentence(text_id, s, language, parsed=parsed) for s in lines]
+    )
 
 
 @StatisticLoading
-def load_text(text: TT, labels: Dict[str, str], language: str, filename: Path) -> Text:
+def load_text(text: TT, labels: Dict[str, str], language: str, filename: Path, parsed: bool = True) -> Text:
     """Load text from conll text"""
     # p: paragraph, s: sentence, t: token
     text_id: str = get_content_md5("".join([t for p in text for s in p for t in s]).encode())
-    paragraphs: List[Paragraph] = [load_paragraph(text_id, p, language) for p in text]
+    paragraphs: List[Paragraph] = [load_paragraph(text_id, p, language, parsed=parsed) for p in text]
     return Text(paragraphs=paragraphs, text_id=text_id, language=language, filename=filename, labels=labels)
 
 
-def load_file(input_file: Path, language: str, include_tags: List[str], exclude_tags: List[str]) -> List[Text]:
+def load_file(
+    input_file: Path, language: str, include_tags: List[str], exclude_tags: List[str], parsed: bool = True
+) -> List[Text]:
     """Load texts from conll file"""
     return [
-        load_text(text, labels, language, input_file)
+        load_text(text, labels, language, input_file, parsed=parsed)
         for text, labels in read_conll_file(input_file)
         if is_text_included(labels, include_tags, exclude_tags)
     ]
 
 
-def load_dir(input_dir: Path, language: str, include_tags: List[str], exclude_tags: List[str]) -> List[Text]:
+def load_dir(
+    input_dir: Path, language: str, include_tags: List[str], exclude_tags: List[str], parsed: bool = True
+) -> List[Text]:
     """Load texts from one directory containing conll file"""
     conll_files = [input_dir.joinpath(filename) for filename in os.listdir(input_dir) if filename.endswith(".conll")]
-    return [text for conll_file in conll_files for text in load_file(conll_file, language, include_tags, exclude_tags)]
+    return [
+        text for conll_file in conll_files
+        for text in load_file(conll_file, language, include_tags, exclude_tags, parsed)
+    ]
 
 
 @StatisticLoading

@@ -53,21 +53,8 @@ async def create_text(
     language: str = Path(..., title="Language"),
     data: bytes = Body(...), db: Session = Depends(get_db)
 ) -> JSONResponse:
-    # data = parse_payload(data)
-    # texts = run_swegram(language, **data)
-    # for text_data in texts:
-    #     paragraphs = text_data["paragraphs"]
-    #     del text_data["paragraphs"]
-    #     text = Text(**text_data)
-    #     try:
-    #         db.add(text)
-    #         db.commit()
-    #         db.refresh(text)
-    #         text.load_data(paragraphs, db)
-    #     except Exception as err:
-    #         db.rollback()
-    #         raise Exception("Failed to create Text instance in the database.") from err
-    background_tasks.add_task(_create_text, data, language, db)
+    # background_tasks.add_task(_create_text, data, language, db)
+    _create_text(data, language, db)
     return JSONResponse({"success": "1", "text_stats_list": []})
 
 
