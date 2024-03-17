@@ -214,7 +214,7 @@ export default {
         localStorage.setItem('metadata', JSON.stringify({ en: {}, sv: {} }));
       }
       axios
-        .put('/api/texts/', {
+        .put(`/api/texts/${this.$route.params.toolVersion}`, {
           texts: JSON.parse(localStorage.textList)[lang],
           metadata: JSON.parse(localStorage.metadata)[lang],
         })
@@ -255,7 +255,7 @@ export default {
         .filter((textId) => textId[0] !== -10000)
         .map((i) => [i[0], this.chosenTextIds.includes(i[0])]);
       axios
-        .put(`/api/states/${this.$route.params.toolVersion}`, {
+        .put('/api/states/', {
           textStates: Object.fromEntries(entries),
           texts: JSON.parse(localStorage.textList)[lang],
         });

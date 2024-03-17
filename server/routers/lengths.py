@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 @router.post("/{category}/{tagset}/")
-def fetch_word_and_tag(
+async def fetch_word_and_tag(
     category: str = Path(..., title="Category"),
     tagset: str = Path(..., title="Tagset"),
     data: Dict[str, Any] = Body(...),

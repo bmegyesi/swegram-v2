@@ -240,7 +240,7 @@ export default {
     uploadFile() {
       this.$refs.upload.submit();
     },
-    postPastedText() {
+    async postPastedText() {
       const form = new FormData();
       Object.keys(this.formData).forEach((key) => {
         form.append(key, this.formData[key]);

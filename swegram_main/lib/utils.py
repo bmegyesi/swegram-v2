@@ -338,7 +338,7 @@ def median(numbers: N) -> float:
 
 def r2(number: int, *args) -> float:
     """keep two decimals"""
-    if not args:
+    if not args or not args[0]:
         return round(number, 2)
     number2, *_ = args
     return round(number / number2, 2)

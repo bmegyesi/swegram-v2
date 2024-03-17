@@ -10,8 +10,6 @@ services:
     restart: always
     ports:
       - "3306:3306"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       MYSQL_ROOT_PASSWORD: pass
       MYSQL_DATABASE: swegram_corpus
@@ -38,8 +36,6 @@ services:
       - "8000:8000"
     entrypoint: >
       bash -c "cd /root && sleep 30 && python3 app_run.py"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - swegram-network
     profiles:
@@ -53,8 +49,6 @@ services:
     container_name: vue-nginx
     ports:
       - "80:80"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - swegram-network
     profiles:

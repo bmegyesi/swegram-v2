@@ -1,5 +1,6 @@
 import os
 import uvicorn
+
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -16,6 +17,8 @@ from server.routers.texts import router as texts_router
 
 
 app = FastAPI()
+connected_clients = []
+
 PROD_PREFIX = "/api" if os.environ.get("PRODUCTION") else ""
 
 # Enable CORS for all origins
