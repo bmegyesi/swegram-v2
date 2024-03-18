@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 import pandas as pd
 from sqlalchemy.orm import Session
 
+from server.lib.exceptions import DownloadError
 from server.lib.fetch_features import get_features_for_items
 from server.lib.utils import get_texts
 from server.models import Text, Paragraph, Sentence
@@ -16,11 +17,6 @@ from swegram_main.config import METADATA_DELIMITER_TAG as TAG
 
 
 S = Union[int, float]
-
-
-class DownloadError(Exception):
-    """Download Error"""
-
 
 
 async def download_texts(data: Dict[str, Any], db: Session) -> FileResponse:
@@ -39,7 +35,7 @@ async def download_statistics(data: Dict[str, Any], db: Session) -> FileResponse
     language = data["lang"]
     download_format = data["outputForm"]
     features = get_chosen_aspects_and_features(selected_indeces=data["chosenFeatures"], references=data["featureList"])
-    texts = get_texts(db=db, language=language)
+    texts = [text for text in get_texts(db=db, language=language) if text.parsed]
     with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", delete=False) as tmp:
         tmp_name = tmp.name
         Writer(
@@ -68,9 +64,10 @@ class Writer:
         if self.format == ".csv":
             return csv.writer(self.file, delimiter=COLUMN_DELIMITER, escapechar="\\", quoting=csv.QUOTE_NONE)
         if self.format == ".xlsx":
-            return pd.ExcelWriter(path=self.file.name, engine="openpyxl")
+            return pd.ExcelWriter(path=self.file.name, engine="openpyxl")  # pylint: disable=abstract-class-instantiated
 
         self._raise_format_error()
+        return None
 
     def _write(self) -> Callable:
         if self.format == ".txt":
@@ -81,10 +78,11 @@ class Writer:
             return self._write2xlsx
 
         self._raise_format_error()
+        return None
 
     def _write2xlsx(
         self, arrays: List[List[str]], sheet_name: str,
-        indeces: Optional[List[str]] = None, columns: Optional[List[str]] = None 
+        indeces: Optional[List[str]] = None, columns: Optional[List[str]] = None
     ) -> None:
 
         if columns:
@@ -94,13 +92,12 @@ class Writer:
             else:
                 df = pd.DataFrame(arrays, columns=columns)
                 df.to_excel(self.writer, index=False, columns=columns, sheet_name=sheet_name)
+        elif indeces:
+            df = pd.DataFrame(arrays, index=indeces)
+            df.to_excel(self.writer, header=False, sheet_name=sheet_name)
         else:
-            if indeces:
-                df = pd.DataFrame(arrays, index=indeces)
-                df.to_excel(self.writer, header=False, sheet_name=sheet_name)
-            else:
-                df = pd.DataFrame(arrays)
-                df.to_excel(self.writer, header=False, index=False, sheet_name=sheet_name)
+            df = pd.DataFrame(arrays)
+            df.to_excel(self.writer, header=False, index=False, sheet_name=sheet_name)
 
     def download_texts(self) -> None:
         self._write_file_header()
@@ -144,7 +141,7 @@ class Writer:
                     self.download_statistics_aspect_body(aspect, sheet_name=f"overview-{level}-{aspect['aspect']}")
 
     def download_statistics_block_ones(self):
-        self.aspects = [aspect for aspect in self.features]
+        self.aspects = list(self.features)
         if self.format != ".xlsx":
             self.write(self._txt_format("Detail"))
             self.write("")
@@ -215,11 +212,11 @@ class Writer:
             for feature_name, feature_item in data.items():
                 feature_item.update({"name": feature_name})
                 self._write_feature(feature_item)
-        else:
-            return [
-                self._write_feature({"name": feature_name, **feature_item})
-                for feature_name, feature_item in data.items()
-            ]
+            return None
+        return [
+            self._write_feature({"name": feature_name, **feature_item})
+            for feature_name, feature_item in data.items()
+        ]
 
     def _get_feature_string(
         self, name: str, scalar: Union[int, float], mean: Union[int, float], median: Union[int, float]
@@ -230,16 +227,17 @@ class Writer:
         return f"{string:^88}".replace(" ", "-")
 
     def _write_feature(self, feature_item: Dict[str, Any]) -> Optional[Tuple[str, S, S, S]]:
-        name, scalar, mean, median = [feature_item.get(attr, "") for attr in ["name", "scalar", "mean", "median"]]
+        name, scalar, mean, median = (feature_item.get(attr, "") for attr in ("name", "scalar", "mean", "median"))
         if self.format == ".xlsx":
             return name, scalar, mean, median
         self.write(self._get_feature_string(name, scalar, mean, median))
+        return None
 
     def _write_file_header(self, is_statistic_file: bool = False) -> None:
         file_headers = ["# Swegram", f"# Time: {_get_now()}", f"# Language: {self.language}"]
 
         if is_statistic_file:
-            file_headers = [header_line.lstrip("# ") for header_line in file_headers ]
+            file_headers = [header_line.lstrip("# ") for header_line in file_headers]
             file_headers.extend([
                 " AND ".join(self.blocks),
                 f"Texts: {', '.join([t.filename for t in self.texts])}",
@@ -301,7 +299,7 @@ class Writer:
         raise DownloadError(f"Unknown format to download: {self.format}")
 
     def _c(self, level: str) -> str:
-        return {"para": "paragraph", "sent": "sentence"}.get(level, level)        
+        return {"para": "paragraph", "sent": "sentence"}.get(level, level)
 
 
 def _get_index_and_data(lines: List[str]) -> Tuple[List[str], List[List[str]]]:

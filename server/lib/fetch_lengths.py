@@ -7,15 +7,15 @@ from server.lib.utils import get_texts, get_type_and_pos_dicts
 from swegram_main.config import PT_TAGS, SUC_TAGS
 
 
-PUNCT_TAGS = [*SUC_TAGS[-3:], *PT_TAGS[-10:], "PUNCT"] 
+PUNCT_TAGS = [*SUC_TAGS[-3:], *PT_TAGS[-10:], "PUNCT"]
 
 
 def fetch_lengths(category: str, tagset: str, data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     language = data["lang"]
-    texts = get_texts(db, language, category=category)
+    texts = [text for text in get_texts(db, language, category=category) if text.parsed]
     type_dict, pos_dict = get_type_and_pos_dicts(category=category, tagset=tagset, texts=texts)
 
-    sorted_pos_list = [pos for pos, _ in sorted(pos_dict.items(), key=lambda x:x[1], reverse=True)]
+    sorted_pos_list = [pos for pos, _ in sorted(pos_dict.items(), key=lambda x: x[1], reverse=True)]
     length_dict = {}  # {1: {PP: {word: count}}}
 
     for type_pos, count in type_dict.items():
@@ -54,12 +54,12 @@ def fetch_lengths(category: str, tagset: str, data: Dict[str, Any], db: Session)
         "pos_list": [
             {
                 "label": e, "prop": e
-            } for e in ["Length", *sorted_pos_list, "Total"]
+            } for e in ("Length", *sorted_pos_list, "Total")
         ],
         "length_list": [{
             **length,
             "Total": {
-                "total": sum([data_dict["count"] for data_dict in length["Length"]["data"]]),
+                "total": sum(data_dict["count"] for data_dict in length["Length"]["data"]),
                 "data": []
             }
         } for length in length_list]

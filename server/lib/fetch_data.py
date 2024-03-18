@@ -8,7 +8,7 @@ def _fetch_text_ids_and_filenames(texts: List[Text]) -> List[Tuple[int, str]]:
     return [(t.id, t.filename) for t in texts]
 
 
-def _fetch_selected_text_ids(texts: List[Text]) ->  List[int]:
+def _fetch_selected_text_ids(texts: List[Text]) -> List[int]:
     """Fetch the selected text ids from texts"""
     return [t.id for t in texts if t.activated]
 
@@ -28,21 +28,14 @@ def _update_metadata(metadata: Dict[str, Any], texts: List[Text]) -> Dict[str, A
                         texts_with_metadata.add(text_id)
                     else:
                         del value_dict[key][i]
-            values = [
-              {
-                  'label':key,
-                  'value': value + index,
-                  'children':[
-                      {
-                        'value': v, 
-                        'label': l
-                      } for v,l in value_dict[key]
-                  ]
-              } for index, key in enumerate(value_dict.keys(), 1) if has_values[index-1]]
+            values = [{
+                "label": key, "value": value + index,
+                "children": [{"value": v, "label": l} for v, l in value_dict[key]]
+            } for index, key in enumerate(value_dict.keys(), 1) if has_values[index - 1]]
             if values:
-                options.append({'value':value, 'label':label, 'children': values})
+                options.append({"value": value, "label": label, "children": values})
                 value += len(value_dict) + 1
-    
+
     return {
         "options": options,
         "texts_with_metadata": list(texts_with_metadata)

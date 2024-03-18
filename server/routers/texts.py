@@ -14,12 +14,12 @@ router = APIRouter()
 
 @router.get("/")
 async def read_texts(db: Session = Depends(get_db)) -> JSONResponse:
-    return JSONResponse([item.as_dict() for item in  db.query(Text).all()])
+    return JSONResponse([item.as_dict() for item in db.query(Text).all()])
 
 
 @router.put("/{language}")
 async def update_texts(
     language: str = Path(...), data: Dict[str, Any] = Body(...), db: Session = Depends(get_db)
 ) -> JSONResponse:
-    texts = db.query(Text).filter( Text.language == language )
+    texts = db.query(Text).filter(Text.language == language)
     return JSONResponse(fetch_data(metadata=data, texts=texts))

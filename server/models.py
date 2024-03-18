@@ -12,10 +12,11 @@ from server.lib.load_data import get_size_and_format
 def _declarative_constructor(self, **kwargs) -> None:
     """Don't raise a TypeError for unknown attribute names."""
     cls_ = type(self)
-    for k in kwargs:
+    for k, v in kwargs.items():
         if not hasattr(cls_, k):
             continue
-        setattr(self, k, kwargs[k])
+        setattr(self, k, v)
+
 
 Base = declarative_base(constructor=_declarative_constructor)
 
@@ -24,16 +25,16 @@ Base = declarative_base(constructor=_declarative_constructor)
 class SharedMethodMixin:
 
     @declared_attr
-    def __tablename__(cls):
+    def __tablename__(cls):  # pylint: disable=no-self-argument
         return None
 
     @declared_attr
-    def id(cls):
+    def id(cls):  # pylint: disable=no-self-argument
         return None
 
     def as_dict(self) -> Dict[str, Any]:
         return {
-            c.name: getattr(self, c.name) for c in self.__table__.columns
+            c.name: getattr(self, c.name) for c in self.__table__.columns  # pylint: disable=no-member
         }
 
 
@@ -51,9 +52,10 @@ class SharedAttributeMixin:
     readability = Column(JSON, nullable=True)
     syntactic = Column(JSON, nullable=True)
 
+
 class TextAttributeMixin:
 
-    ## integer block
+    # integer block
     _3sg_pron = Column(Integer, nullable=True)
     advance_cefr = Column(Integer, nullable=True)
     advance_noun_or_verb = Column(Integer, nullable=True)
@@ -132,13 +134,15 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
             return get_size_and_format(sys.getsizeof(self.content))
         return "0"
 
-
     def short(self) -> Dict[str, Any]:
-        return {**{
-            c.name: getattr(self, c.name) for c in self.__table__.columns if c.name in [
-                "uuid", "language", "filename", "labels", "activated",
-                "tokenized", "normalized", "tagged", "parsed"
-            ]}, **{
+        return {
+            **{
+                c.name: getattr(self, c.name) for c in self.__table__.columns if c.name in set({
+                    "uuid", "language", "filename", "labels", "activated",
+                    "tokenized", "normalized", "tagged", "parsed"
+                })
+            },
+            **{
                 "number_of_paragraphs": len(self.paragraphs),
                 "number_of_sentences": self.sents,
                 "date": str(self.date)
@@ -174,9 +178,9 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
 
                 for t_index, token in enumerate(tokens, 1):
                     if self.parsed:
-                        token["dep_length"] = len(sentence["depth_list"][t_index-1]) - 1
+                        token["dep_length"] = len(sentence["depth_list"][t_index - 1]) - 1
                         token["path"] = " -> ".join(
-                            [tokens[i-1]["form"] if i else "ROOT" for i in sentence["depth_list"][t_index-1]]
+                            [tokens[i - 1]["form"] if i else "ROOT" for i in sentence["depth_list"][t_index - 1]]
                         )
                     token["length"] = len(token["form"])
                     token["text_id"] = token["text_index"]
@@ -259,11 +263,11 @@ class Token(Base, SharedMethodMixin):
 
     def __str__(self) -> str:
         return self.form
-    
+
     def conll(self, language: str, to_string: bool = True) -> Union[str, List[str]]:
         # language = self.sentence.paragraph.text.language
         feats = self.feats if language == "en" else f"{self.feats}\t{self.ufeats}"
-        fields =[
+        fields = [
             self.text_id, self.token_id, self.form, self.norm, self.lemma,
             self.upos, self.xpos, feats, self.head, self.deprel, self.deps, self.misc
         ]

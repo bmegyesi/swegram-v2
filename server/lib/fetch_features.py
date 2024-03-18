@@ -5,12 +5,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from server.models import Text, Paragraph, Sentence
+from server.lib.exceptions import ServerError
 from server.lib.utils import get_texts
-from swegram_main.config import SUC_TAGS, PT_TAGS, PAGE_SIZE
+from swegram_main.config import PAGE_SIZE
 from swegram_main.lib.utils import mean, median, r2
 
 
-ASPECT_LIST = ["general", "readability", "morph", "lexical", "syntactic"]
+ASPECTS = ("general", "readability", "morph", "lexical", "syntactic")
 
 
 class Annotation(BaseModel):
@@ -41,7 +42,7 @@ class State(BaseModel):
 def post_states(data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     """post states"""
     language = data["lang"]
-    texts = get_texts(db, language) 
+    texts = get_texts(db, language)
     normalized, parsed, tokenized = [Annotation() for _ in range(3)]
     _texts, paragraphs, sentences = 0, 0, 0
     for text in texts:
@@ -72,7 +73,7 @@ def get_features(element: str, index: int, data: Dict[str, Any], db: Session) ->
     if texts:
         if element == "text":
             content = texts[start_index:start_index + size]
-        elif element in ["sent", "para"]:
+        elif element in set({"sent", "para"}):
             content = []
             for text in texts:
                 number = text.sents if element == "sent" else len(text.paragraphs)
@@ -98,7 +99,7 @@ def get_features(element: str, index: int, data: Dict[str, Any], db: Session) ->
                             {
                                 "name": k, **v
                             } for k, v in _content.as_dict()[aspect].items()]}
-                    } for aspect in ASPECT_LIST if _content.as_dict().get(aspect)
+                    } for aspect in ASPECTS if _content.as_dict().get(aspect)
                 ]
             })
 
@@ -109,27 +110,22 @@ def get_features(element: str, index: int, data: Dict[str, Any], db: Session) ->
     }
 
 
-
 def get_features_for_items(
     level: str, texts: List[Text], features: Optional[Dict[str, List[str]]], aspects: Optional[List[str]] = None
 ) -> List[Dict[str, Any]]:
-    """Fetch statistic based on aspect list and feature list.
-
-    :param features: Chosen features to be included, if features exist, it will overwrite aspects
-    :type features: Optional[Dict[str, List[str]]]
+    """Fetch statistic based on aspect list and feature list
     """
-    # breakpoint()
-    if level in ["texts", "text"]:
+    if level in set({"texts", "text"}):
         items = texts
-    elif level in ["paras", "paragraph"]:
+    elif level in set({"paras", "paragraph"}):
         items: List[Paragraph] = [p for t in texts for p in t.paragraphs]
-    elif level in ["sents", "sentence"]:
+    elif level in set({"sents", "sentence"}):
         items: List[Sentence] = [s for t in texts for p in t.paragraphs for s in p.sentences]
     else:
-        raise
+        raise ServerError(f"Unknown level: {level}")
 
     if features:
-        aspects = [aspect for aspect in features]
+        aspects = list(features)
 
     aspect_data = []
     for aspect in aspects:
@@ -140,7 +136,7 @@ def get_features_for_items(
                 if features and feature_name not in features.get(aspect, {}):
                     continue
                 if feature_name in _aspect_dict:
-                    for metric in ["mean", "median", "scalar"]:
+                    for metric in set({"mean", "median", "scalar"}):
                         _aspect_dict[feature_name][metric].append(feature_data.get(metric))
                 else:
                     _aspect_dict[feature_name] = {
@@ -149,11 +145,9 @@ def get_features_for_items(
                         "scalar": [feature_data.get("scalar")]
                     }
         for feature_name, feature_data in _aspect_dict.items():
-            
-            _aspect_dict[feature_name]["mean"] = mean([value for value in feature_data["mean"] if value != ""])
-            _aspect_dict[feature_name]["median"] = median([value for value in feature_data["median"] if value != ""])
-            _aspect_dict[feature_name]["scalar"] = r2(sum([value for value in feature_data["scalar"] if value]))
-
+            feature_data["mean"] = mean(value for value in feature_data["mean"] if value != "")
+            feature_data["median"] = median(value for value in feature_data["median"] if value != "")
+            feature_data["scalar"] = r2(sum(value for value in feature_data["scalar"] if value))
 
         aspect_data.append({
             "aspect": aspect,
@@ -162,9 +156,10 @@ def get_features_for_items(
 
     return aspect_data
 
+
 def get_overview_features_for_level(
     level: str, data: Dict[str, Any], db: Session,
-    aspects: List[str] = ASPECT_LIST, features: Optional[Dict[str, List[str]]] = None
+    aspects: List[str] = ASPECTS, features: Optional[Dict[str, List[str]]] = None
 ) -> Dict[str, Any]:
     language = data["lang"]
     texts = get_texts(db, language)

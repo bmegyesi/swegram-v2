@@ -1,18 +1,17 @@
 import re
-import subprocess
 import tempfile
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Dict, Union
 
+from server.lib.exceptions import ServerError
 from swegram_main.data.features import Feature
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.sentences import Sentence
 from swegram_main.data.texts import Text
 from swegram_main.data.tokens import Token
 from swegram_main.handler.handler import load_dir
-from swegram_main.lib.logger import get_logger
 from swegram_main.pipeline.pipeline import Pipeline
 
 
@@ -51,7 +50,7 @@ def get_size_and_format(size_bytes: int) -> str:
         unit += 1
 
     # Format the size with two decimal places
-    formatted_size = "{:.2f} {}".format(size, units[unit])
+    formatted_size = f"{size:.2f} {units[unit]}"
     return formatted_size
 
 
@@ -68,16 +67,15 @@ def parse_item(item: List[str]) -> Dict[str, Any]:
             "content_type": body[0].lstrip("Content-Type:").strip(),
             "raw_text": "\n".join(body[2:])
         }
-    elif "pasted_text" in head:
+    if "pasted_text" in head:
         return {"raw_text": "\n".join(body[1:])}
-    else:
-        name = re.search(_get_pattern("name"), head).group()
-        value = body[-1].strip()
-        if value == "true":
-            value = True
-        elif value == "false":
-            value = False
-        return {name: value}
+    name = re.search(_get_pattern("name"), head).group()
+    value = body[-1].strip()
+    if value == "true":
+        value = True
+    elif value == "false":
+        value = False
+    return {name: value}
 
 
 def parse_payload(payload: bytes) -> Dict[str, Any]:
@@ -156,7 +154,7 @@ def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
             elif tokenize and not normalize:
                 pipeline.tokenize()
             else:
-                raise Exception(f"Invalid annotation request, {kwargs}")
+                raise ServerError(f"Invalid annotation request, {kwargs}")
             pipeline.postprocess()
 
             texts: List[Text] = load_dir(

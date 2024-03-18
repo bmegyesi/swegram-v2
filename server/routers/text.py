@@ -2,8 +2,9 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Pa
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from server.lib.load_data import parse_payload, run_swegram
+from server.lib.exceptions import ServerError
 from server.lib.fetch_current_sentences import fetch_current_sentences
+from server.lib.load_data import parse_payload, run_swegram
 from server.routers.database import get_db
 from server.models import Text
 
@@ -25,7 +26,7 @@ def _create_text(data, language, db):
             text.load_data(paragraphs, db)
         except Exception as err:
             db.rollback()
-            raise Exception("Failed to create Text instance in the database.") from err
+            raise ServerError("Failed to create Text instance in the database.") from err
 
 
 @router.get("/{text_id}")
@@ -35,8 +36,8 @@ async def read_text(text_id: int = Path(..., title="Text id"), db: Session = Dep
         if not text:
             raise AttributeError
         return JSONResponse(text.as_dict())
-    except AttributeError:
-        raise HTTPException(status_code=404, detail=f"Text {text_id} not found.")
+    except AttributeError as err:
+        raise HTTPException(status_code=404, detail=f"Text {text_id} not found.") from err
 
 
 @router.get("/{text_id}/{page}/")
@@ -53,8 +54,7 @@ async def create_text(
     language: str = Path(..., title="Language"),
     data: bytes = Body(...), db: Session = Depends(get_db)
 ) -> JSONResponse:
-    # background_tasks.add_task(_create_text, data, language, db)
-    _create_text(data, language, db)
+    background_tasks.add_task(_create_text, data, language, db)
     return JSONResponse({"success": "1", "text_stats_list": []})
 
 
@@ -64,6 +64,6 @@ async def delete_text(text_id: int = Path(..., title="Text id"), db: Session = D
         text = db.query(Text).get(ident=text_id)
         db.delete(text)
         db.commit()
+        return JSONResponse(text.as_dict())
     except Exception as err:
-        raise HTTPException(status_code=500, detail=str(err))
-    return JSONResponse(text.as_dict())
+        raise HTTPException(status_code=500, detail=str(err)) from err
