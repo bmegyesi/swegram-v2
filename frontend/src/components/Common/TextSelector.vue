@@ -214,7 +214,7 @@ export default {
         localStorage.setItem('metadata', JSON.stringify({ en: {}, sv: {} }));
       }
       axios
-        .put(`/api/texts/${this.$route.params.toolVersion}`, {
+        .put(`/api/texts/${lang}`, {
           texts: JSON.parse(localStorage.textList)[lang],
           metadata: JSON.parse(localStorage.metadata)[lang],
         })
