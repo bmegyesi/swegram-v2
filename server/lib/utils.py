@@ -8,12 +8,12 @@ from server.models import Text
 
 def get_texts(db: Session, language: str, category: Optional[str] = None) -> List[Text]:
 
-    texts = db.query(Text).filter(Text.language == language).filter(Text.activated is True)
+    texts = db.query(Text).filter(Text.language == language).filter(Text.activated == True)  # pylint: disable=singleton-comparison
 
     if category == "norm":
-        return [text for text in texts.filter(Text.normalized is True)]  # pylint: disable=unnecessary-comprehension
+        return [text for text in texts.filter(Text.normalized == True)]  # pylint: disable=unnecessary-comprehension, singleton-comparison
     if category == "lemma":
-        return [text for text in texts.filter(Text.tagged is True)]  # pylint: disable=unnecessary-comprehension
+        return [text for text in texts.filter(Text.tagged == True)]  # pylint: disable=unnecessary-comprehension, singleton-comparison
 
     return [text for text in texts]  # pylint: disable=unnecessary-comprehension
 

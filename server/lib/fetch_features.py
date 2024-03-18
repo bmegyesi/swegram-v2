@@ -145,8 +145,8 @@ def get_features_for_items(
                         "scalar": [feature_data.get("scalar")]
                     }
         for feature_name, feature_data in _aspect_dict.items():
-            feature_data["mean"] = mean(value for value in feature_data["mean"] if value != "")
-            feature_data["median"] = median(value for value in feature_data["median"] if value != "")
+            feature_data["mean"] = mean([value for value in feature_data["mean"] if value != ""])
+            feature_data["median"] = median([value for value in feature_data["median"] if value != ""])
             feature_data["scalar"] = r2(sum(value for value in feature_data["scalar"] if value))
 
         aspect_data.append({
