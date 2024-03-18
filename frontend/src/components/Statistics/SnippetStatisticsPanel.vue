@@ -36,12 +36,12 @@ export default {
   props: {
     level: {
       type: String,
-      default: null,
+      default: "text",
       required: true,
     },
     totalItems: {
       type: Number,
-      default: 0,
+      default: null,
       required: false,
     },
     textsInfo: {

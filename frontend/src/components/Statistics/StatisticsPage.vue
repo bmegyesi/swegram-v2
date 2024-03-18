@@ -107,6 +107,7 @@
 
 <script>
 import axios from 'axios';
+import { ref } from 'vue';
 import TextSelector from '../Common/TextSelector.vue';
 import SnippetStatisticsPanel from './SnippetStatisticsPanel.vue';
 import SnippetFrequencyPage from './SnippetFrequencyPage.vue';
@@ -121,17 +122,17 @@ export default {
   },
   data() {
     return {
-      showType: '',
-      featureLevel: '',
+      showType: ref('frequency'),
+      featureLevel: ref('text'),
 
-      showFrequency: false,
+      showFrequency: true,
       showLength: false,
       showFeature: false,
-      showTagset: false,
+      showTagset: true,
 
       showSentFeature: false,
       showParaFeature: false,
-      showTextFeature: false,
+      showTextFeature: true,
 
       initializeFrequency: false,
       initializeLength: false,
@@ -160,7 +161,7 @@ export default {
     },
   },
   mounted() {
-    // this.fetchTextsStats();
+    this.fetchTextsStats();
   },
   methods: {
     handleInitialization({ type }) {
@@ -236,6 +237,7 @@ export default {
         this.showLength = false;
         this.showFeature = true;
         this.showTagset = false;
+
       }
     },
     handleShowFeatureLevel(obj) {

@@ -77,7 +77,7 @@ export default {
     },
     level: {
       type: String,
-      default: '',
+      default: 'text',
       required: false,
     },
   },
@@ -100,7 +100,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-
-</style>

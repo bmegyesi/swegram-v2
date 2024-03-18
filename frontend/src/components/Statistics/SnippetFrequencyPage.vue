@@ -75,12 +75,12 @@ export default {
   props: {
     tagset: {
       type: String,
-      default: '',
+      default: 'upos',
       required: true,
     },
     category: {
       type: String,
-      default: '',
+      default: 'form',
       required: true,
     },
     textsInfo: {
@@ -94,12 +94,12 @@ export default {
     },
     display: {
       type: Boolean,
-      default: false,
+      default: true,
       required: false,
     },
     initialized: {
       type: Boolean,
-      default: false,
+      default: true,
       required: false,
     },
   },

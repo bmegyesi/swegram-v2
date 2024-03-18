@@ -78,6 +78,7 @@
 
 <script>
 import axios from 'axios';
+import { ref } from 'vue';
 import SnippetStatisticsTable from './SnippetStatisticsTable.vue';
 import SnippetContent from '../Common/SnippetContent.vue';
 
@@ -99,7 +100,7 @@ export default {
     },
     level: {
       type: String,
-      default: null,
+      default: "text",
       required: false,
     },
     total: {
@@ -115,7 +116,7 @@ export default {
   },
   data() {
     return {
-      showOverviewOrDetail: '',
+      showOverviewOrDetail: ref('content'),
       overviewData: {},
       currentPage: 1,
       loadingOverviewData: false,

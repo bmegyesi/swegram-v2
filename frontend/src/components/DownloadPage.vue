@@ -97,12 +97,12 @@ export default {
   },
   data() {
     return {
-      downloadType: [],
+      downloadType: ["texts"],
       downloadDisabled: false,
       showStatisticsArgs: false,
       selectedTextIds: [],
-      levels: [],
-      overviewOrDetail: [],
+      levels: ["text", "para", "sent"],
+      overviewOrDetail: ["overview", "detail"],
       outputForm: '.txt',
       tooltipMsg: '',
       tooltipDisabled: false,

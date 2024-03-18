@@ -25,6 +25,7 @@ axios.defaults.xsrfCookieName = 'csrftoken';
 
 const router = new VueRouter({
   routes: [
+    { path: '/', redirect: '/en'},
     {
       path: '/:toolVersion(en|sv)',
       component: MainPage,
