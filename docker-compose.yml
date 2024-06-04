@@ -48,7 +48,7 @@ services:
       - backend
     container_name: vue-nginx
     ports:
-      - "80:80"
+      - "8080:8080"
     networks:
       - swegram-network
     profiles:
