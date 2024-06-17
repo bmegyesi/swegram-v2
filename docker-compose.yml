@@ -25,6 +25,7 @@ services:
     depends_on:
       - db
     container_name: swegram-backend-fastapi
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: pass
       MYSQL_DATABASE: swegram_corpus
@@ -47,6 +48,7 @@ services:
       - db
       - backend
     container_name: vue-nginx
+    restart: always
     ports:
       - "8080:8080"
     networks:
