@@ -1,6 +1,6 @@
 """Fetch data"""
 from typing import Any, Dict, List, Tuple
-from server.models import Text
+from server.models.text import Text
 
 
 def _fetch_text_ids_and_filenames(texts: List[Text]) -> List[Tuple[int, str]]:

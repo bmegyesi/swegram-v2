@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from server.models import Text, Paragraph, Sentence
+from server.models.text import Text, Paragraph, Sentence
 from server.lib.exceptions import ServerError
 from server.lib.utils import get_texts
 from swegram_main.config import PAGE_SIZE

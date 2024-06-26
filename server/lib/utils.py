@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy.orm import Session
 
-from server.models import Text
+from server.models.text import Text
 
 
 def get_texts(db: Session, language: str, category: Optional[str] = None) -> List[Text]:

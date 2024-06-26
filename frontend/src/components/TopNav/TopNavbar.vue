@@ -31,11 +31,16 @@
         <el-menu-item index="/sv/help">
           {{ $t('topNavbar.help') }}
         </el-menu-item>
+        <el-menu-item index="/login">
+          <span>
+            Login
+          </span>
+        </el-menu-item>
       </el-menu>
       <lang-switch />
     </div>
     <div
-      v-if="$route.params.toolVersion==='en'"
+      v-else-if="$route.params.toolVersion==='en'"
       class="navbar-container english-version"
     >
       <el-menu
@@ -64,6 +69,31 @@
         </el-menu-item>
         <el-menu-item index="/en/help">
           {{ $t('topNavbar.help') }}
+        </el-menu-item>
+        <el-menu-item index="/login">
+          <span>
+            Login
+          </span>
+        </el-menu-item>
+      </el-menu>
+      <lang-switch />
+    </div>
+    <div
+      v-else-if="$route.params.login==='login'"
+      class="navbar-container login english-version"
+    >
+      <el-menu
+        :default-active="activeLink"
+        background-color="#F2575F"
+        active-text-color="black"
+        mode="horizontal"
+        router
+      >
+        <el-menu-item index="/en">
+          {{ $t('topNavbar.home') }}
+        </el-menu-item>
+        <el-menu-item index="/register">
+          Register
         </el-menu-item>
       </el-menu>
       <lang-switch />

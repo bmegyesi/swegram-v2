@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from server.models import Text, Sentence
+from server.models.text import Text, Sentence
 from swegram_main.config import PAGE_SIZE
 
 

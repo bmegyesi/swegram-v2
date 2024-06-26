@@ -12,6 +12,7 @@ import MainPage from './components/MainPage.vue';
 import UploadPage from './components/Upload/UploadPage.vue';
 import HelpPage from './components/HelpPage.vue';
 import DownloadPage from './components/DownloadPage.vue';
+import LoginPage from './components/LoginPage.vue';
 import VisualizePage from './components/Visualize/VisualizePage.vue';
 import StatisticsPage from './components/Statistics/StatisticsPage.vue';
 
@@ -29,6 +30,7 @@ const router = new VueRouter({
       path: '/',
       redirect: '/en',
     },
+    { path: '/:login(login|logout)', component: LoginPage },
     {
       path: '/:toolVersion(en|sv)',
       component: MainPage,

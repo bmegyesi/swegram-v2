@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from server.lib.fetch_data import fetch_data
 from server.routers.database import get_db
-from server.models import Text
+from server.models.text import Text
 
 
 router = APIRouter()

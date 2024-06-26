@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from server.lib.exceptions import DownloadError
 from server.lib.fetch_features import get_features_for_items
 from server.lib.utils import get_texts
-from server.models import Text, Paragraph, Sentence
+from server.models.text import Text, Paragraph, Sentence
 from swegram_main.config import COLUMN_DELIMITER
 from swegram_main.config import METADATA_DELIMITER_LEBAL as LEBAL
 from swegram_main.config import METADATA_DELIMITER_TAG as TAG

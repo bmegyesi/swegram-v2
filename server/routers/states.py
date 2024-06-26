@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from server.lib.fetch_features import post_states as _post_states
 from server.routers.database import get_db
-from server.models import Text
+from server.models.text import Text
 
 
 router = APIRouter()

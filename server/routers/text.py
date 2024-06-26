@@ -6,7 +6,7 @@ from server.lib.exceptions import ServerError
 from server.lib.fetch_current_sentences import fetch_current_sentences
 from server.lib.load_data import parse_payload, run_swegram
 from server.routers.database import get_db
-from server.models import Text
+from server.models.text import Text
 
 
 router = APIRouter()
