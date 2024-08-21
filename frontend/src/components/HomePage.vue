@@ -12,13 +12,13 @@
           height="125"
           width="125"
         >
-        <p class="link-container">
+        <!-- <p class="link-container">
           <a href="..">
             <el-button type="plain">{{ $t('homePage.legacyVersion') }}
               <i class="el-icon-time" />
             </el-button>
           </a>
-        </p>
+        </p> -->
         <p class="link-container">
           <a href="..">
             <el-button type="plain">{{ $t('homePage.downloadManual') }}
@@ -77,8 +77,14 @@
           <b>{{ $t('homePage.participant') }}</b>: {{ $t('homePage.participantContent') }}<br>
           <!-- <b>{{ $t('homePage.developer') }}</b>: {{ $t('homePage.developerContent') }}<br> -->
           <el-divider />
-          <b>{{ $t('homePage.references') }}</b>: <br>
+          {{ $t('homePage.references') }} <br>
           <i18n
+            path="homePage.reference2024"
+            :tag="false"
+          >
+            <!-- <a href="https://cl.lingfil.uu.se/~bea/publ/swegram-manual-2019.pdf">{{ $t('homePage.getPDF') }}</a> -->
+          </i18n>
+          <!-- <i18n
             path="homePage.reference2019"
             :tag="false"
           >
@@ -90,7 +96,7 @@
             :tag="false"
           >
             <a href="https://cl.lingfil.uu.se/~bea/publ/swegram-2017.pdf">{{ $t('homePage.getPDF') }}</a>
-          </i18n>
+          </i18n> -->
         </div>
       </el-main>
       <el-footer>

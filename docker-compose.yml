@@ -19,6 +19,7 @@ services:
       - swegram-network
     profiles:
       - client
+      - frontend
 
   backend:
     image: rex0046/swegram-backend:1.0.4  # Image needs to be built with network
@@ -41,6 +42,7 @@ services:
       - swegram-network
     profiles:
       - client
+      - backend
 
   vue-nginx-proxy:
     build: frontend
@@ -50,7 +52,7 @@ services:
     container_name: vue-nginx
     restart: always
     ports:
-      - "8080:8080"
+      - "80:80"
     networks:
       - swegram-network
     profiles:
