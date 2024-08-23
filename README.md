@@ -26,6 +26,9 @@ swegram-build
 export PYTHONPATH="$PYTHONPATH:$(pwd):$(pwd)/tools/efselab"
 ```
 
+> [!NOTE]
+> Currently only `Python<3.10` is supported.
+
 Check the usage of swegram cli
 
 * swegram -h
@@ -86,7 +89,7 @@ rm output/*.tok output/*.tag output/*.txt
 Now, type the following command:
 ```bash
 swegram --language sv --input-path output statistic
-``` 
+```
 
 ## Dependencies
 
