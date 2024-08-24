@@ -8,11 +8,11 @@
             height="110"
             width="160"
           >
-          <img
+          <!-- <img
             src="../assets/UU_logo_sv_84_transparent.png"
             height="125"
             width="125"
-          >
+          > -->
         </div>
       </el-row>
       <el-row>

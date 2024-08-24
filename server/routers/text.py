@@ -60,10 +60,8 @@ async def create_text(
 
 @router.delete("/{text_id}")
 async def delete_text(text_id: int = Path(..., title="Text id"), db: Session = Depends(get_db)) -> JSONResponse:
-    try:
-        text = db.query(Text).get(ident=text_id)
-        db.delete(text)
-        db.commit()
-        return JSONResponse(text.as_dict())
-    except Exception as err:
-        raise HTTPException(status_code=500, detail=str(err)) from err
+
+    text = db.query(Text).get(ident=text_id)
+    db.delete(text)
+    db.commit()
+    return JSONResponse(text.as_dict())

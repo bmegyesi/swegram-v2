@@ -7,11 +7,11 @@
           height="110"
           width="160"
         >
-        <img
+        <!-- <img
           src="../assets/UU_logo_sv_84_transparent.png"
           height="125"
           width="125"
-        >
+        > -->
         <!-- <p class="link-container">
           <a href="..">
             <el-button type="plain">{{ $t('homePage.legacyVersion') }}
