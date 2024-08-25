@@ -50,7 +50,6 @@ if $deploy_all; then
     # run vue-builder image to create dist
     docker run --rm -v $FRONTEND_PATH/dist:/root/dist vue-builder
 
-    export BACKEND_TAG=$(cat $BASE_PATH/SWEGRAM_BACKEND)
     # Start the containers with help of docker compose
     # remove data (mysql container generates data folder)
     docker compose --profile client up -d --build
@@ -58,16 +57,23 @@ if $deploy_all; then
 else
     if $deploy_backend; then
         docker compose --profile backend down || true
-        export BACKEND_TAG=$(cat $(pwd)/SWEGRAM_BACKEND)
-        backend_image="rex0046/swegram-backend:$BACKEND_TAG"
-        echo "backend image: $backend_image"
-        # docker pull $backend_image
         docker compose --profile backend up -d
     fi
 
     if $deploy_frontend; then
         docker compose --profile frontend down || true
-        docker compose --profile frontned up -d --build
+
+        BASE_PATH=$(pwd)
+        FRONTEND_PATH="$BASE_PATH/frontend"
+
+        # create vue-builder image
+        cd $FRONTEND_PATH
+        docker build --network host -t vue-builder -f Dockerfile.build .
+
+        # run vue-builder image to create dist
+        docker run --rm -v $FRONTEND_PATH/dist:/root/dist vue-builder
+        cd $BASE_PATH
+        docker compose --profile frontend up -d --build
     fi
 
     if $deploy_database; then

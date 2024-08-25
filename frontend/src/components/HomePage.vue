@@ -77,11 +77,12 @@
           <b>{{ $t('homePage.participant') }}</b>: {{ $t('homePage.participantContent') }}<br>
           <!-- <b>{{ $t('homePage.developer') }}</b>: {{ $t('homePage.developerContent') }}<br> -->
           <el-divider />
-          {{ $t('homePage.references') }} <br>
+          {{ $t('homePage.references') }} <br><br>
           <i18n
             path="homePage.reference2024"
             :tag="false"
           >
+            <i>{{ $t('homePage.article2024') }}</i>
             <!-- <a href="https://cl.lingfil.uu.se/~bea/publ/swegram-manual-2019.pdf">{{ $t('homePage.getPDF') }}</a> -->
           </i18n>
           <!-- <i18n
