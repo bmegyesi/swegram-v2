@@ -11,11 +11,13 @@ from openpyxl import worksheet
 from swegram_main.data.features import Feature
 from swegram_main.data.texts import Corpus
 from swegram_main.handler.handler import load
+from swegram_main.lib.logger import get_logger
 from swegram_main.lib.utils import XlsxClient
+
+logger = get_logger(__file__)
 
 
 class Visualization:
-
     def __init__(
         self, input_path: Path, language: str, output_dir: Optional[Path],
         include_tags: Optional[List[str]], exclude_tags: Optional[List[str]]
@@ -155,6 +157,11 @@ class Visualization:
         self._save_instance_head()
         for aspect_name, instance in zip(self.aspects, aspect_instances):
             self.save_aspect_title(unit, aspect_name, index)
+            if not instance:
+                logger.warning(
+                    "instance for aspect '%s' is empty. skipping ...", aspect_name
+                )
+                continue
             for fn, f in instance.items():
                 self.save_feature(fn, f)
             if self.pprint:
