@@ -1,5 +1,6 @@
 import re
 import tempfile
+import pytz
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
@@ -160,7 +161,8 @@ def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
             texts: List[Text] = load_dir(
                 input_dir=Path(output_dir), language=language, include_tags=[], exclude_tags=[], parsed=parse
             )
-            filename = kwargs.get("filename", f"Pasted at {str(datetime.now())}")
+            timestamp = datetime.now(tz=pytz.timezone("Europe/Stockholm")).strftime("%Y-%m-%d %H:%M:%S")
+            filename = kwargs.get("filename", f"Pasted at {timestamp}")
             return [{
                 **_serialize_item(text), **states, "filename": generate_filename(filename, index)}
                 for index, text in enumerate(texts, 1)
