@@ -339,11 +339,11 @@ const sv = {
     normalization: 'Normalisering',
     posTaggingParsing: 'Ordklasstagging/Parsing',
     annotatedTextPrompt: 'Den är en annoterad text',
-    uploadSuccessMsg: 'Upload Success!',
-    uploadFailedMsg: 'An error occured\n{0}',
-    uploadErrNonText: 'Please upload text files only',
-    uploadErrFileTooBig: 'Please upload a file less than 100MB',
-    beforeUploadWarning: 'Upload a big file could take up till several hours, are you sure you want till continue?',
+    uploadSuccessMsg: 'Uppladdningen lyckades!',
+    uploadFailedMsg: 'Ett fel dök upp\n{0}',
+    uploadErrNonText: 'Var vänligen att ladda upp .txt fil',
+    uploadErrFileTooBig: 'Var vänligen att fil mindre än 100MB',
+    beforeUploadWarning: 'Att ladda upp en stor fil kan ta upp till flera timmar. Är du säker på att du vill fortsätta?'
   },
   ...elementSV,
 };

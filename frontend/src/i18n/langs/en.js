@@ -342,7 +342,7 @@ const en = {
     annotatedTextPrompt: 'This is an annotated text',
     uploadSuccessMsg: 'Upload Success!',
     uploadFailedMsg: 'An error occured\n{0}',
-    uploadErrNonText: 'Please upload text files only',
+    uploadErrNonText: 'Only plain text encoded in utf-8 is acceptable',
     uploadErrFileTooBig: 'Please upload a file less than 100MB',
     beforeUploadWarning: 'Upload a big file could take up to several hours, are you sure you want to continue?',
   },
