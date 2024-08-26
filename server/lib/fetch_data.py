@@ -18,6 +18,17 @@ def _update_metadata(metadata: Dict[str, Any], texts: List[Text]) -> Dict[str, A
     value = 1
     text_ids = [t.id for t in texts]
     texts_with_metadata = set()
+    if not metadata:
+        for text in texts:
+            if text.labels:
+                for label, _value in text.labels.items():
+                    if label not in metadata:
+                        metadata[label] = {_value: [(text.id, text.filename)]}
+                    elif _value not in metadata[label]:
+                        metadata[label][_value] = [(text.id, text.filename)]
+                    else:
+                        metadata[label][_value].append((text.id, text.filename))
+
     if metadata:
         for label, value_dict in metadata.items():
             has_values = [False] * len(value_dict.keys())
@@ -44,6 +55,7 @@ def _update_metadata(metadata: Dict[str, Any], texts: List[Text]) -> Dict[str, A
 
 def fetch_data(metadata: Any, texts: List[Text]) -> Dict[str, Any]:
     """Reset data for frontend"""
+
     return {
         "text_ids": _fetch_text_ids_and_filenames(texts),
         "selected_text_ids": _fetch_selected_text_ids(texts),
