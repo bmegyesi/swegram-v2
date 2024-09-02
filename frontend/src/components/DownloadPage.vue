@@ -68,7 +68,7 @@
       <el-radio-group v-model="outputForm">
         <el-radio label=".txt" />
         <el-radio label=".csv" />
-        <el-radio label=".xlsx" />
+        <!-- <el-radio label=".xlsx" /> -->
       </el-radio-group>
     </el-main>
 
