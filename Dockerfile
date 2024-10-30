@@ -11,8 +11,8 @@ ENV PRODUCTION=1
 RUN apt update && apt install openjdk-17-jdk -y
 
 # Python packages
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 
 
 # Add dependencies
 COPY build_dependencies /root/build_dependencies

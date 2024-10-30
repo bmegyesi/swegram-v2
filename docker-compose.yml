@@ -22,7 +22,7 @@ services:
       - database
 
   backend:
-    image: rex0046/swegram-backend:1.0.6 # Image needs to be built with network
+    image: rex0046/swegram-backend:1.1.0 # Image needs to be built with network
     container_name: swegram-backend-fastapi
     restart: always
     environment:

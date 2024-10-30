@@ -1,6 +1,10 @@
 import os
+import asyncio
 import uvicorn
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -14,12 +18,24 @@ from server.routers.lengths import router as lengths_router
 from server.routers.states import router as states_router
 from server.routers.text import router as text_router
 from server.routers.texts import router as texts_router
+from server.routers.texts import remove_texts
 
 
-app = FastAPI()
-connected_clients = []
+# Add Background scheduler to automatically remove expired texts in the database
+scheduler = BackgroundScheduler()
+scheduler.add_job(remove_texts, CronTrigger(hour=0, minute=0))
+scheduler.start()
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(lifespan=lifespan)
 PROD_PREFIX = "/api" if os.environ.get("PRODUCTION") else ""
+
 
 # Enable CORS for all origins
 app.add_middleware(

@@ -1,3 +1,4 @@
+apscheduler
 cryptography
 Cython
 databases[mysql]
