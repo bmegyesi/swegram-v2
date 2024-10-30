@@ -10,7 +10,6 @@ import App from './App.vue';
 import HomePage from './components/HomePage.vue';
 import MainPage from './components/MainPage.vue';
 import UploadPage from './components/Upload/UploadPage.vue';
-import HelpPage from './components/HelpPage.vue';
 import DownloadPage from './components/DownloadPage.vue';
 import VisualizePage from './components/Visualize/VisualizePage.vue';
 import StatisticsPage from './components/Statistics/StatisticsPage.vue';
@@ -36,7 +35,6 @@ const router = new VueRouter({
         { path: '', component: HomePage },
         { path: 'upload', component: UploadPage },
         { path: 'export', component: DownloadPage },
-        { path: 'help', component: HelpPage },
         {
           path: 'visualize/',
           name: 'visualize',
@@ -56,7 +54,6 @@ const router = new VueRouter({
         { path: '', component: HomePage },
         { path: '/upload', component: UploadPage },
         { path: '/export', component: DownloadPage },
-        { path: '/help', component: HelpPage },
         {
           path: '/visualize/',
           name: 'visualizeSV',
@@ -76,7 +73,6 @@ const router = new VueRouter({
         { path: '', component: HomePage },
         { path: '/upload', component: UploadPage },
         { path: '/export', component: DownloadPage },
-        { path: '/help', component: HelpPage },
         {
           path: '/visualize/',
           name: 'visualizeEN', // why EN|Sv here?

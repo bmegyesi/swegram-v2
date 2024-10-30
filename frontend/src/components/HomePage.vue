@@ -7,21 +7,9 @@
           height="110"
           width="160"
         >
-        <!-- <img
-          src="../assets/UU_logo_sv_84_transparent.png"
-          height="125"
-          width="125"
-        > -->
-        <!-- <p class="link-container">
-          <a href="..">
-            <el-button type="plain">{{ $t('homePage.legacyVersion') }}
-              <i class="el-icon-time" />
-            </el-button>
-          </a>
-        </p> -->
         <p class="link-container">
           <a href="..">
-            <el-button type="plain">{{ $t('homePage.downloadManual') }}
+            <el-button type="plain" @click="downloadManual">{{ $t('homePage.downloadManual') }}
               <i class="el-icon-collection" />
             </el-button>
           </a>
@@ -125,6 +113,23 @@
     </el-container>
   </el-container>
 </template>
+
+<script>
+export default {
+  methods: {
+    downloadManual() {
+      // Open the PDF in a new tab
+      window.open('/assets/swegram2-manual.pdf', '_blank');
+
+      // Alternatively, if you want it to download directly:
+      // const link = document.createElement('a');
+      // link.href = '/assets/swegram2-manual.pdf';
+      // link.download = 'swegram2-manual.pdf';
+      // link.click();
+    },
+  },
+};
+</script>
 
 <style scoped>
 .swegram-title {
