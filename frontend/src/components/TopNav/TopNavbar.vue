@@ -28,9 +28,6 @@
             Export
           </span>
         </el-menu-item>
-        <el-menu-item index="/sv/help">
-          {{ $t('topNavbar.help') }}
-        </el-menu-item>
       </el-menu>
       <lang-switch />
     </div>
