@@ -1,6 +1,6 @@
 <template>
   <el-container>
-    <el-header>
+    <el-header :style="headerStyles">
       <top-navbar />
     </el-header>
     <el-main>
@@ -16,6 +16,13 @@
 import TopNavbar from './TopNav/TopNavbar.vue';
 
 export default {
+  data() {
+    return {
+      headerStyles: {
+        height: 'auto',          // Adjust height as needed
+      }
+    };
+  },
   components: {
     TopNavbar,
   },
@@ -24,3 +31,4 @@ export default {
   },
 };
 </script>
+

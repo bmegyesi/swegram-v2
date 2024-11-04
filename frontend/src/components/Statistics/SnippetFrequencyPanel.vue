@@ -42,6 +42,7 @@
       size="small"
     >
       <el-radio
+        class="frequency-radio"
         label="showType"
         border
         @change="getTypePoS"
@@ -49,6 +50,7 @@
         Show frequency statistics for type
       </el-radio>
       <el-radio
+        class="frequency-radio"
         label="showPoS"
         border
         @change="getTypePoS"
@@ -109,8 +111,7 @@ export default {
   display: flex;
 }
 
-.el-radio-group {
-  display: flex;
+.frequency-radio { 
   margin: 10px;
 }
 

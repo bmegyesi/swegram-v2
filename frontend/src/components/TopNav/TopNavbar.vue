@@ -28,6 +28,13 @@
             Export
           </span>
         </el-menu-item>
+        <el-menu-item>
+          <a href="..">
+            <el-button type="plain" @click="downloadManual">{{ $t('homePage.downloadManual') }}
+              <i class="el-icon-collection" />
+            </el-button>
+          </a>
+        </el-menu-item>
       </el-menu>
       <lang-switch />
     </div>
@@ -59,6 +66,13 @@
             Export
           </span>
         </el-menu-item>
+        <el-menu-item>
+          <a href="..">
+            <el-button type="plain" @click="downloadManual">{{ $t('homePage.downloadManual') }}
+              <i class="el-icon-collection" />
+            </el-button>
+          </a>
+        </el-menu-item>
       </el-menu>
       <lang-switch />
     </div>
@@ -85,6 +99,18 @@ export default {
   },
   mounted() {
     this.activeLink = this.$route.path;
+  },
+  methods: {
+    downloadManual() {
+      // Open the PDF in a new tab
+      window.open('/assets/swegram2-manual.pdf', '_blank');
+
+      // Alternatively, if you want it to download directly:
+      // const link = document.createElement('a');
+      // link.href = '/assets/swegram2-manual.pdf';
+      // link.download = 'swegram2-manual.pdf';
+      // link.click();
+    },
   },
 };
 </script>

@@ -55,7 +55,7 @@
           >
             <el-tabs
               v-model="featureLevel"
-              tab-position="left"
+              :tab-position="tabPosition"
               @tab-click="handleShowFeatureLevel"
             >
               <el-tab-pane
@@ -122,6 +122,7 @@ export default {
   },
   data() {
     return {
+      isMobile: false, // Default to false, can be updated based on window size
       showType: ref('frequency'),
       featureLevel: ref('text'),
 
@@ -160,10 +161,24 @@ export default {
       this.initializeLength = false;
     },
   },
+  computed: {
+    tabPosition() {
+      return this.isMobile ? 'top' : 'left'; // Change 'top' as needed for mobile
+    }
+  },
   mounted() {
     this.fetchTextsStats();
+    this.checkMobile(); // Check on mount
+    window.addEventListener('resize', this.checkMobile); // Listen for window resize
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.checkMobile); // Clean up the listener
   },
   methods: {
+    checkMobile() {
+      // You can adjust the threshold for mobile as needed
+      this.isMobile = window.innerWidth < 768; // Adjust the breakpoint for mobile
+    },
     handleInitialization({ type }) {
       if (type === 'length') {
         this.initializeLength = true;

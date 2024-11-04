@@ -12,7 +12,7 @@
       :key="item.label"
       :label="item.label"
       :prop="item.prop"
-      min-width="130"
+      :width="getColumnWidth(item.label)"
       :fixed="fixedColumnPosition(item.prop)"
     >
       <template
@@ -117,6 +117,12 @@ export default {
     },
   },
   methods: {
+    getColumnWidth(label){
+      if (label == "Length" || label == "Total") {
+        return 90;
+      }
+      return 130;
+    },
     fixedColumnPosition(prop) {
       if (prop === 'Length') {
         return true;

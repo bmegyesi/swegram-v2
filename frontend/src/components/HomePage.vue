@@ -1,22 +1,12 @@
 <template>
   <el-container>
-    <el-aside>
-      <div class="icons-container">
+    <el-container>
+      <div class="icons-container swegram-logo-div">
         <img
           src="../assets/swe-clarin-logo.png"
-          height="110"
-          width="160"
+          class="swegram-logo-png"
         >
-        <p class="link-container">
-          <a href="..">
-            <el-button type="plain" @click="downloadManual">{{ $t('homePage.downloadManual') }}
-              <i class="el-icon-collection" />
-            </el-button>
-          </a>
-        </p>
       </div>
-    </el-aside>
-    <el-container>
       <el-main>
         <div class="swegram-title">
           <h1>SWEGRAM</h1>
@@ -30,8 +20,6 @@
             >
               <img
                 src="../assets/sv.png"
-                width="80px"
-                height="80px"
               ><br>
               <span>{{ $t('homePage.svEntryText') }}</span>
             </el-card>
@@ -44,8 +32,6 @@
             >
               <img
                 src="../assets/en.png"
-                width="80px"
-                height="80px"
               ><br>
               <span>{{ $t('homePage.enEntryText') }}</span>
             </el-card>
@@ -114,24 +100,18 @@
   </el-container>
 </template>
 
-<script>
-export default {
-  methods: {
-    downloadManual() {
-      // Open the PDF in a new tab
-      window.open('/assets/swegram2-manual.pdf', '_blank');
-
-      // Alternatively, if you want it to download directly:
-      // const link = document.createElement('a');
-      // link.href = '/assets/swegram2-manual.pdf';
-      // link.download = 'swegram2-manual.pdf';
-      // link.click();
-    },
-  },
-};
-</script>
 
 <style scoped>
+
+.swegram-logo-png {
+  height: 110px;
+  width: 160px;
+}
+
+.swegram-logo-div {
+  float: left;
+}
+
 .swegram-title {
   margin: auto;
 }
@@ -145,12 +125,6 @@ export default {
 
 h2 {
   color: #303133;
-}
-
-.icons-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .icons-container img {
@@ -177,8 +151,6 @@ h2 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 200px;
-  height: 200px;
 }
 
 .button-wrapper span {
