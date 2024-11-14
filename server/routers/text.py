@@ -12,6 +12,10 @@ from server.models import Text
 router = APIRouter()
 
 
+class TextNotFoundError(Exception):
+    """Text not found error"""
+
+
 def _create_text(data, language, db):
     data = parse_payload(data)
     texts = run_swegram(language, **data)
@@ -34,9 +38,9 @@ async def read_text(text_id: int = Path(..., title="Text id"), db: Session = Dep
     try:
         text = db.query(Text).get(ident=text_id)
         if not text:
-            raise AttributeError
+            raise TextNotFoundError
         return JSONResponse(text.as_dict())
-    except AttributeError as err:
+    except TextNotFoundError as err:
         raise HTTPException(status_code=404, detail=f"Text {text_id} not found.") from err
 
 

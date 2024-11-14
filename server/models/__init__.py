@@ -1,6 +1,7 @@
 """data models module"""
 import sys
 from typing import Any, Dict, List, Union
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, String, Boolean, Sequence, ForeignKey, JSON, func, Enum
 from sqlalchemy import Text as LONGTEXT
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
@@ -118,6 +119,9 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
     labels = Column(JSON, nullable=True)
     has_label = Column(Boolean, default=False)
     _filesize = Column(Integer, nullable=True)
+
+    # link to the related tasks that have worked on this text
+    tasks = relationship("Task", back_populates="text", cascade="all, delete-orphan")
 
     tokenized = Column(Boolean, default=True)
     normalized = Column(Boolean, default=False)
@@ -274,3 +278,36 @@ class Token(Base, SharedMethodMixin):
         if to_string:
             return "\t".join(fields)
         return fields
+
+
+class Task(Base):
+    __tablename__ = "tasks"
+
+    id = Column(Integer, Sequence("task_id_seq"), primary_key=True, index=True)
+    state = Column(Enum("unknown", "ongoing", "finished"), default="unknown")
+    verdict = Column(Enum("unknown", "skipped", "failed", "passed"), default="unknown")
+    start_time = Column(String(length=225), default=func.now())
+    end_time = Column(String(length=225), nullable=True)
+
+    text_id = Column(Integer, ForeignKey("texts.id", ondelete="CASCADE"))
+    text = relationship("Text", back_populates="tasks")
+
+    processbar = relationship("ProcessBar", back_populates="processbars", uselist=False)
+
+    def __str__(self) -> str:
+        return self.id
+
+
+class ProcessBar(Base):
+    """Record the process as per task"""
+    __tablename__ = "processbars"
+
+    id = Column(Integer, primary_key=True, index=True)
+    task_id = Column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"), unique=True)
+
+    task = relationship("Task", back_populates="processbar")
+
+    # Defined stages for text annotation process
+    data_prepared = Column(Boolean, default=False)
+    Column(Boolean, default=False)
+    ...
