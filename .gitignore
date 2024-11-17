@@ -279,8 +279,5 @@ fabric.properties
 # Sonarlint plugin
 .idea/sonarlint
 
-# End of https://www.gitignore.io/api/pycharm
-
-
-
-# End of https://www.gitignore.io/api/macos,django,python,virtualenv,visualstudiocode
+dev.md
+*.bash_history
