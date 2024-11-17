@@ -17,6 +17,7 @@ class TextNotFoundError(Exception):
 
 
 def _create_text(data, language, db):
+    # Start the task
     data = parse_payload(data)
     texts = run_swegram(language, **data)
     for text_data in texts:

@@ -15,10 +15,10 @@ router = APIRouter()
 @router.get("/")
 async def get_tasks(db: Session = Depends(get_db)) -> JSONResponse:
     """return all tasks"""
-    return JSONResponse()
+    return JSONResponse([item.as_dict() for item in db.query(Task).all()])
 
 
 @router.get("/latest")
 async def get_latest_tasks(db: Session = Depends(get_db)) -> JSONResponse:
     """return latest 10 tasks"""
-
+    ...

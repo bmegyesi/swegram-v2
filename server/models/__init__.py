@@ -280,7 +280,7 @@ class Token(Base, SharedMethodMixin):
         return fields
 
 
-class Task(Base):
+class Task(Base, SharedMethodMixin):
     __tablename__ = "tasks"
 
     id = Column(Integer, Sequence("task_id_seq"), primary_key=True, index=True)
@@ -292,13 +292,13 @@ class Task(Base):
     text_id = Column(Integer, ForeignKey("texts.id", ondelete="CASCADE"))
     text = relationship("Text", back_populates="tasks")
 
-    processbar = relationship("ProcessBar", back_populates="processbars", uselist=False)
+    processbar = relationship("ProcessBar", back_populates="task", uselist=False)
 
     def __str__(self) -> str:
         return self.id
 
 
-class ProcessBar(Base):
+class ProcessBar(Base, SharedMethodMixin):
     """Record the process as per task"""
     __tablename__ = "processbars"
 
@@ -309,5 +309,13 @@ class ProcessBar(Base):
 
     # Defined stages for text annotation process
     data_prepared = Column(Boolean, default=False)
-    Column(Boolean, default=False)
-    ...
+    data_prepared_time = Column(String(length=225))
+
+    tokenized = Column(Boolean, default=False)
+    tokenized_time = Column(String(length=225))
+
+    normalized = Column(Boolean, default=False)
+    normalized_time = Column(String(length=225))
+
+    parsed = Column(Boolean, default=False)
+    parsed_time = Column(String(length=225))
