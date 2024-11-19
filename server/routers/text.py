@@ -5,8 +5,9 @@ from sqlalchemy.orm import Session
 from server.lib.exceptions import ServerError
 from server.lib.fetch_current_sentences import fetch_current_sentences
 from server.lib.load_data import parse_payload, run_swegram
+from server.lib.tasks import create_task, update_task, read_task, create_taskgroup, update_taskgroup, read_taskgroup
 from server.routers.database import get_db
-from server.models import Text
+from server.models import Text, TaskGroup
 
 
 router = APIRouter()
@@ -17,7 +18,11 @@ class TextNotFoundError(Exception):
 
 
 def _create_text(data, language, db):
-    # Start the task
+    # Start the task when to create text
+    taskgroup_created_response = create_taskgroup()
+    taskgroup_id = taskgroup_created_response["taskgroup_id"]
+    taskgroup = db.query(TaskGroup).get(taskgroup_id)
+
     data = parse_payload(data)
     texts = run_swegram(language, **data)
     for text_data in texts:

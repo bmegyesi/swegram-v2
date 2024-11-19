@@ -280,6 +280,17 @@ class Token(Base, SharedMethodMixin):
         return fields
 
 
+class TaskGroup(Base, SharedMethodMixin):
+    __tablename__ = "taskgroups"
+
+    id = Column(Integer, Sequence("taskgroup_id_seq"), primary_key=True, index=True)
+    state = Column(Enum("unknown", "ongoing", "finished"), default="unknown")
+    start_time = Column(String(length=225), default=func.now())
+    end_time = Column(String(length=225), nullable=True)
+
+    tasks = relationship("Task", back_populates="taskgroup", cascade="all, delete-orphan")
+
+
 class Task(Base, SharedMethodMixin):
     __tablename__ = "tasks"
 
@@ -288,6 +299,9 @@ class Task(Base, SharedMethodMixin):
     verdict = Column(Enum("unknown", "skipped", "failed", "passed"), default="unknown")
     start_time = Column(String(length=225), default=func.now())
     end_time = Column(String(length=225), nullable=True)
+
+    taskgroup_id = Column(Integer, ForeignKey("taskgroups.id", ondelete="CASCADE"))
+    taskgroup = relationship("TaskGroup", back_populates="tasks")
 
     text_id = Column(Integer, ForeignKey("texts.id", ondelete="CASCADE"))
     text = relationship("Text", back_populates="tasks")

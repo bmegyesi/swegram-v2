@@ -17,6 +17,7 @@ from server.routers.frequencies import router as frequencies_router
 from server.routers.lengths import router as lengths_router
 from server.routers.states import router as states_router
 from server.routers.task import router as task_router
+from server.routers.taskgroup import router as taskgroup_router
 from server.routers.tasks import router as tasks_router
 from server.routers.text import router as text_router
 from server.routers.texts import router as texts_router
@@ -68,6 +69,7 @@ app.include_router(frequencies_router, prefix=f"{PROD_PREFIX}/frequencies", tags
 app.include_router(lengths_router, prefix=f"{PROD_PREFIX}/lengths", tags=["lengths"], dependencies=[Depends(get_db)])
 app.include_router(states_router, prefix=f"{PROD_PREFIX}/states", tags=["states"], dependencies=[Depends(get_db)])
 app.include_router(task_router, prefix=f"{PROD_PREFIX}/task", tags=["task"], dependencies=[Depends(get_db)])
+app.include_router(taskgroup_router, prefix=f"{PROD_PREFIX}/taskgroup", tags=["taskgroup"], dependencies=[Depends(get_db)])
 app.include_router(tasks_router, prefix=f"{PROD_PREFIX}/tasks", tags=["tasks"], dependencies=[Depends(get_db)])
 app.include_router(text_router, prefix=f"{PROD_PREFIX}/text", tags=["text"], dependencies=[Depends(get_db)])
 app.include_router(texts_router, prefix=f"{PROD_PREFIX}/texts", tags=["texts"], dependencies=[Depends(get_db)])

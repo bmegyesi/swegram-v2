@@ -12,7 +12,6 @@ PUNCT_TAGS = [*SUC_TAGS[-3:], *PT_TAGS[-10:], "PUNCT"]
 
 def fetch_lengths(category: str, tagset: str, data: Dict[str, Any], db: Session) -> Dict[str, Any]:
     language = data["lang"]
-    # breakpoint()
     texts = [text for text in get_texts(db, language, category=category) if text.parsed]
     type_dict, pos_dict = get_type_and_pos_dicts(category=category, tagset=tagset, texts=texts)
 

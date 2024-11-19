@@ -144,20 +144,26 @@ def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
             pipeline = Pipeline(
                 input_path=Path(input_file.name), output_dir=Path(output_dir), language=language
             )
+            # Update taskgroup here
+            # Create task from here
 
             if normalize:
                 pipeline.normalize()
+                # Update tasks and taskgroup
 
             # parse <- tag <- tokenize
             # tag is not an optional in frontend
             if parse:
                 pipeline.parse()
+                # Update tasks and taskgroup
             elif tokenize and not normalize:
                 pipeline.tokenize()
+                # Update tasks and taskgroup
             else:
                 raise ServerError(f"Invalid annotation request, {kwargs}")
             pipeline.postprocess()
 
+            # Convert conll file into structured data
             texts: List[Text] = load_dir(
                 input_dir=Path(output_dir), language=language, include_tags=[], exclude_tags=[], parsed=parse
             )

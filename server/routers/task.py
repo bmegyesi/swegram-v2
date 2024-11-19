@@ -21,7 +21,7 @@ class TaskNotFoundError(Exception):
 @router.get("/{task_id}")
 async def get_task(task_id: int, db: Session = Depends(get_db)) -> JSONResponse:
     try:
-        task = db.query(Task).get(indent=task_id)
+        task = db.query(Task).get(task_id)
         if not task:
             raise TaskNotFoundError
         return JSONResponse(task.as_dict())
@@ -29,12 +29,14 @@ async def get_task(task_id: int, db: Session = Depends(get_db)) -> JSONResponse:
          raise HTTPException(status_code=404, detail=f"Task {task_id} not found.") from err
 
 
-@router.post("/create/{text_id}")
-async def create_task(text_id: int, db: Session = Depends(get_db)):
+@router.post("/create")
+async def create_task(data = Body(...), db: Session = Depends(get_db)) -> Dict[str, int]:
+    text_id = data["text_id"]
     new_task = Task(text_id=text_id)
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+    return {"task_id": new_task.id}
 
 
 @router.put("/{task_id}")
