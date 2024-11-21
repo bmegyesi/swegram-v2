@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 from sqlalchemy.orm import Session
 
-from server.lib.utils import get_texts, get_type_and_pos_dicts
+from server.lib.text_utils import get_texts, get_type_and_pos_dicts
 
 
 def fetch_frequencies(category: str, tagset: str, data: Dict[str, Any], db: Session) -> Dict[str, Any]:

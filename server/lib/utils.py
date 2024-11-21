@@ -1,34 +1,41 @@
-"""utils.py"""
-from typing import Any, Dict, List, Optional, Tuple
+"""utils"""
+from collections import OrderedDict
+from datetime import datetime
+from pathlib import Path
+from typing import Any, List, Dict, Union
+from swegram_main.data.features import Feature
 
-from sqlalchemy.orm import Session
+def get_size_and_format(size_bytes: int) -> str:
+    # Define the units and their respective sizes
+    units = ['B', 'KB', 'MB', 'GB', 'TB']
+    size = size_bytes
+    unit = 0
 
-from server.models import Text
+    # Iterate through units and convert size until it's less than 1024
+    while size >= 1024 and unit < len(units) - 1:
+        size /= 1024.0
+        unit += 1
+
+    # Format the size with two decimal places
+    formatted_size = f"{size:.2f} {units[unit]}"
+    return formatted_size
 
 
-def get_texts(db: Session, language: str, category: Optional[str] = None) -> List[Text]:
-
-    texts = db.query(Text).filter(Text.language == language).filter(Text.activated == True)  # pylint: disable=singleton-comparison
-
-    if category == "norm":
-        return [text for text in texts.filter(Text.normalized == True)]  # pylint: disable=unnecessary-comprehension, singleton-comparison
-    if category == "lemma":
-        return [text for text in texts.filter(Text.tagged == True)]  # pylint: disable=unnecessary-comprehension, singleton-comparison
-
-    return [text for text in texts]  # pylint: disable=unnecessary-comprehension
+def convert_attribute_name(name: str) -> str:
+    return {
+        "text_id": "uuid",
+        "filesize": "_filesize",
+        "token_index": "index"
+    }.get(name, name)
 
 
-def get_type_and_pos_dicts(category: str, tagset: str, texts: List[Text]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-    type_dict, pos_dict = {}, {}
-    for text in texts:
-        for type_pos, count in text.as_dict()[f"freq_{category}_dict_{tagset}"].items():
-            _, pos = type_pos.rsplit("_", maxsplit=1)
-            if pos in pos_dict:
-                pos_dict[pos] += count
-            else:
-                pos_dict[pos] = count
-            if type_pos in type_dict:
-                type_dict[type_pos] += count
-            else:
-                type_dict[type_pos] = count
-    return type_dict, pos_dict
+def convert_attribute_value(value: Any) -> Union[int, bool, str, Any]:
+    if isinstance(value, (int, bool, str)):
+        return value
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, OrderedDict):
+        for k, v in value.items():
+            if isinstance(v, Feature):
+                value[k] = v.json
+    return value

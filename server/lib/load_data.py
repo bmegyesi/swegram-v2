@@ -1,13 +1,19 @@
 import re
 import tempfile
-import pytz
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Dict, Union
 
+import pytz
+
+from sqlalchemy.orm import Session
+
 from server.lib.exceptions import ServerError
-from swegram_main.data.features import Feature
+from server.lib.tasks import create_task, update_task, read_task, create_taskgroup, update_taskgroup, read_taskgroup
+from server.lib.utils import convert_attribute_name, convert_attribute_value
+from server.models import TaskGroup, TaskGroupProcessBar
+
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.sentences import Sentence
 from swegram_main.data.texts import Text
@@ -17,42 +23,6 @@ from swegram_main.pipeline.pipeline import Pipeline
 
 
 SPLIT_HEADER = "------WebKitFormBoundary"
-
-
-def convert_attribute_name(name: str) -> str:
-    return {
-        "text_id": "uuid",
-        "filesize": "_filesize",
-        "token_index": "index"
-    }.get(name, name)
-
-
-def convert_attribute_value(value: Any) -> Union[int, bool, str, Any]:
-    if isinstance(value, (int, bool, str)):
-        return value
-    if isinstance(value, Path):
-        return str(value)
-    if isinstance(value, OrderedDict):
-        for k, v in value.items():
-            if isinstance(v, Feature):
-                value[k] = v.json
-    return value
-
-
-def get_size_and_format(size_bytes: int) -> str:
-    # Define the units and their respective sizes
-    units = ['B', 'KB', 'MB', 'GB', 'TB']
-    size = size_bytes
-    unit = 0
-
-    # Iterate through units and convert size until it's less than 1024
-    while size >= 1024 and unit < len(units) - 1:
-        size /= 1024.0
-        unit += 1
-
-    # Format the size with two decimal places
-    formatted_size = f"{size:.2f} {units[unit]}"
-    return formatted_size
 
 
 def _get_pattern(key: str) -> str:
@@ -123,6 +93,11 @@ def save_text(raw_text: str, target_path: Path) -> None:
         f.write(raw_text)
 
 
+def ts() -> str:
+    """get timestamp for now"""
+    return datetime.now(tz=pytz.timezone("Europe/Stockholm")).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
     """Annotate text and return a dict to be stored into database"""
     states = {
@@ -167,9 +142,50 @@ def run_swegram(language: str, **kwargs) -> List[Dict[str, Any]]:
             texts: List[Text] = load_dir(
                 input_dir=Path(output_dir), language=language, include_tags=[], exclude_tags=[], parsed=parse
             )
-            timestamp = datetime.now(tz=pytz.timezone("Europe/Stockholm")).strftime("%Y-%m-%d %H:%M:%S")
-            filename = kwargs.get("filename", f"Pasted at {timestamp}.txt")
+            filename = kwargs.get("filename", f"Pasted at {ts()}.txt")
             return [{
                 **_serialize_item(text), **states, "filename": generate_filename(filename, index)}
                 for index, text in enumerate(texts, 1)
             ]
+
+
+def commit(database: Session, instance: object, add: bool = False, refresh: bool = True) -> None:
+    try:
+        if add:
+            database.add(instance)
+        database.commit()
+        if refresh:
+            database.refresh(instance)
+    except Exception as err:
+        database.rollback()
+        raise ServerError(f"Failed to commit to database") from err
+
+
+def create_text_helper(language: str, data: bytes, database: Session) -> None:
+
+    try:
+        taskgroup_created_response = create_taskgroup()
+        taskgroup_id = taskgroup_created_response["taskgroup_id"]
+        taskgroup_processbar = TaskGroupProcessBar(taskgroup_id=taskgroup_id)
+        commit(taskgroup_processbar, add=True)
+
+        data = parse_payload(data)
+        taskgroup_processbar.raw_texts_checked = True
+        taskgroup_processbar.raw_texts_checked_ts = ts()
+        commit(taskgroup_processbar)
+
+        texts = run_swegram(language, **data)
+        for text_data in texts:
+            paragraphs = text_data["paragraphs"]
+            del text_data["paragraphs"]
+            text = Text(**text_data)
+            try:
+                database.add(text)
+                database.commit()
+                database.refresh(text)
+                text.load_data(paragraphs, database)
+            except Exception as err:
+                database.rollback()
+                raise ServerError("Failed to create Text instance in the database.") from err
+    finally:
+        ...

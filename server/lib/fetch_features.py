@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from server.models import Text, Paragraph, Sentence
 from server.lib.exceptions import ServerError
-from server.lib.utils import get_texts
+from server.lib.text_utils import get_texts
 from swegram_main.config import PAGE_SIZE
 from swegram_main.lib.utils import mean, median, r2
 

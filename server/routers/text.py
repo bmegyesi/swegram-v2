@@ -2,10 +2,8 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Pa
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from server.lib.exceptions import ServerError
 from server.lib.fetch_current_sentences import fetch_current_sentences
-from server.lib.load_data import parse_payload, run_swegram
-from server.lib.tasks import create_task, update_task, read_task, create_taskgroup, update_taskgroup, read_taskgroup
+from server.lib.load_data import create_text_helper
 from server.routers.database import get_db
 from server.models import Text, TaskGroup
 
@@ -15,28 +13,6 @@ router = APIRouter()
 
 class TextNotFoundError(Exception):
     """Text not found error"""
-
-
-def _create_text(data, language, db):
-    # Start the task when to create text
-    taskgroup_created_response = create_taskgroup()
-    taskgroup_id = taskgroup_created_response["taskgroup_id"]
-    taskgroup = db.query(TaskGroup).get(taskgroup_id)
-
-    data = parse_payload(data)
-    texts = run_swegram(language, **data)
-    for text_data in texts:
-        paragraphs = text_data["paragraphs"]
-        del text_data["paragraphs"]
-        text = Text(**text_data)
-        try:
-            db.add(text)
-            db.commit()
-            db.refresh(text)
-            text.load_data(paragraphs, db)
-        except Exception as err:
-            db.rollback()
-            raise ServerError("Failed to create Text instance in the database.") from err
 
 
 @router.get("/{text_id}")
@@ -64,7 +40,7 @@ async def create_text(
     language: str = Path(..., title="Language"),
     data: bytes = Body(...), db: Session = Depends(get_db)
 ) -> JSONResponse:
-    background_tasks.add_task(_create_text, data, language, db)
+    background_tasks.add_task(create_text_helper, language, data, db)
     return JSONResponse({"success": "1", "text_stats_list": []})
 
 

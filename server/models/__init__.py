@@ -7,7 +7,7 @@ from sqlalchemy import Text as LONGTEXT
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 from sqlalchemy.orm import relationship, Session
 
-from server.lib.load_data import get_size_and_format
+from server.lib.utils import get_size_and_format
 
 
 def _declarative_constructor(self, **kwargs) -> None:
@@ -285,9 +285,10 @@ class TaskGroup(Base, SharedMethodMixin):
 
     id = Column(Integer, Sequence("taskgroup_id_seq"), primary_key=True, index=True)
     state = Column(Enum("unknown", "ongoing", "finished"), default="unknown")
-    start_time = Column(String(length=225), default=func.now())
-    end_time = Column(String(length=225), nullable=True)
+    start_ts = Column(String(length=225), default=func.now())
+    end_ts = Column(String(length=225), nullable=True)
 
+    taskgroupprocessbar = relationship("TaskGroupProcessBar", back_populates="taskgroup", uselist=False)
     tasks = relationship("Task", back_populates="taskgroup", cascade="all, delete-orphan")
 
 
@@ -297,8 +298,8 @@ class Task(Base, SharedMethodMixin):
     id = Column(Integer, Sequence("task_id_seq"), primary_key=True, index=True)
     state = Column(Enum("unknown", "ongoing", "finished"), default="unknown")
     verdict = Column(Enum("unknown", "skipped", "failed", "passed"), default="unknown")
-    start_time = Column(String(length=225), default=func.now())
-    end_time = Column(String(length=225), nullable=True)
+    start_ts = Column(String(length=225), default=func.now())
+    end_ts = Column(String(length=225), nullable=True)
 
     taskgroup_id = Column(Integer, ForeignKey("taskgroups.id", ondelete="CASCADE"))
     taskgroup = relationship("TaskGroup", back_populates="tasks")
@@ -323,13 +324,36 @@ class ProcessBar(Base, SharedMethodMixin):
 
     # Defined stages for text annotation process
     data_prepared = Column(Boolean, default=False)
-    data_prepared_time = Column(String(length=225))
+    data_prepared_ts = Column(String(length=225))
 
     tokenized = Column(Boolean, default=False)
-    tokenized_time = Column(String(length=225))
+    tokenized_ts = Column(String(length=225))
 
     normalized = Column(Boolean, default=False)
-    normalized_time = Column(String(length=225))
+    normalized_ts = Column(String(length=225))
 
     parsed = Column(Boolean, default=False)
-    parsed_time = Column(String(length=225))
+    parsed_ts = Column(String(length=225))
+
+
+class TaskGroupProcessBar(Base, SharedMethodMixin):
+    """Record the process as per task"""
+    __tablename__ = "taskgroupprocessbars"
+
+    id = Column(Integer, primary_key=True, index=True)
+    taskgroup_id = Column(Integer, ForeignKey("taskgroups.id", ondelete="CASCADE"), unique=True)
+
+    taskgroup = relationship("TaskGroup", back_populates="taskgroupprocessbar")
+
+    # Defined stages for text annotation process
+    raw_texts_checked = Column(Boolean, default=False)
+    raw_texts_checked_ts = Column(String(length=225))
+
+    tokenized = Column(Boolean, default=False)
+    tokenized_ts = Column(String(length=225))
+
+    normalized = Column(Boolean, default=False)
+    normalized_ts = Column(String(length=225))
+
+    parsed = Column(Boolean, default=False)
+    parsed_ts = Column(String(length=225))
