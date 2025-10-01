@@ -4,8 +4,8 @@ English readability features:
 Bilogarithm TTR
 Root TTR
 Coleman Liau Index
-Flesch Reading Ease Grade Level
-Flesch Kincaid
+Flesch Reading Ease
+Flesch Kincaid Grade Level
 Automated Readability Index
 SMOG
 
