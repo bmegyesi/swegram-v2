@@ -7,7 +7,7 @@ module.exports = defineConfig({
       '/api': {
         target: 'http://127.0.0.1:8000',  // Replace with your FastAPI backend URL
         changeOrigin: true,
-        pathRewrite: {'^/api': '',} // Remove the '/api' prefix when forwarding requests
+        // pathRewrite: {'^/api': '',} // Remove the '/api' prefix when forwarding requests
       },
     }
   },
