@@ -21,11 +21,11 @@ jobs:
 
     - name: Analysing the code with pylint
       run: |
+        source setup.sh
+        pip install .
+        swegram-build
         pylint swegram_main
 
     - name: Analysing the code with test
       run: |
-        source setup.sh
-        pip install .
-        swegram-build
         pytest tests -vvvv
