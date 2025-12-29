@@ -137,6 +137,9 @@ def postprocess_helper(
     elif file_type == "tok":
         def merge_func(line: str) -> str:
             return _post_tok_file(line, split_suc_tags, normalized, model, tokens)
+    else:
+        raise TypeError(f"Unsupported file type: {file_type} for {filepath}")
+
     if file_type == "tok" and model.lower() in {"histnorm_sv", "efselab"}:
         cut(merge_func, filepath, append_token_index=True, append_text_index=True)
     else:
@@ -157,7 +160,7 @@ def _get_next_token(tokens: Iterator, model: str) -> str:
     return token.strip('\n')
 
 
-def _post_file(
+def _post_file(  # pylint: disable=too-many-positional-arguments
     line: str, split_suc_tags: bool, normalized: bool, from_tag: bool,
     model: str, tokens: Optional[Iterator] = None
 ) -> str:
