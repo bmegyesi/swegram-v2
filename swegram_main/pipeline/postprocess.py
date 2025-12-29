@@ -160,7 +160,7 @@ def _get_next_token(tokens: Iterator, model: str) -> str:
     return token.strip('\n')
 
 
-def _post_file(  # pylint: disable=too-many-positional-arguments
+def _post_file(
     line: str, split_suc_tags: bool, normalized: bool, from_tag: bool,
     model: str, tokens: Optional[Iterator] = None
 ) -> str:

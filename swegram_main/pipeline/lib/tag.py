@@ -10,7 +10,7 @@ from typing import Optional
 
 from swegram_main.lib.utils import AnnotationError, change_suffix, cut, write
 from swegram_main.config import EFSELAB_DIR, EFSELAB, UDPIPE, UDPIPE_MODEL
-from tools.efselab import tagger  # pylint: disable=import-error, wrong-import-order
+from tools.efselab import tagger
 
 
 EFSELAB_MODEL = os.path.join(EFSELAB_DIR, "swe-pipeline")

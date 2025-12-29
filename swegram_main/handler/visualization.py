@@ -16,7 +16,7 @@ from swegram_main.lib.utils import XlsxClient
 
 class Visualization:
 
-    def __init__(  # pylint: disable=too-many-positional-arguments
+    def __init__(
         self, input_path: Path, language: str, output_dir: Optional[Path],
         include_tags: Optional[List[str]], exclude_tags: Optional[List[str]]
     ) -> None:
@@ -30,7 +30,7 @@ class Visualization:
         self.outdir = output_dir or Path(os.getcwd())
         os.makedirs(self.outdir, exist_ok=True)
 
-    def filter(  # pylint: disable=too-many-positional-arguments
+    def filter(
         self, units: List[str], aspects: List[str],
         include_features: List[str], exclude_features: List[str],
         pprint: bool = False, save_as: str = "txt"

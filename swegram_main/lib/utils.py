@@ -84,7 +84,7 @@ class XlsxClient:
 
 class XlsxAnnotationClient(XlsxClient):
 
-    def dump(self, conll: Path, model: str, language: str, normalized: bool, annotation: str):  # pylint: disable=too-many-positional-arguments
+    def dump(self, conll: Path, model: str, language: str, normalized: bool, annotation: str):
         text, labels = read_conll_file(conll)[0]
         meta_sheet = self.wb["Sheet"]
         meta_sheet.title = "Annotation-metadata"

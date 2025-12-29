@@ -20,7 +20,7 @@ class InputError(Exception):
     """Input Error"""
 
 
-def _load_token(text_index: str, token_index: str, form: str, norm: str, lemma: str,  # pylint: disable=too-many-arguments, too-many-positional-arguments
+def _load_token(text_index: str, token_index: str, form: str, norm: str, lemma: str,  # pylint: disable=too-many-arguments
     upos: str, xpos: str, feats: str, ufeats: str, head: str, deprel: str, deps: str, misc: str) -> Token:
     return Token(text_index=text_index, token_index=token_index, form=form, norm=norm, lemma=lemma,
     upos=upos, xpos=xpos, feats=feats, ufeats=ufeats, head=head, deprel=deprel, deps=deps, misc=misc)
