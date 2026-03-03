@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "target": "es5",
+    "module": "es2020",
+    "moduleResolution": "node",
+    "importHelpers": true,
+    "lib": ["es2020", "dom"]
+  }
+}

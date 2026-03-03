@@ -1,3 +1,69 @@
+<script setup>
+import axios from 'axios';
+import { ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import SnippetStatisticsTable from '@/components/statistics/SnippetStatisticsTable.vue';
+import SnippetContent from '@/components/utils/SnippetContent.vue';
+
+const props = defineProps({
+  snippets: { type: Array, default: () => [] },
+  dataSnippets: { type: Array, default: () => [] },
+  level: { type: String, default: 'text' },
+  total: { type: Number, default: 0 },
+  contentLoading: { type: Boolean, default: false },
+});
+
+const emit = defineEmits(['currentPage']);
+const route = useRoute();
+
+const showOverviewOrDetail = ref('content');
+const overviewData = ref({});
+const currentPage = ref(1);
+const loadingOverviewData = ref(false);
+const showContent = ref(true);
+const showOverview = ref(false);
+const initializedOverview = ref(false);
+
+watch(showOverview, (newValue) => {
+  if (newValue && !initializedOverview.value) {
+    loadingOverviewData.value = true;
+    fetchOverviewData();
+  }
+});
+
+function handleCurrentChange(val) {
+  emit('currentPage', { page: val });
+}
+
+function handleShowContentOrOverview(obj) {
+  if (obj.props.name === 'content') {
+    showContent.value = true;
+    showOverview.value = false;
+  } else if (obj.props.name === 'overview') {
+    showContent.value = false;
+    showOverview.value = true;
+  }
+}
+
+async function fetchOverviewData() {
+  if (!localStorage.textList) {
+    localStorage.setItem('textList', JSON.stringify({}));
+  }
+  const lang = route.params.toolVersion;
+  const overviewURL = `/api/features/${props.level}s`;
+  try {
+    const response = await axios.post(overviewURL, {
+      texts: JSON.parse(localStorage.textList),
+      lang,
+    });
+    overviewData.value = { data: response.data.data };
+    initializedOverview.value = true;
+  } finally {
+    loadingOverviewData.value = false;
+  }
+}
+</script>
+
 <template>
   <el-container>
     <el-tabs
@@ -22,151 +88,58 @@
           />
         </el-card>
       </el-tab-pane>
-      <el-tab-pane
-        v-loading="contentLoading"
-        label="Content"
-        name="content"
-      >
-        <el-card
-          v-for="(snippet, i) in snippets"
-          :key="i"
-          shadow="hover"
-        >
-          <div
-            slot="header"
-            class="clearfix"
+      <el-tab-pane label="Content" name="content">
+        <div v-loading="contentLoading">
+          <el-card
+            v-for="(snippet, i) in snippets"
+            :key="i"
+            shadow="hover"
           >
-            <span>{{ (currentPage-1)*10 + 1 + i }}</span>
-            <el-popover
-              placement="left"
-              title="Statistics"
-              width="800"
-              trigger="click"
-            >
-              <snippet-statistics-table
-                :statistics-table-data="dataSnippets[i]"
-                :level="level"
-              />
-              <el-button
-                slot="reference"
-                style="float: right; padding: 3px 0"
-                type="text"
-              >
-                Detail
-              </el-button>
-            </el-popover>
-          </div>
-          <div>
+            <template #header>
+              <div class="clearfix">
+                <span>{{ (currentPage - 1) * 10 + 1 + i }}</span>
+
+                <el-popover
+                  placement="left"
+                  title="Statistics"
+                  width="800"
+                  trigger="click"
+                >
+                  <template v-if="dataSnippets[i]">
+                    <snippet-statistics-table
+                      :statistics-table-data="dataSnippets[i]"
+                      :level="level"
+                    />
+                  </template>
+
+                  <template #reference>
+                    <el-button link style="float: right; padding: 3px 0">
+                      Detail
+                    </el-button>
+                  </template>
+                </el-popover>
+              </div>
+            </template>
+
             <snippet-content
               :content="snippet"
               :level="level"
             />
-          </div>
-        </el-card>
-        <el-pagination
-          :hide-on-single-page="true"
-          :current-page.sync="currentPage"
-          :page-size="10"
-          layout="prev, pager, next, jumper"
-          :total="total"
-          @current-change="handleCurrentChange"
-        />
+          </el-card>
+
+          <el-pagination
+            :hide-on-single-page="true"
+            v-model:current-page="currentPage"
+            :page-size="10"
+            layout="prev, pager, next, jumper"
+            :total="total"
+            @current-change="handleCurrentChange"
+          />
+        </div>
       </el-tab-pane>
     </el-tabs>
   </el-container>
 </template>
-
-<script>
-import axios from 'axios';
-import { ref } from 'vue';
-import SnippetStatisticsTable from './SnippetStatisticsTable.vue';
-import SnippetContent from '../Common/SnippetContent.vue';
-
-export default {
-  components: {
-    SnippetStatisticsTable,
-    SnippetContent,
-  },
-  props: {
-    snippets: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    dataSnippets: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    level: {
-      type: String,
-      default: "text",
-      required: false,
-    },
-    total: {
-      type: Number,
-      default: 0,
-      required: false,
-    },
-    contentLoading: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-  },
-  data() {
-    return {
-      showOverviewOrDetail: ref('content'),
-      overviewData: {},
-      currentPage: 1,
-      loadingOverviewData: false,
-      showContent: true,
-      showOverview: false,
-      initializedOverview: false,
-    };
-  },
-  watch: {
-    showOverview(newValue) {
-      if (newValue && !this.initializedOverview) {
-        this.loadingOverviewData = true;
-        this.fetchOverviewData();
-      }
-    },
-  },
-  methods: {
-    handleCurrentChange(val) {
-      this.$emit('currentPage', { page: val });
-    },
-    handleShowContentOrOverview(obj) {
-      if (obj.name === 'content') {
-        this.showContent = true;
-        this.showOverview = false;
-      } if (obj.name === 'overview') {
-        this.showContent = false;
-        this.showOverview = true;
-      }
-    },
-    fetchOverviewData() {
-      if (!localStorage.textList) {
-        localStorage.setItem('textList', JSON.stringify({}));
-      }
-      const lang = this.$route.params.toolVersion;
-      const overviewURL = `/api/features/${this.$props.level}s`;
-      axios
-        .post(overviewURL, {
-          texts: JSON.parse(localStorage.textList),
-          lang,
-        })
-        .then((response) => {
-          this.overviewData = { data: response.data.data };
-        })
-        .then(() => {
-          this.loadingOverviewData = false;
-        });
-    },
-  },
-};
-</script>
 
 <style scoped>
 .el-card {

@@ -1,3 +1,22 @@
+<script setup>
+import DisplacyImage from '@/component/visualize/DisplacyImage.vue';
+
+const props = defineProps({
+    snippets: {
+        type: Array,
+        default: () => [],
+    },
+    metaData: {
+        type: Object,
+        default: () => ({}),
+    },
+    textName: {
+        type: String,
+        default: null,
+    },
+});
+</script>
+
 <template>
   <div>
     <el-row>
@@ -94,34 +113,6 @@
     </el-row>
   </div>
 </template>
-
-<script>
-// import axios from 'axios';
-import DisplacyImage from './DisplacyImage.vue';
-
-export default {
-  components: {
-    DisplacyImage,
-  },
-  props: {
-    snippets: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    metaData: {
-      type: Object,
-      default: () => ({}),
-      required: false,
-    },
-    textName: {
-      type: String,
-      default: null,
-      required: false,
-    },
-  },
-};
-</script>
 
 <style scoped>
 

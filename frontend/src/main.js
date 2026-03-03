@@ -1,95 +1,16 @@
-import Vue from 'vue';
-import VueRouter from 'vue-router';
-import ElementUI from 'element-ui';
-import axios from 'axios';
-import VueCookies from 'vue-cookies';
-import 'element-ui/lib/theme-chalk/index.css';
-import i18n from './i18n/i18n';
+import { createApp } from 'vue'
+import App from './App.vue'
+import router from './router'
+import i18n from './i18n'
+import VueCookies from 'vue3-cookies'
 
-import App from './App.vue';
-import HomePage from './components/HomePage.vue';
-import MainPage from './components/MainPage.vue';
-import UploadPage from './components/Upload/UploadPage.vue';
-import DownloadPage from './components/DownloadPage.vue';
-import VisualizePage from './components/Visualize/VisualizePage.vue';
-import StatisticsPage from './components/Statistics/StatisticsPage.vue';
+import 'element-plus/dist/index.css'
+import '@/assets/styles/main.css'
 
-Vue.config.productionTip = false;
-Vue.use(VueRouter);
-Vue.use(ElementUI);
-Vue.use(VueCookies);
+const app = createApp(App)
 
-axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-axios.defaults.xsrfCookieName = 'csrftoken';
+app.use(router)
+app.use(VueCookies)
+app.use(i18n)
 
-const router = new VueRouter({
-  routes: [
-    {
-      path: '/',
-      redirect: '/en',
-    },
-    {
-      path: '/:toolVersion(en|sv)',
-      component: MainPage,
-      children: [
-        { path: '', component: HomePage },
-        { path: 'upload', component: UploadPage },
-        { path: 'export', component: DownloadPage },
-        {
-          path: 'visualize/',
-          name: 'visualize',
-          component: VisualizePage,
-        },
-        {
-          path: 'statistics/',
-          name: 'statistics',
-          component: StatisticsPage,
-        },
-      ],
-    },
-    {
-      path: '/sv',
-      props: { lang: 'sv' },
-      children: [
-        { path: '', component: HomePage },
-        { path: '/upload', component: UploadPage },
-        { path: '/export', component: DownloadPage },
-        {
-          path: '/visualize/',
-          name: 'visualizeSV',
-          component: VisualizePage,
-        },
-        {
-          path: '/statistics/',
-          name: 'statisticsSV',
-          component: StatisticsPage,
-        },
-      ],
-    },
-    {
-      path: '/en',
-      props: { lang: 'en' },
-      children: [
-        { path: '', component: HomePage },
-        { path: '/upload', component: UploadPage },
-        { path: '/export', component: DownloadPage },
-        {
-          path: '/visualize/',
-          name: 'visualizeEN', // why EN|Sv here?
-          component: VisualizePage,
-        },
-        {
-          path: '/statistics/',
-          name: 'statisticsEN',
-          component: StatisticsPage,
-        },
-      ],
-    },
-  ],
-});
-
-new Vue({
-  router,
-  i18n,
-  render: (h) => h(App),
-}).$mount('#app');
+app.mount('#app')
