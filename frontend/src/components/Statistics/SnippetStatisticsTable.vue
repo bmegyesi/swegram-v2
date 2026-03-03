@@ -1,3 +1,39 @@
+<script setup>
+const props = defineProps({
+    statisticsTableData: {
+        type: Object,
+        default: null,
+    },
+    loadingOverview: {
+        type: Boolean,
+        default: false,
+    },
+    level: {
+        type: String,
+        default: 'text',
+    },
+})
+
+function getRowId(row) {
+    return row.name
+}
+
+function getFeatureName(feature) {
+    if (feature) {
+      const fn = feature
+          .replace('(', '')
+          .replace(')', '')
+          .replace(' & ', ' ')
+          .replace('-', ' ')
+          .split(' ')
+      const head = fn.slice(0, 1).join().toLowerCase()
+      const tail = fn.slice(1).map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase())
+      return head + tail.join('')
+    }
+    return feature
+}
+</script>
+
 <template>
   <div>
     <!-- <el-divider content-position="left">
@@ -9,7 +45,7 @@
     >
       <el-collapse>
         <el-collapse-item
-          v-for="statAspect in statisticsTableData.data"
+          v-for="statAspect in props.statisticsTableData.data"
           :key="statAspect.aspect"
           :title="$t(`features.${statAspect.aspect.toLowerCase()}`)"
         >
@@ -22,18 +58,19 @@
               prop="name"
               :label="$t('statistics.name')"
             >
-              <template slot-scope="scope">
-                <el-tooltip
-                  class="item"
-                  effect="dark"
-                  :content="$t(`featuresDef.${getFeatureName(scope.row.name)}`)"
-                  placement="right"
-                >
-                  <!-- <p>
-                    <vue-mathjax :formula="formula"></vue-mathjax>
-                  </p> -->
-                  <span>{{ $t(`features.${getFeatureName(scope.row.name)}`) }}</span>
-                </el-tooltip>
+              <template #default="{ row }">
+                <span>
+                  <el-tooltip
+                    v-if="row && row.name"
+                    class="item"
+                    effect="dark"
+                    :content="$t(`featuresDef.${getFeatureName(row.name)}`)"
+                    placement="right"
+                  >
+                    <span>{{ $t(`features.${getFeatureName(row.name)}`) }}</span>
+                  </el-tooltip>
+                  <span v-else>-</span>
+                </span>
               </template>
             </el-table-column>
             <el-table-column
@@ -60,43 +97,3 @@
     </div>
   </div>
 </template>
-
-<script>
-
-export default {
-  props: {
-    statisticsTableData: {
-      type: Object,
-      default: null,
-      required: false,
-    },
-    loadingOverview: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    level: {
-      type: String,
-      default: 'text',
-      required: false,
-    },
-  },
-  methods: {
-    getRowId(row) {
-      return row.name;
-    },
-    getFeatureName(feature) {
-      const fn = feature
-        .replace('(', '')
-        .replace(')', '')
-        .replace(' & ', ' ')
-        .replace('-', ' ')
-        .split(' ');
-      const head = fn.slice(0, 1).join().toLowerCase();
-      const tail = fn.slice(1)
-        .map((w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
-      return head + tail.join('');
-    },
-  },
-};
-</script>

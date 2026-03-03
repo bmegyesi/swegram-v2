@@ -1,0 +1,154 @@
+<script setup lang="js">
+import DefaultLayout from '../layouts/DefaultLayout.vue';
+
+</script>
+
+<template>
+  <default-layout>
+    <el-container>
+      <el-container>
+        <div class="icons-container swegram-logo-div">
+          <img
+            src="../assets/swe-clarin-logo.png"
+            class="swegram-logo-png"
+          >
+        </div>
+        <el-main>
+          <div class="swegram-title">
+            <h1>SWEGRAM</h1>
+          </div>
+          <div class="button-container">
+            <router-link to="/sv/upload">
+              <el-card
+                shadow="never"
+                class="button-wrapper"
+                body-style="display: flex; flex-direction: column; align-items: center;"
+              >
+                <img
+                  src="../assets/sv.png"
+                ><br>
+                <span>{{ $t('homePage.svEntryText') }}</span>
+              </el-card>
+            </router-link>
+            <router-link to="/en/upload">
+              <el-card
+                shadow="never"
+                class="button-wrapper"
+                body-style="display: flex; flex-direction: column; align-items: center;"
+              >
+                <img
+                  src="../assets/en.png"
+                ><br>
+                <span>{{ $t('homePage.enEntryText') }}</span>
+              </el-card>
+            </router-link>
+          </div>
+          <h2>{{ $t('homePage.about') }}</h2>
+          <div class="info-container">
+            <p>{{ $t('homePage.swegramIntro') }}</p>
+            <i18n
+              path="homePage.purpose"
+              tag="p"
+            >
+              <a href="https://sweclarin.se">SWE-CLARIN</a>
+            </i18n>
+            <el-divider />
+            <b>{{ $t('homePage.projectLeader') }}</b>: {{ $t('homePage.projectLeaderContent') }}<br>
+            <b>{{ $t('homePage.participant') }}</b>: {{ $t('homePage.participantContent') }}<br>
+            <el-divider />
+            {{ $t('homePage.references') }} <br><br>
+            <i18n
+              path="homePage.reference2024"
+              :tag="false"
+            >
+              <i>{{ $t('homePage.article2024') }}</i>
+              <a href="https://cl.lingfil.uu.se/~bea/publ/swegram-manual-2019.pdf">{{ $t('homePage.getPDF') }}</a>
+            </i18n>
+            <i18n
+              path="homePage.reference2019"
+              :tag="false"
+            >
+              <a href="https://cl.lingfil.uu.se/~bea/publ/swegram-manual-2019.pdf">{{ $t('homePage.getPDF') }}</a>
+            </i18n>
+            <br>
+            <i18n
+              path="homePage.reference2017"
+              :tag="false"
+            >
+              <a href="https://cl.lingfil.uu.se/~bea/publ/swegram-2017.pdf">{{ $t('homePage.getPDF') }}</a>
+            </i18n>
+          </div>
+        </el-main>
+      </el-container>
+    </el-container>
+  </default-layout>
+</template>
+
+
+<style scoped>
+
+.swegram-logo-png {
+  height: 110px;
+  width: 160px;
+}
+
+.swegram-logo-div {
+  float: left;
+}
+
+.swegram-title {
+  margin: auto;
+}
+
+.swegram-title h1 {
+  color: rgba(67, 77, 108);
+  font-size: 3em;
+  margin: auto;
+  text-align: center;
+}
+
+h2 {
+  color: #303133;
+}
+
+.icons-container img {
+  margin: 20px;
+}
+
+.link-container a {
+  margin:20px;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.button-container a {
+  text-decoration: none;
+}
+
+.button-wrapper {
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.button-wrapper span {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.info-container {
+  font-size: 75%;
+  color: #606266;
+}
+
+.footer-container {
+  font-size: 60%;
+  text-align: right;
+}
+</style>

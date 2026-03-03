@@ -1,11 +1,29 @@
+<script setup>
+import { computed, toRefs } from 'vue';
+import DisplacyImage from '@/components/visualize/DisplacyImage.vue';
+
+const props = defineProps({
+    snippets: { type: Array, default: () => [] },
+    metaData: { type: Array, default: () => [] },
+    textName: { type: String, default: null },
+    pageSize: { type: Number, default: null },
+    pageIndex: { type: Number, default: null },
+    parsed: { type: Boolean, default: false },
+});
+
+const { snippets, metaData, textName, pageSize, pageIndex, parsed } = toRefs(props);
+const showMetadata = computed(() => props.metaData.length > 0);
+
+</script>
+
 <template>
   <div>
     <el-row>
       <div class="section-name">
-        <h3>{{ textName.split('.').slice(0, textName.split('.').length-1).join('.') }}</h3>
+        <h3>{{ props.textName.split('.').slice(0, props.textName.split('.').length-1).join('.') }}</h3>
       </div>
     </el-row>
-    <el-row
+    <!-- <el-row
       v-show="showMetadata"
     >
       <div class="section-metadata">
@@ -20,22 +38,21 @@
           </el-tag>
         </span>
       </div>
-    </el-row>
+    </el-row> -->
     <el-row class="section-body">
       <el-collapse>
         <el-collapse-item
-          v-for="(snippet, i) in snippets"
+          v-for="(snippet, i) in props.snippets"
           :key="i"
         >
-          <template slot="title">
+          <template #title>
             <div class="snippet-title">
-              <span>{{ snippet.tokens[0].text_id }} </span>
-              <!-- <span>({{ i + 1 + pageSize * (pageIndex - 1) }}.)</span> -->
+              <span>{{ snippet.tokens[0].text_id }}&nbsp;</span>
               <span
                 v-for="(t, j) in snippet.tokens"
                 :key="j"
                 :class="t.highlight"
-              >{{ t.form }} </span>
+              >{{ t.form }}&nbsp;</span>
             </div>
           </template>
           <div
@@ -44,6 +61,7 @@
             <el-popover
               v-for="(token, k) in snippet.tokens"
               :key="k"
+              :width="400"
               placement="top"
               trigger="click"
             >
@@ -61,32 +79,32 @@
               {{ $t('visualize.misc') }}: <span>{{ token.misc }}</span><br>
               {{ $t('visualize.dependencyLength') }}: <span>{{ token.dep_length }}</span><br>
               {{ $t('visualize.stig') }}: <span>{{ token.path }}</span><br>
-              <el-tag
-                slot="reference"
-              >
-                {{ token.form }}
-                <el-popover
-                  v-if="token.compound_originals"
-                  placement="top"
-                  trigger="click"
-                >
-                  <h4>{{ $t('visualize.markedToken') }}</h4>
-                  {{ $t('visualize.form') }}: <span>{{ token.form }}</span><br>
-                  {{ $t('visualize.norm') }}: <span>{{ token.norm }}</span><br>
-                  {{ $t('visualize.lemma') }}: <span>{{ token.lemma }}</span><br>
-                  {{ $t('visualize.upos') }}: <span>{{ token.upos }}</span><br>
-                  {{ $t('visualize.xpos') }}: <span>{{ token.xpos }}</span><br>
-                  {{ $t('visualize.feats') }}: <span>{{ token.feats }}</span><br>
-                  {{ $t('visualize.ufeats') }}: <span>{{ token.ufeats }}</span><br>
-                  {{ $t('visualize.head') }}: <span>{{ token.head }}</span><br>
-                  {{ $t('visualize.deprel') }}: <span>{{ token.deprel }}</span><br>
-                  {{ $t('visualize.deps') }}: <span>{{ token.deps }}</span><br>
-                  {{ $t('visualize.misc') }}: <span>{{ token.misc }}</span><br>
-                  {{ $t('visualize.dependencyLength') }}: <span>{{ token.dep_length }}</span><br>
-                  {{ $t('visualize.stig') }}: <span>{{ token.path }}</span><br>
-                  <b slot="reference">{{ token.norm }}</b>
-                </el-popover>
-              </el-tag>
+              <template #reference>
+                <el-tag>
+                  {{ token.form }}
+                  <el-popover
+                    v-if="token.compound_originals"
+                    placement="top"
+                    trigger="click"
+                  >
+                    <h4>{{ $t('visualize.markedToken') }}</h4>
+                    {{ $t('visualize.form') }}: <span>{{ token.form }}</span><br>
+                    {{ $t('visualize.norm') }}: <span>{{ token.norm }}</span><br>
+                    {{ $t('visualize.lemma') }}: <span>{{ token.lemma }}</span><br>
+                    {{ $t('visualize.upos') }}: <span>{{ token.upos }}</span><br>
+                    {{ $t('visualize.xpos') }}: <span>{{ token.xpos }}</span><br>
+                    {{ $t('visualize.feats') }}: <span>{{ token.feats }}</span><br>
+                    {{ $t('visualize.ufeats') }}: <span>{{ token.ufeats }}</span><br>
+                    {{ $t('visualize.head') }}: <span>{{ token.head }}</span><br>
+                    {{ $t('visualize.deprel') }}: <span>{{ token.deprel }}</span><br>
+                    {{ $t('visualize.deps') }}: <span>{{ token.deps }}</span><br>
+                    {{ $t('visualize.misc') }}: <span>{{ token.misc }}</span><br>
+                    {{ $t('visualize.dependencyLength') }}: <span>{{ token.dep_length }}</span><br>
+                    {{ $t('visualize.stig') }}: <span>{{ token.path }}</span><br>
+                    <template #reference><b>{{ token.norm }}</b></template>
+                  </el-popover>
+                </el-tag>
+              </template>
             </el-popover>
           </div>
           <div
@@ -103,53 +121,6 @@
     </el-row>
   </div>
 </template>
-
-<script>
-import DisplacyImage from './DisplacyImage.vue';
-
-export default {
-  components: {
-    DisplacyImage,
-  },
-  props: {
-    snippets: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    metaData: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    textName: {
-      type: String,
-      default: null,
-      required: false,
-    },
-    pageSize: {
-      type: Number,
-      default: null,
-      required: false,
-    },
-    pageIndex: {
-      type: Number,
-      default: null,
-      required: false,
-    },
-    parsed: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-  },
-  computed: {
-    showMetadata() {
-      return this.$props.metaData.length > 0;
-    },
-  },
-};
-</script>
 
 <style scoped>
 
