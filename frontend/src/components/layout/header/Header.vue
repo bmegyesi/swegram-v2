@@ -40,6 +40,7 @@ function downloadManual() {
       <el-menu
         :default-active="activeLink"
         class="el-menu"
+        background-color="#F4DE48"
         active-text-color="black"
         mode="horizontal"
         router
@@ -71,6 +72,7 @@ function downloadManual() {
     >
       <el-menu
         :default-active="activeLink"
+        class="el-menu"
         background-color="#F2575F"
         active-text-color="black"
         mode="horizontal"
@@ -119,7 +121,6 @@ function downloadManual() {
 }
 
 .el-menu {
-  background-color: #F4DE48;
   flex-grow: 1;
 }
 
