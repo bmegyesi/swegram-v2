@@ -127,6 +127,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+**/tools
+**.python_history
 
 # Spyder project settings
 .spyderproject
