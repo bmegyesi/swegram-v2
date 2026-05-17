@@ -221,7 +221,8 @@ class Writer:
     def _get_feature_string(
         self, name: str, scalar: Union[int, float], mean: Union[int, float], median: Union[int, float]
     ) -> str:
-        return f"{' ':>2}{name:>40}{'|':>4}{scalar:>10}{'|':>4}{mean:>10}{'|':>4}{median:>10}{'|':>4}"
+        _convert = lambda k: k if k is not None else "N/A"
+        return f"{' ':>2}{name:>40}{'|':>4}{_convert(scalar):>10}{'|':>4}{_convert(mean):>10}{'|':>4}{_convert(median):>10}{'|':>4}"
 
     def _txt_format(self, string: str) -> str:
         return f"{string:^88}".replace(" ", "-")
