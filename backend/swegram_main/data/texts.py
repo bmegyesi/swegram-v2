@@ -8,7 +8,7 @@ from typing import Dict, Optional, List, Any
 
 from swegram_main.data.paragraphs import Paragraph
 from swegram_main.data.metadata import convert_labels_to_list
-from swegram_main.lib.utils import get_size, change_suffix
+from swegram_main.lib.utils import change_suffix
 
 @dataclass
 class State:
@@ -29,11 +29,11 @@ class Text:  # pylint: disable=too-many-instance-attributes
     text_uuid: str
     language: str
     filename: Path  # The filename can be shared across different texts
-    # uuid: str
 
     elements: Optional[str] = "paragraphs"
     labels: Optional[Dict[str, str]] = None
     activated: bool = False
+    _filesize: Optional[str] = None
 
     # state
     tokenized: bool = True
@@ -50,7 +50,7 @@ class Text:  # pylint: disable=too-many-instance-attributes
 
     @property
     def filesize(self):
-        return get_size(self.filename)
+        return self._filesize
 
     @filesize.setter
     def filesize(self, value):

@@ -317,7 +317,7 @@ def _get_index_and_data(lines: List[str]) -> Tuple[List[str], List[List[str]]]:
 
 def _get_original_filename(filename: str) -> str:
     _stem, extension = filename.rsplit(".", maxsplit=1)
-    stem, _ = _stem.rsplit("_", maxsplit=1)
+    stem, *_ = _stem.rsplit("_", maxsplit=1)
     return f"{stem}.{extension}"
 
 

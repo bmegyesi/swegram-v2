@@ -15,7 +15,6 @@ router = APIRouter()
 
 @router.post("/texts/")
 async def download_texts(data: Dict[str, Any] = Body(...), db: Session = Depends(DatabaseHandler.get_db)) -> FileResponse:
-    breakpoint()
     return await _download_texts(data, db)
 
 

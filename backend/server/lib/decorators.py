@@ -95,6 +95,7 @@ class TaskDecorator:
                 traceback.print_exc()
                 logger.error(f"Error occurred while executing the task: {e}")
                 self.update_task(verdict=1)
+                raise e
             else:
                 logger.info("Task executed successfully.")
                 self.update_task(verdict=0)

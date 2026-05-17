@@ -111,11 +111,11 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
 
     filename = Column(String(length=255))
     activated = Column(Boolean, default=False)
-    date = Column(String(length=225), default=func.now())
+    date = Column(String(length=255), default=func.now())
     content = Column(LONGTEXT, nullable=True)
     labels = Column(JSON, nullable=True)
     has_label = Column(Boolean, default=False)
-    _filesize = Column(Integer, nullable=True)
+    filesize = Column(String(length=255), nullable=True)
 
     tokenized = Column(Boolean, default=True)
     normalized = Column(Boolean, default=False)
@@ -123,14 +123,6 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
     parsed = Column(Boolean, default=False)
 
     paragraphs = relationship("Paragraph", back_populates="text", cascade="all, delete-orphan")
-
-    @property
-    def filesize(self) -> str:
-        if self._filesize:
-            return get_size_and_format(self._filesize)
-        if self.content:
-            return get_size_and_format(sys.getsizeof(self.content))
-        return "0"
 
     def short(self) -> Dict[str, Any]:
         return {

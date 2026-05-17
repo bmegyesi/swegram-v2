@@ -187,12 +187,17 @@ def get_content_md5(content: str) -> str:
     return md5(content).hexdigest()
 
 
-def get_size(filepath: Path) -> Optional[int]:
+def get_size(filepath: Path) -> Optional[str]:
     """Get size"""
     if not os.path.exists(filepath):
         logging.debug(f"{filepath} does not exist.")
         return None
-    return os.path.getsize(filepath)
+    size = os.path.getsize(filepath)
+    for i, u in zip(list(range(3, -1, -1)), "MB KB B ".split(" ")):
+        value = round(size / 1024 ** i)
+        if value >= 1:
+            return f"{value}{u}"
+    raise Exception(f"Failed to get size of {filepath=}")
 
 
 def write(filepath: Path, context: str) -> None:

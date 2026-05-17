@@ -13,7 +13,7 @@ from server.models import Text as TextDataBaseModel
 from swegram_main.data.texts import TextDirectory as TD
 from swegram_main.data.texts import Text as TextData
 from swegram_main.handler.handler import load_text
-from swegram_main.lib.utils import read_conll_text
+from swegram_main.lib.utils import get_size,read_conll_text
 from swegram_main.lib.logger import get_logger
 from swegram_main.pipeline.lib.normalize import normalize
 from swegram_main.pipeline.lib.parse import parse
@@ -38,7 +38,6 @@ def preprocess_job(config: Config, **kwargs) -> Tuple[int, List[TD]]:
     if "raw_text" not in kwargs:
         raise PreProcessError(f"Not found raw text from input, {kwargs=}")
     save_text(target_path=config.input_path, **kwargs)
-
     try:
         if "job_id" not in kwargs:
             raise ValueError("job_id is not provided in kwargs for preprocess_job")
@@ -90,7 +89,10 @@ def load_text_task(text: TD, config: Config, **kwargs) -> None:
     try:
         db: Session = DatabaseHandler().SessionLocal()
         seralized_text_data = _text.to_dict()
-        seralized_text_data.update({"tokenized": config.tokenize, "normalized": config.normalize, "tagged": config.tag, "parsed": config.parse})
+        seralized_text_data.update({
+            "tokenized": config.tokenize, "normalized": config.normalize, "tagged": config.tag,
+            "parsed": config.parse, "filesize": config.filesize
+        })
         text_instance = TextDataBaseModel(**seralized_text_data)
         db.add(text_instance)
         db.commit()
@@ -141,5 +143,6 @@ def annotate_file(language: str, filepath: Path, output_dir: Optional[Path] = No
     base_filename, suffix = config.filename.split(".")
     for index, text in enumerate(texts, 1):
         if len(texts) > 1:
-            config.filename = f"{base_filename}-{index}.{suffix}"
+            config.filename = f"{base_filename}_{index}.{suffix}"
+        config.filesize = get_size(text.filepath)
         annotate_text(text=text, config=config, parent_id=parent_id, job_name="Annotation")

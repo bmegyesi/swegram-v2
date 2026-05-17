@@ -20,6 +20,7 @@ class Config(BaseModel):
     language: str
     input_path: Path
     filename: str
+    filesize: Optional[str] = None
     model_config = ConfigDict(validate_default=True)
     output_dir: Optional[Path] = None
 
