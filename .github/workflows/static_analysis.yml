@@ -25,7 +25,8 @@ jobs:
 
     - name: Analysing the code with pylint
       run: |
-        pylint backend
+        cd backend
+        pylint swegram_main server
 
     - name: Analysing the code with test
       run: |
