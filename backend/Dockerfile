@@ -15,9 +15,18 @@ RUN apt update && apt install openjdk-17-jdk -y
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY build_dependencies /root/build_dependencies
-COPY dist/swegram-${VERSION}-py3-none-any.whl /dist/swegram-${VERSION}-py3-none-any.whl
-RUN pip install dist/swegram-${VERSION}-py3-none-any.whl
+COPY backend/build_dependencies /root/build_dependencies
+COPY backend/pyproject.toml /root/pyproject.toml
+COPY backend/README.md /root/README.md
+COPY backend/requirements.txt /root/requirements.txt
+COPY backend/server /root/server
+COPY backend/setup.sh /root/setup.sh
+COPY backend/swegram_main /root/swegram_main
+
+WORKDIR /root
+RUN pip install wheel build
+RUN pip install -r requirements.txt
+RUN pip install .
 
 RUN swegram-build
 RUN rm -rf build_dependencies

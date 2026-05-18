@@ -4,6 +4,7 @@ import Annotate from '../views/Annotate.vue'
 import Visualize from '../views/Visualize.vue'
 import Statistics from '../views/Statistics.vue'
 import Export from '../views/Export.vue'
+import Dashboard from '../views/Dashboard.vue'
 
 const routes = [
   {
@@ -21,6 +22,10 @@ const routes = [
   {
     path: '/:toolVersion(sv|en)/statistics',
     component: Statistics
+  },
+  {
+    path: '/:toolVersion(sv|en)/dashboard',
+    component: Dashboard
   },
   {
     path: '/:toolVersion(sv|en)/export',

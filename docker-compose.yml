@@ -19,7 +19,10 @@ services:
       - database
 
   backend:
-    image: rex0046/swegram-backend:1.1.0 # Image needs to be built with network
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: swegram-backend:latest
     container_name: swegram-backend-fastapi
     restart: always
     environment:
@@ -27,12 +30,10 @@ services:
       MYSQL_DATABASE: swegram_corpus
       MYSQL_USER: swegram
       MYSQL_PASSWORD: swegram_pass
-      MYSQL_HOST: 172.18.0.1
+      MYSQL_HOST: db
       PRODUCTION: 1
     ports:
       - "8000:8000"
-    entrypoint: >
-      bash -c "cd /root && sleep 30 && python3 app_run.py"
     networks:
       - swegram-network
     profiles:

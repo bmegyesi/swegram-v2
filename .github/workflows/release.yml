@@ -1,35 +1,35 @@
-name: Pypi deployment
+# name: Pypi deployment
 
-on:
-  workflow_dispatch: {}
-  push:
-    paths:
-      - swegram_main/version.py
+# on:
+#   workflow_dispatch: {}
+#   push:
+#     paths:
+#       - swegram_main/version.py
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       id-token: write
 
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: "3.8"
+#     steps:
+#     - uses: actions/checkout@v3
+#     - uses: actions/setup-python@v4
+#       with:
+#         python-version: "3.8"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements-dev.txt
+#     - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install -r requirements-dev.txt
 
-    - name: Build
-      run: |
-        python setup.py bdist_wheel
+#     - name: Build
+#       run: |
+#         python setup.py bdist_wheel
 
-    - name: Twine Check
-      run: |
-        twine check dist/*.whl
+#     - name: Twine Check
+#       run: |
+#         twine check dist/*.whl
 
-    - name: Publish package distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@release/v1
+#     - name: Publish package distributions to PyPI
+#       uses: pypa/gh-action-pypi-publish@release/v1
