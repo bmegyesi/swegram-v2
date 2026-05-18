@@ -43,7 +43,7 @@ if $deploy_all; then
 else
     if $deploy_backend; then
         docker compose --profile backend down || true
-        docker compose --profile backend up -d
+        docker compose --profile backend up -d --build
     fi
 
     if $deploy_frontend; then

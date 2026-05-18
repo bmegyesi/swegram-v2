@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "swegram"
+# Replace the version below with the value from swegram_main.version.VERSION or keep sync strategy you prefer
+description = "CLI library for Swegram"
+readme = { file = "README.md", content-type = "text/markdown" }
+classifiers = [
+    "Programming Lanuage :: Python :: 3.8"
+]
+dynamic = ["dependencies", "version"]
+
+[project.urls]
+Homepage = "https://github.com/bmegyesi/swegram-v2"
+
+[project.scripts]
+swegram = "swegram_main.handler.cli:main"
+swegram-build = "swegram_main.handler.build:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+version = {attr = "swegram_main.version.VERSION" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["swegram_main*", "server*", "build_dependencies*"]
+exclude = ["test*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"swegram_main.statistics.kelly" = ["kelly.en", "kelly.sv", "wpm.sv"]
+"build_dependencies" = ["install.sh"]
+"build_dependencies.en.en" = ["english-ud-2.0-170801.udpipe"]
+"build_dependencies.en.histnorm" = ["bnc.mono.en.freqs"]
+"build_dependencies.en.histnorm.WordNetDictionary" = [
+    "adj.exc", "adv.exc", "data.adj", "data.adv", "data.noun", "data.verb", "noun.exc", "verb.exc"
+]
+"build_dependencies.sv" = ["swe-pipeline-ud2.tar.gz"]
+"build_dependencies.sv.HistNorm.scripts" = [
+    "compute_editdistance.perl",
+    "extractWeights.perl",
+    "findEdits.perl",
+    "normalise_levenshtein.perl",
+    "normalise_levenshtein_elevtexter.perl",
+    "setWeightsAndThreshold.sh",
+    "set_threshold.perl"
+]
+"build_dependencies.sv.HistNorm.resources.swedish.levenshtein" = [
+    "fullList.txt",
+    "saldo-total_wordforms.txt",
+    "sv-threshold.txt",
+    "sv-weights.txt",
+    "swedish.corp",
+    "swedish.dev.txt",
+    "swedish.dic",
+    "swedish.hs-sv.dev.hs",
+    "swedish.hs-sv.dev.hssv",
+    "swedish.hs-sv.dev.sv",
+    "swedish.hs-sv.test.hs",
+    "swedish.hs-sv.test.hssv",
+    "swedish.hs-sv.test.sv",
+    "swedish.hs-sv.train.hs",
+    "swedish.hs-sv.train.hssv",
+    "swedish.hs-sv.train.sv",
+    "swedish.train.txt",
+    "threshold.swedish.elevtexter.txt",
+    "threshold.swedish.txt",
+    "weights.swedish.txt"
+]

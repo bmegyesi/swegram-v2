@@ -16,6 +16,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        cd backend
         python -m pip install --upgrade pip
         pip install -r requirements-dev.txt
         source setup.sh
@@ -24,10 +25,13 @@ jobs:
 
     - name: Analysing the code with pylint
       run: |
-        pylint swegram_main
+        cd backend
+        source setup.sh
+        pylint swegram_main server
 
     - name: Analysing the code with test
       run: |
+        cd backend
         source setup.sh
         pip install .
         swegram-build

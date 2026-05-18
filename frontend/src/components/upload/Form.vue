@@ -119,7 +119,7 @@ function handleUploadSuccess(response) {
       message: t('uploadForm.uploadSuccessMsg'),
       type: 'success',
     });
-    router.push(`/${route.params.toolVersion}/visualize`);
+    router.push(`/${route.params.toolVersion}/dashboard`);
     emit('uploaded');
   }
 }
@@ -236,7 +236,6 @@ function uploadURL() {
             :on-success="handleUploadSuccess"
             :on-error="handleUploadFailure"
             :on-progress="handleUploadOnProgress"
-            :name="formData.annotated ? 'file_to_analyze' : 'file_to_annotate'"
           >
             <el-icon>
               <UploadFilled />

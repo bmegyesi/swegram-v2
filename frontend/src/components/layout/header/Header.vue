@@ -60,6 +60,9 @@ function downloadManual() {
         <el-menu-item index="/sv/export">
           {{ $t('topNavbar.export') }}
         </el-menu-item>
+        <el-menu-item index="/sv/dashboard">
+          {{ $t('topNavbar.dashboard') }}
+        </el-menu-item>
         <el-menu-item index="download-manual" @click="downloadManual">
           {{ $t('homePage.downloadManual') }}
         </el-menu-item>
@@ -89,6 +92,9 @@ function downloadManual() {
         </el-menu-item>
         <el-menu-item index="/en/statistics">
           {{ $t('topNavbar.statistics') }}
+        </el-menu-item>
+        <el-menu-item index="/en/dashboard">
+          {{ $t('topNavbar.dashboard') }}
         </el-menu-item>
         <el-menu-item index="/en/export">
           {{ $t('topNavbar.export') }}
