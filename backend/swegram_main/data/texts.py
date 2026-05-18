@@ -125,10 +125,6 @@ class TextDirectory:
         return self.generate_path("tok")
 
     @property
-    def spell(self) -> Path:
-        return self.generate_path("spell")
-
-    @property
     def tag(self) -> Path:
         return self.generate_path("tag")
 

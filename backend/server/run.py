@@ -1,10 +1,9 @@
 import os
-import asyncio
-import uvicorn
+from contextlib import asynccontextmanager
 
+import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
-from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -12,9 +11,6 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 from server.routers.job import router as job_router
 from server.routers.task import router as task_router
 from server.database.handler import DatabaseHandler
-from server.models import Paragraph, Sentence, Text, Token
-from server.models.job import Job
-from server.models.task import Task
 from server.routers.download import router as download_router
 from server.routers.features import router as features_router
 from server.routers.frequencies import router as frequencies_router
@@ -26,13 +22,16 @@ from server.routers.texts import remove_texts
 
 # Add Background scheduler to automatically remove expired texts in the database
 scheduler = BackgroundScheduler()
-# scheduler.add_job(remove_texts, CronTrigger(hour=0, minute=0))
-scheduler.start()
+
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
+    scheduler.add_job(remove_texts, CronTrigger(hour=0, minute=0))
+    scheduler.start()
+
     yield
+
     scheduler.shutdown()
 
 
@@ -50,6 +49,7 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
+
 @app.get("/healthcheck")
 async def healthcheck():
     return HTMLResponse(content="Application health check runs successfully", status_code=200)
@@ -59,11 +59,10 @@ async def healthcheck():
 async def index() -> RedirectResponse:
     return RedirectResponse(url="/docs")
 
+
 DatabaseHandler().create_tables()
 app.include_router(job_router, prefix=f"{PROD_PREFIX}/jobs", tags=["jobs"], dependencies=[Depends(DatabaseHandler.get_db)])
 app.include_router(task_router, prefix=f"{PROD_PREFIX}/tasks", tags=["tasks"], dependencies=[Depends(DatabaseHandler.get_db)])
-
-
 app.include_router(download_router, prefix=f"{PROD_PREFIX}/download", tags=["download"], dependencies=[Depends(DatabaseHandler.get_db)])
 app.include_router(features_router, prefix=f"{PROD_PREFIX}/features", tags=["features"], dependencies=[Depends(DatabaseHandler.get_db)])
 app.include_router(frequencies_router, prefix=f"{PROD_PREFIX}/frequencies", tags=["frequencies"], dependencies=[Depends(DatabaseHandler.get_db)])

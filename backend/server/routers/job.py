@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
 from typing import List
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from server.database.handler import DatabaseHandler
 from server.models.job import Job
 from server.schemas.job_schema import JobCreate, JobUpdate, JobResponse
@@ -11,7 +12,7 @@ router = APIRouter()
 
 @router.post("/", response_model=JobResponse)
 def create_job(job: JobCreate, db: Session = Depends(DatabaseHandler().get_db)):
-    db_job = Job(language=job.language, filename=job.filename, state=job.state, verdict=job.verdict)
+    db_job = Job(language=job.language, filename=job.filename, state=job.state, verdict=job.verdict)  # pylint: disable=unexpected-keyword-arg
     db.add(db_job)
     db.commit()
     db.refresh(db_job)

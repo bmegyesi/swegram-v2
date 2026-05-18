@@ -19,7 +19,7 @@ class JobDecorator:
     db = next(DatabaseHandler().get_db())
 
     def create_job(self, language: str, filename: str, job_name: Optional[str] = None, parent_id: Optional[int] = None) -> None:
-        self.db_job = Job(language=language, filename=filename, job_name=job_name, parent_id=parent_id, state=0, verdict=0)
+        self.db_job = Job(language=language, filename=filename, job_name=job_name, parent_id=parent_id, state=0, verdict=0)  # pylint: disable=unexpected-keyword-arg
         self.db.add(self.db_job)
         self.db.commit()
         self.db.refresh(self.db_job)
@@ -48,9 +48,10 @@ class JobDecorator:
                 kwargs["job_id"] = self.db_job.id  # Pass job_id to the decorated function
                 response = func(*args, **kwargs)
                 self.update_job(state=1)
-            except Exception as e:
+            except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error(f"Error occurred while executing the job: {e}")
                 self.update_job(verdict=1)
+                return None
             else:
                 logger.info("Job executed successfully.")
                 self.update_job(verdict=0)
@@ -66,7 +67,7 @@ class TaskDecorator:
     db = next(DatabaseHandler().get_db())
 
     def create_task(self, name: str, job_id: int) -> None:
-        self.db_task = Task(state=0, verdict=0, name=name, job_id=job_id)
+        self.db_task = Task(state=0, verdict=0, name=name, job_id=job_id)  # pylint: disable=unexpected-keyword-arg
         self.db.add(self.db_task)
         self.db.commit()
         self.db.refresh(self.db_task)

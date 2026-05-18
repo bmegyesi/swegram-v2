@@ -14,7 +14,7 @@ MYSQL_HOST_QA = "127.0.0.1"
 MYSQL_USER_QA = "root"
 MYSQL_PASSWORD_QA = "rootpassword"
 MYSQL_DATABASE_QA = "swegram_corpus_qa"
-logger = logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -27,9 +27,8 @@ def _declarative_constructor(self, **kwargs) -> None:
             continue
         try:
             setattr(self, k, v)
-        except Exception as e:
-            logger.warning(f"Not able to set attribute, {k=}, {v=}")
-            pass
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning(f"Not able to set attribute, {k=}, {v=} with error {e}")
 
 
 Base = declarative_base(constructor=_declarative_constructor)

@@ -18,7 +18,7 @@ def fetch_current_sentences(text_id: int, page: int, db: Session) -> Dict[str, A
 
     return JSONResponse({
         "current_sentences": [{"tokens": sentence.serialize_tokens()} for sentence in sentences],
-        "metadata": [(key, value) for key, value in  text.labels.items()] if text.labels else [],
+        "metadata":  list(text.labels.items()) if text.labels else [],
         "total_items": text.sents,
         "page_size": PAGE_SIZE
     })

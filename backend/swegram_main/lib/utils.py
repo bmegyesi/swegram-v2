@@ -68,20 +68,6 @@ class FileContent:
             else:
                 yield metadata
 
-    # def chunks(self) -> FCT:
-    #     chunk = []
-
-    #     def chunk(lines: Iterator[Union[str, Dict[str, str]]]) -> Generator:
-    #         for line in lines:
-    #             yield line
-
-    #     for line in self._convert():
-    #         if not line:
-    #             continue
-    #         metadata = parse_metadata(line)
-
-
-
 class XlsxClient:
 
     def __init__(self, output_path: Path) -> None:
@@ -190,14 +176,14 @@ def get_content_md5(content: str) -> str:
 def get_size(filepath: Path) -> Optional[str]:
     """Get size"""
     if not os.path.exists(filepath):
-        logging.debug(f"{filepath} does not exist.")
+        logging.warning(f"{filepath} does not exist.")
         return None
     size = os.path.getsize(filepath)
     for i, u in zip(list(range(3, -1, -1)), "MB KB B ".split(" ")):
         value = round(size / 1024 ** i)
         if value >= 1:
             return f"{value}{u}"
-    raise Exception(f"Failed to get size of {filepath=}")
+    raise ValueError(f"Failed to get size of {filepath=}")
 
 
 def write(filepath: Path, context: str) -> None:
@@ -237,15 +223,15 @@ def read_conll_text(input_path: Path) -> Any:
 
 
 def _read_conll_text(file_content: FileContent) -> Any:
-    paragraphs, sentences, sentence, = [], [], []
-
+    paragraphs, sentences, sentence = [], [], []
+    meta = None
     def _append_paragraph() -> None:
         if sentence:
             sentences.append(sentence)
         if sentences:
             paragraphs.append(sentences)
 
-    try:  # pylint: disable=too-many-try-statements
+    try:
         meta, component = _initialize_conllu_reading(file_content)
         newline = 0
         while True:

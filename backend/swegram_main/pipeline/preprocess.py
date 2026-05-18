@@ -48,7 +48,7 @@ def convert_json_conll(filepath: Path, output_dir: Path) -> Path:
 
 
 @TaskDecorator()
-def preprocess(input_path: Path, output_dir: Path, model: str, **kwargs) -> List[TD]:
+def preprocess(input_path: Path, output_dir: Path, model: str, **kwargs) -> List[TD]:  # pylint: disable=unused-argument
     text_index = 0
     text_instances: List[TD] = []
     if input_path.suffix == ".json":

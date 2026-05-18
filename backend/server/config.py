@@ -67,6 +67,7 @@ class Config(BaseModel):
         raise ValueError(f"Unsupported language: {self.language}")
 
     @field_validator("input_path")
+    @classmethod
     def validate_input_path(cls, value: Path) -> Path:
         if not value.exists():
             raise FileNotFoundError(value)

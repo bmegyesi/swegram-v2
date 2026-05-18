@@ -49,13 +49,13 @@ def preprocess_job(config: Config, **kwargs) -> Tuple[int, List[TD]]:
 
 
 @TaskDecorator()
-def save_text(raw_text: str, target_path: Path, **kwargs) -> None:
+def save_text(raw_text: str, target_path: Path, **kwargs) -> None:  # pylint: disable=unused-argument
     with open(target_path, mode="w", encoding="utf-8") as f:
         f.write(raw_text)
 
 
 @JobDecorator()
-def annotate_text(text: TD, config: Config, parent_id: int, **kwargs) -> None:
+def annotate_text(text: TD, config: Config, parent_id: int, **kwargs) -> None:  # pylint: disable=unused-argument
     logger.info(f"Starting annotating for {config.input_path} in {config.language}")
     if config.normalize:
         tokenize_task(config.parser, text, **kwargs)
@@ -72,12 +72,12 @@ def annotate_text(text: TD, config: Config, parent_id: int, **kwargs) -> None:
 
 
 @TaskDecorator()
-def postprocess_task(text: TD, parser: str, format: str = "txt", **kwargs) -> None:
-    _postprocess(text=text, model=parser, save_as=format)
+def postprocess_task(text: TD, parser: str, save_format: str, **kwargs) -> None:  # pylint: disable=unused-argument
+    _postprocess(text=text, model=parser, save_as=save_format)
 
 
 @TaskDecorator()
-def load_text_task(text: TD, config: Config, **kwargs) -> None:
+def load_text_task(text: TD, config: Config, **kwargs) -> None:  # pylint: disable=unused-argument
     paragraphs, labels = read_conll_text(input_path=text.conll)
     _text: TextData = load_text(
         text=paragraphs,
@@ -86,7 +86,7 @@ def load_text_task(text: TD, config: Config, **kwargs) -> None:
         filename=config.filename,
         parsed=config.parse
     )
-    try:
+    try:  # pylint: disable=too-many-try-statements
         db: Session = DatabaseHandler().SessionLocal()
         seralized_text_data = _text.to_dict()
         seralized_text_data.update({
@@ -103,7 +103,7 @@ def load_text_task(text: TD, config: Config, **kwargs) -> None:
 
 
 @TaskDecorator()
-def normalize_task(normalizer: str, text: TD, **kwargs) -> None:
+def normalize_task(normalizer: str, text: TD, **kwargs) -> None:  # pylint: disable=unused-argument
     if not text.spell.exists():
         normalize(normalizer, text.tok)
     else:
@@ -111,7 +111,7 @@ def normalize_task(normalizer: str, text: TD, **kwargs) -> None:
 
 
 @TaskDecorator()
-def tag_task(parser: str, text: TD, **kwargs) -> None:
+def tag_task(parser: str, text: TD, **kwargs) -> None:  # pylint: disable=unused-argument
     if not text.tag.exists():
         if not text.spell.exists() and not text.tok.exists():
             raise FileNotFoundError("No tokenized file found")
@@ -121,7 +121,7 @@ def tag_task(parser: str, text: TD, **kwargs) -> None:
 
 
 @TaskDecorator()
-def parse_task(parser: str, text: TD, **kwargs) -> None:
+def parse_task(parser: str, text: TD, **kwargs) -> None:  # pylint: disable=unused-argument
     if not text.conll.exists():
         parse(parser, text.tag)
     else:
@@ -129,7 +129,7 @@ def parse_task(parser: str, text: TD, **kwargs) -> None:
 
 
 @TaskDecorator()
-def tokenize_task(parser: str, text: TD, **kwargs) -> None:
+def tokenize_task(parser: str, text: TD, **kwargs) -> None:  # pylint: disable=unused-argument
     if not text.tok.exists():
         tokenize(parser, text.filepath)
     else:

@@ -218,11 +218,13 @@ class Writer:
             for feature_name, feature_item in data.items()
         ]
 
+    def _convert(self, value: Union[None, int, float]) -> Union[int, float, str]:
+        return value if value is not None else "N/A"
+
     def _get_feature_string(
-        self, name: str, scalar: Union[int, float], mean: Union[int, float], median: Union[int, float]
+        self, name: str, scalar: Union[None, int, float], mean: Union[None, int, float], median: Union[None, int, float]
     ) -> str:
-        _convert = lambda k: k if k is not None else "N/A"
-        return f"{' ':>2}{name:>40}{'|':>4}{_convert(scalar):>10}{'|':>4}{_convert(mean):>10}{'|':>4}{_convert(median):>10}{'|':>4}"
+        return f"{' ':>2}{name:>40}{'|':>4}{self._convert(scalar):>10}{'|':>4}{self._convert(mean):>10}{'|':>4}{self._convert(median):>10}{'|':>4}"
 
     def _txt_format(self, string: str) -> str:
         return f"{string:^88}".replace(" ", "-")

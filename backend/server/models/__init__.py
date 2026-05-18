@@ -111,7 +111,7 @@ class Text(Base, SharedMethodMixin, SharedAttributeMixin, TextAttributeMixin):
 
     filename = Column(String(length=255))
     activated = Column(Boolean, default=False)
-    date = Column(String(length=255), default=func.now())
+    date = Column(String(length=255), default=func.now())  # pylint: disable=not-callable
     content = Column(LONGTEXT, nullable=True)
     labels = Column(JSON, nullable=True)
     has_label = Column(Boolean, default=False)

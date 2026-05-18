@@ -11,8 +11,8 @@ class Task(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, Sequence("task_id_seq"), primary_key=True, index=True, autoincrement=True)
-    created_at = Column(String(255), nullable=False, default=func.now())
-    updated_at = Column(String(255), nullable=False, server_default=func.now(), onupdate=func.now())
+    created_at = Column(String(255), nullable=False, default=func.now())  # pylint: disable=not-callable
+    updated_at = Column(String(255), nullable=False, server_default=func.now(), onupdate=func.now())  # pylint: disable=not-callable
     state = Column(Integer, nullable=False, default=State.CREATED)
     verdict = Column(Integer, nullable=True)
     name = Column(String(255), nullable=False)

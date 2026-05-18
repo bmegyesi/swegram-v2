@@ -1,6 +1,6 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from server.database.handler import DatabaseHandler
 from server.models.task import Task
@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/", response_model=TaskResponse)
 def create_task(task: TaskCreate, db: Session = Depends(DatabaseHandler.get_db)):
-    db_task = Task(state=task.state, verdict=task.verdict, name=task.name, job_id=task.job_id)
+    db_task = Task(state=task.state, verdict=task.verdict, name=task.name, job_id=task.job_id)  # pylint: disable=unexpected-keyword-arg
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
