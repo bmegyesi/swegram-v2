@@ -26,6 +26,7 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         cd backend
+        source setup.sh
         pylint swegram_main server
 
     - name: Analysing the code with test
