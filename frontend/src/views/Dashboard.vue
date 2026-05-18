@@ -205,7 +205,7 @@ onUnmounted(() => {
         </el-table-column>
 
         <el-table-column prop="id" label="Job ID" width="80" />
-        <el-table-column prop="job_name" label="Job Name" width="120" />
+        <el-table-column prop="job_name" label="Job Type" width="120" />
         <el-table-column prop="filename" label="Text" min-width="220" />
         <el-table-column prop="language" label="Language" width="100" />
         <el-table-column label="Progress" min-width="180">
