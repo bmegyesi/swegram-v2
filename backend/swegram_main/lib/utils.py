@@ -1,5 +1,4 @@
 import codecs
-import logging
 import os
 import shutil
 import tempfile
@@ -176,7 +175,7 @@ def get_content_md5(content: str) -> str:
 def get_size(filepath: Path) -> Optional[str]:
     """Get size"""
     if not os.path.exists(filepath):
-        logging.warning(f"{filepath} does not exist.")
+        logger.warning(f"{filepath} does not exist.")
         return None
     size = os.path.getsize(filepath)
     for i, u in zip(list(range(3, -1, -1)), "MB KB B ".split(" ")):

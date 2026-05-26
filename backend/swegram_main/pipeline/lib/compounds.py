@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import codecs
-import logging
 import os
 
 from swegram_main.config import HISTNORM_SV
+from swegram_main.lib.logger import get_logger
 
 
+logger = get_logger(__name__)
 WORDFORM_SV = os.path.join(HISTNORM_SV, "resources", "swedish", "levenshtein", "saldo-total_wordforms.txt") 
 
 
@@ -27,13 +28,13 @@ def cut(n, list, stdout):
                 num_one = int(number.split("-")[0])
                 num_two = int(number.split("-")[1])
                 if num_one * num_two == 0:
-                    print("Error: 0 not allowed")
+                    logger.warning("Error: 0 not allowed")
                     exit()
                 if num_one == num_two:
                     if not num_one in integer_list:
                         integer_list.append(num_one-1)
                 elif num_one > num_two:
-                    print("Error: %s is greater than %s") % (num_one, num_two)
+                    logger.warning("Error: %s is greater than %s") % (num_one, num_two)
                     exit()
                 else:
                     for x in range(num_one, num_two + 1):
@@ -41,7 +42,7 @@ def cut(n, list, stdout):
                             integer_list.append(x-1)
             else:
                 if int(number) == 0:
-                    print("Error: 0 not allowed")
+                    logger.warning("Error: 0 not allowed")
                     exit()
                 else:
                     if not int(number)-1 in integer_list:
@@ -65,7 +66,7 @@ def cut(n, list, stdout):
 
     if stdout:
         for l in cut_list:
-            print(l),
+            logger.info(l),
     else:
         return cut_list
 
@@ -86,7 +87,7 @@ def find_compounds(tagged_file):
         try:
             return [line.replace('|', '\t', 1) for line in cut("1-2", file_to_list(tagged_file), False)]
         except Exception as err:
-            print("prepare_input", str(err))
+            logger.warning("prepare_input", str(err))
 
     def rule_1(p1, m1, p2, m2):
         if p1 == "PM" and "GEN" in m1 and\
@@ -122,34 +123,34 @@ def find_compounds(tagged_file):
             if rule_1(p1, m1, p2, m2):
                 if require_dict_occurrence and cmpnd not in word_list:
                     if debug:
-                        print("Not in dict: ", cmpnd)
+                        logger.warning("Not in dict: ", cmpnd)
                     pass
 
                 else:
                     if debug:
-                        print("In dict: ", cmpnd)
+                        logger.warning("In dict: ", cmpnd)
                     compounds_list.append(x - decrement)
                     decrement += 1
             elif rule_2(p1, m1, p2, m2):
                 if require_dict_occurrence and cmpnd not in word_list:
                     if debug:
-                        print("Not in dict: ", cmpnd)
+                        logger.warning("Not in dict: ", cmpnd)
                     pass
 
                 else:
                     if debug:
-                        print("In dict: ", cmpnd)
+                        logger.warning("In dict: ", cmpnd)
                     compounds_list.append(x - decrement)
                     decrement += 1
             elif rule_3(p1, m1, p2, m2):
                 if require_dict_occurrence and cmpnd not in word_list:
                     if debug:
-                        print("Not in dict: ", cmpnd)
+                        logger.warning("Not in dict: ", cmpnd)
                     pass
 
                 else:
                     if debug:
-                        print("In dict: ", cmpnd)
+                        logger.warning("In dict: ", cmpnd)
                     compounds_list.append(x - decrement)
                     decrement += 1
     return compounds_list

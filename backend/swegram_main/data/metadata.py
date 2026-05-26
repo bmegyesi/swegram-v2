@@ -1,12 +1,13 @@
 """module of metadata
 """
-import logging
 import re
 from typing import Dict, List
 
 from swegram_main.config import METADATA_INITIAL, METADATA_FINAL, METADATA_DELIMITER_LEBAL, METADATA_DELIMITER_TAG
+from swegram_main.lib.logger import get_logger
 
 
+logger = get_logger(__name__)
 METADATA_LINE_PATTERN = fr"{METADATA_INITIAL}.*{METADATA_FINAL}"
 
 
@@ -21,7 +22,7 @@ def parse_metadata(line: str) -> Dict[str, str]:
             metadata_content = metadata.group()[len(METADATA_INITIAL):-len(METADATA_FINAL)]
             return parse_metadata_helper(metadata_content)
         except MetadataError as err:
-            logging.warning(err)
+            logger.warning(err)
     return None
 
 

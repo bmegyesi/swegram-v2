@@ -26,12 +26,15 @@ services:
     container_name: swegram-backend-fastapi
     restart: always
     environment:
+      LOG_FILE: /var/log/app.log
       MYSQL_ROOT_PASSWORD: pass
       MYSQL_DATABASE: swegram_corpus
       MYSQL_USER: swegram
       MYSQL_PASSWORD: swegram_pass
       MYSQL_HOST: db
       PRODUCTION: 1
+    volumes:
+      - $PWD/backend/log:/var/log
     ports:
       - "8000:8000"
     networks:
@@ -48,6 +51,8 @@ services:
       - "80:80"
     networks:
       - swegram-network
+    volumes:
+      - $PWD/frontend/log/nginx:/var/log/nginx
     profiles:
       - client
       - frontend

@@ -1,5 +1,4 @@
 # decorators module to create job and task
-import logging
 import traceback
 from functools import wraps
 from typing import Optional
@@ -8,11 +7,10 @@ from server.config import Config
 from server.models.job import Job
 from server.models.task import Task
 from server.database.handler import DatabaseHandler
+from swegram_main.lib.logger import get_logger
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class JobDecorator:
     """Decorator for creating and managing jobs."""
