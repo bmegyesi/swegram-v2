@@ -1,6 +1,5 @@
 """Module of pipeline
 """
-import logging
 from pathlib import Path
 from typing import Optional, List, Tuple
 
@@ -13,8 +12,8 @@ from server.models import Text as TextDataBaseModel
 from swegram_main.data.texts import TextDirectory as TD
 from swegram_main.data.texts import Text as TextData
 from swegram_main.handler.handler import load_text
-from swegram_main.lib.utils import get_size,read_conll_text
 from swegram_main.lib.logger import get_logger
+from swegram_main.lib.utils import get_size,read_conll_text
 from swegram_main.pipeline.lib.normalize import normalize
 from swegram_main.pipeline.lib.parse import parse
 from swegram_main.pipeline.lib.tag import tag
@@ -23,7 +22,6 @@ from swegram_main.pipeline.preprocess import preprocess
 from swegram_main.pipeline.postprocess import postprocess as _postprocess
 
 
-logging.basicConfig(level=logging.INFO)
 logger = get_logger(__name__)
 
 

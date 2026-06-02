@@ -10,5 +10,6 @@ mysqlclient
 openpyxl
 pandas
 python-Levenshtein
+pyyaml
 requests
 uvicorn

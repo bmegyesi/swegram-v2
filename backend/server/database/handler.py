@@ -1,9 +1,9 @@
 import os
-import logging
 from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
+from swegram_main.lib.logger import get_logger
 
 
 DEFAULT_MYSQL_HOST = "127.0.0.1"
@@ -14,9 +14,7 @@ MYSQL_HOST_QA = "127.0.0.1"
 MYSQL_USER_QA = "root"
 MYSQL_PASSWORD_QA = "rootpassword"
 MYSQL_DATABASE_QA = "swegram_corpus_qa"
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 
 def _declarative_constructor(self, **kwargs) -> None:

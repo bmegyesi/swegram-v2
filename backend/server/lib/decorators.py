@@ -1,6 +1,4 @@
 # decorators module to create job and task
-import logging
-import traceback
 from functools import wraps
 from typing import Optional
 
@@ -8,11 +6,10 @@ from server.config import Config
 from server.models.job import Job
 from server.models.task import Task
 from server.database.handler import DatabaseHandler
+from swegram_main.lib.logger import get_logger
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+logger = get_logger(__name__)
 
 class JobDecorator:
     """Decorator for creating and managing jobs."""
@@ -93,8 +90,7 @@ class TaskDecorator:
             try:
                 response = func(*args, **kwargs)
             except Exception as e:
-                traceback.print_exc()
-                logger.error(f"Error occurred while executing the task: {e}")
+                logger.error(f"Error occurred while executing the task: {e}", exc_info=True)
                 self.update_task(verdict=1)
                 raise e
             else:

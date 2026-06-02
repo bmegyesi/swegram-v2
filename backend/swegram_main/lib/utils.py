@@ -1,5 +1,4 @@
 import codecs
-import logging
 import os
 import shutil
 import tempfile
@@ -176,7 +175,7 @@ def get_content_md5(content: str) -> str:
 def get_size(filepath: Path) -> Optional[str]:
     """Get size"""
     if not os.path.exists(filepath):
-        logging.warning(f"{filepath} does not exist.")
+        logger.warning(f"{filepath} does not exist.")
         return None
     size = os.path.getsize(filepath)
     for i, u in zip(list(range(3, -1, -1)), "MB KB B ".split(" ")):
@@ -478,8 +477,6 @@ def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
     children = list(range(1, len(heads)+1))
     if 0 not in heads:
         return f"{error_prefix} Root is missing."
-    if Counter(heads)[0] > 1:
-        return f"{error_prefix} More than one roots in sentence"
     if len(children) > len(set(children)):
         return f"{error_prefix} Same indeces for two nodes in sentence."
 

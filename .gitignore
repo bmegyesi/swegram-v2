@@ -8,14 +8,10 @@ data/*
 # Created by https://www.gitignore.io/api/macos,django,python,virtualenv,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=macos,django,python,virtualenv,visualstudiocode
 
-### Django ###
+### log ###
+**/log/**
 *.log
-*.pot
-*.pyc
-__pycache__/
-local_settings.py
-db.sqlite3
-media
+
 
 ### node modules ###
 frontend/node_modules/
