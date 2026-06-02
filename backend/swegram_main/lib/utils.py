@@ -477,8 +477,8 @@ def is_a_ud_tree(heads: List[str], error_prefix: str = "") -> Union[bool, str]:
     children = list(range(1, len(heads)+1))
     if 0 not in heads:
         return f"{error_prefix} Root is missing."
-    if Counter(heads)[0] > 1:
-        return f"{error_prefix} More than one roots in sentence"
+    # if Counter(heads)[0] > 1:
+    #     return f"{error_prefix} More than one roots in sentence"
     if len(children) > len(set(children)):
         return f"{error_prefix} Same indeces for two nodes in sentence."
 

@@ -41,9 +41,12 @@ def _sum(iterable: List[D]) -> int:
     """allow sum to take kwarg as well"""
     if isinstance(iterable, int):
         return iterable
-    if isinstance(iterable[0], list):
-        return sum(_sum(i) for i in iterable)
-    return sum(_convert_depth_list(iterable))
+    try:
+        if isinstance(iterable[0], list):
+            return sum(_sum(i) for i in iterable)
+        return sum(_convert_depth_list(iterable))
+    except IndexError:
+        raise ValueError(f"Expected a non-empty list, but got {iterable}. type: {type(iterable)}")
 
 
 def _max(iterable: List[D]) -> int:

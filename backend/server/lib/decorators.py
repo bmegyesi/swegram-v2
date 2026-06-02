@@ -1,5 +1,4 @@
 # decorators module to create job and task
-import traceback
 from functools import wraps
 from typing import Optional
 
@@ -91,8 +90,7 @@ class TaskDecorator:
             try:
                 response = func(*args, **kwargs)
             except Exception as e:
-                traceback.print_exc()
-                logger.error(f"Error occurred while executing the task: {e}")
+                logger.error(f"Error occurred while executing the task: {e}", exc_info=True)
                 self.update_task(verdict=1)
                 raise e
             else:
