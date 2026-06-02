@@ -45,8 +45,8 @@ def _sum(iterable: List[D]) -> int:
         if isinstance(iterable[0], list):
             return sum(_sum(i) for i in iterable)
         return sum(_convert_depth_list(iterable))
-    except IndexError:
-        raise ValueError(f"Expected a non-empty list, but got {iterable}. type: {type(iterable)}")
+    except IndexError as error:
+        raise ValueError(f"Expected a non-empty list, but got {iterable}. type: {type(iterable)}") from error
 
 
 def _max(iterable: List[D]) -> int:

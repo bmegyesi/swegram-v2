@@ -72,17 +72,14 @@ def load_statistic(instance: C, language: str) -> C:
 def get_features_data(instance: C, aspect: str, features: F) -> Dict[str, Feature]:
     data: Dict[str, Feature] = OrderedDict()
     for feature_name, func, attr_func, kwarg_list, attribute_kwargs in features:
-        try:
-            if isinstance(instance, Sentence):
-                kwargs = parse_args(kwarg_list, getattr, instance)
-                data[feature_name] = Feature(scalar=func(**kwargs))
-            else:
-                blocks = getattr(instance, instance.elements)
-                kwargs = parse_args(kwarg_list, attr_func, blocks, **attribute_kwargs)
-                scalar_list = [getattr(block, aspect)[feature_name].scalar for block in blocks]
-                data[feature_name] = Feature(
-                    scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
-                )
-        except Exception as e:
-            raise Exception(f"Error occurred while computing feature {feature_name} for {instance} {func.__name__} {kwarg_list} {attribute_kwargs}: {e}")
+        if isinstance(instance, Sentence):
+            kwargs = parse_args(kwarg_list, getattr, instance)
+            data[feature_name] = Feature(scalar=func(**kwargs))
+        else:
+            blocks = getattr(instance, instance.elements)
+            kwargs = parse_args(kwarg_list, attr_func, blocks, **attribute_kwargs)
+            scalar_list = [getattr(block, aspect)[feature_name].scalar for block in blocks]
+            data[feature_name] = Feature(
+                scalar=func(**kwargs), mean=mean(scalar_list), median=median(scalar_list)
+            )
     return data # setup for token property after computation for sentence
