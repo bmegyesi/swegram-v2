@@ -27,7 +27,7 @@ class StreamToLogger:
 
 def get_logger(filename: str) -> Logger:
 
-    CONSOLE_LOG_FILE = os.getenv("CONSOLE_LOG_FILE", "/app/logs/console.log")
+    CONSOLE_LOG_FILE = os.getenv("CONSOLE_LOG_FILE", "/var/log/console.log")
     os.makedirs(os.path.dirname(CONSOLE_LOG_FILE), exist_ok=True)
 
     # Create logger
