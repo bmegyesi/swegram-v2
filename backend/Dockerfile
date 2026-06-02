@@ -33,4 +33,4 @@ RUN rm -rf build_dependencies
 
 EXPOSE 8000
 
-ENTRYPOINT [ "bash", "-c", "uvicorn server.run:app --host 0.0.0.0 --port 8000 --reload" ]
+ENTRYPOINT [ "bash", "-c", "uvicorn server.run:app --host 0.0.0.0 --port 8000" ]
