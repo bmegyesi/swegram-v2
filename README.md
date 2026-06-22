@@ -149,8 +149,6 @@ When the containers are up, go to the following [link](http://localhost/#/en)
 
 ### Good to know when using swegram desktop on macOS
 
-* It is not able to build the docker image locally on macOS due to limitation of udpipe binary. The image will be pulled from [docker hub](https://hub.docker.com/)
-
 * It takes a while before database is ready. Therefore, backend server will be up after 30 seconds sleep.
 
 * To exit swegram desktop. You can do `docker compose --profile client down`

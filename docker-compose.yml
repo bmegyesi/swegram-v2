@@ -25,6 +25,7 @@ services:
     image: swegram-backend:latest
     container_name: swegram-backend-fastapi
     restart: always
+    platform: linux/amd64
     environment:
       CONSOLE_LOG_FILE: /var/log/console.log
       MYSQL_ROOT_PASSWORD: pass
