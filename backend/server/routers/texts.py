@@ -24,7 +24,7 @@ def remove_texts():
         saved_time = current_time - datetime.strptime(text.date, DATE_FORMAT)
         if saved_time.days > MAX_DAYS:
             print(f"To delete expired file {text.filename}.")
-            print(f"Created time: {text.date}; size: {text._filesize}")
+            print(f"Created time: {text.date}; size: {text.filesize}")
             db.delete(text)
             db.commit()
 
