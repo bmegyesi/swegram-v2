@@ -94,7 +94,7 @@ class DatabaseHandler:
         else:
             self.database_name = DEFAULT_MYSQL_DATABASE
         self.config = DatabaseConfig(is_qa=is_qa, database_name=self.database_name)
-        engine = create_engine(self.config.mysql_url,  pool_pre_ping=True, pool_recycle=1800)
+        engine = create_engine(self.config.mysql_url, pool_pre_ping=True, pool_recycle=1800)
         with engine.begin() as connection:
             connection.execute(text(f"CREATE DATABASE IF NOT EXISTS {self.database_name}"))
         self.engine = create_engine(self.config.database_url, pool_pre_ping=True, pool_recycle=1800)
