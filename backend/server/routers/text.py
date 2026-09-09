@@ -2,7 +2,7 @@ from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, Pa
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
-from server.database.handler import DatabaseHandler
+from server.database.handler import get_db
 from server.lib.exceptions import ServerError
 from server.lib.fetch_current_sentences import fetch_current_sentences
 from server.lib.load_data import parse_payload, run_swegram
@@ -21,7 +21,7 @@ def _create_text(data, language):
 
 
 @router.get("/{text_id}")
-async def read_text(text_id: int = Path(..., title="Text id"), db: Session = Depends(DatabaseHandler.get_db)) -> JSONResponse:
+async def read_text(text_id: int = Path(..., title="Text id"), db: Session = Depends(get_db)) -> JSONResponse:
     try:
         text = db.query(Text).get(ident=text_id)
         if not text:
@@ -34,7 +34,7 @@ async def read_text(text_id: int = Path(..., title="Text id"), db: Session = Dep
 @router.get("/{text_id}/{page}/")
 async def read_current_sentences(
     text_id: int = Path(..., title="Text id"),
-    page: int = Path(..., title="Page"), db: Session = Depends(DatabaseHandler.get_db)
+    page: int = Path(..., title="Page"), db: Session = Depends(get_db)
 ) -> JSONResponse:
     return fetch_current_sentences(text_id=text_id, page=page, db=db)
 
@@ -50,7 +50,7 @@ async def create_text(
 
 
 @router.delete("/{text_id}")
-async def delete_text(text_id: int = Path(..., title="Text id"), db: Session = Depends(DatabaseHandler.get_db)) -> JSONResponse:
+async def delete_text(text_id: int = Path(..., title="Text id"), db: Session = Depends(get_db)) -> JSONResponse:
 
     text = db.query(Text).get(ident=text_id)
     db.delete(text)

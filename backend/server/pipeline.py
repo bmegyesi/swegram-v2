@@ -6,7 +6,7 @@ from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
 
 from server.config import Config
-from server.database.handler import DatabaseHandler
+from server.database.handler import get_db
 from server.lib.decorators import JobDecorator, TaskDecorator
 from server.models import Text as TextDataBaseModel
 from swegram_main.data.texts import TextDirectory as TD
@@ -85,7 +85,7 @@ def load_text_task(text: TD, config: Config, **kwargs) -> None:  # pylint: disab
         parsed=config.parse
     )
     try:  # pylint: disable=too-many-try-statements
-        db: Session = DatabaseHandler().SessionLocal()
+        db: Session = next(get_db())
         seralized_text_data = _text.to_dict()
         seralized_text_data.update({
             "tokenized": config.tokenize, "normalized": config.normalize, "tagged": config.tag,

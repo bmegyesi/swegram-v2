@@ -10,7 +10,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse
 
 from server.routers.job import router as job_router
 from server.routers.task import router as task_router
-from server.database.handler import DatabaseHandler
+from server.database.handler import DatabaseHandler, get_db
 from server.routers.download import router as download_router
 from server.routers.features import router as features_router
 from server.routers.frequencies import router as frequencies_router
@@ -61,15 +61,15 @@ async def index() -> RedirectResponse:
 
 
 DatabaseHandler().create_tables()
-app.include_router(job_router, prefix=f"{PROD_PREFIX}/jobs", tags=["jobs"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(task_router, prefix=f"{PROD_PREFIX}/tasks", tags=["tasks"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(download_router, prefix=f"{PROD_PREFIX}/download", tags=["download"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(features_router, prefix=f"{PROD_PREFIX}/features", tags=["features"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(frequencies_router, prefix=f"{PROD_PREFIX}/frequencies", tags=["frequencies"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(lengths_router, prefix=f"{PROD_PREFIX}/lengths", tags=["lengths"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(states_router, prefix=f"{PROD_PREFIX}/states", tags=["states"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(text_router, prefix=f"{PROD_PREFIX}/text", tags=["text"], dependencies=[Depends(DatabaseHandler.get_db)])
-app.include_router(texts_router, prefix=f"{PROD_PREFIX}/texts", tags=["texts"], dependencies=[Depends(DatabaseHandler.get_db)])
+app.include_router(job_router, prefix=f"{PROD_PREFIX}/jobs", tags=["jobs"], dependencies=[Depends(get_db)])
+app.include_router(task_router, prefix=f"{PROD_PREFIX}/tasks", tags=["tasks"], dependencies=[Depends(get_db)])
+app.include_router(download_router, prefix=f"{PROD_PREFIX}/download", tags=["download"], dependencies=[Depends(get_db)])
+app.include_router(features_router, prefix=f"{PROD_PREFIX}/features", tags=["features"], dependencies=[Depends(get_db)])
+app.include_router(frequencies_router, prefix=f"{PROD_PREFIX}/frequencies", tags=["frequencies"], dependencies=[Depends(get_db)])
+app.include_router(lengths_router, prefix=f"{PROD_PREFIX}/lengths", tags=["lengths"], dependencies=[Depends(get_db)])
+app.include_router(states_router, prefix=f"{PROD_PREFIX}/states", tags=["states"], dependencies=[Depends(get_db)])
+app.include_router(text_router, prefix=f"{PROD_PREFIX}/text", tags=["text"], dependencies=[Depends(get_db)])
+app.include_router(texts_router, prefix=f"{PROD_PREFIX}/texts", tags=["texts"], dependencies=[Depends(get_db)])
 
 
 if __name__ == "__main__":

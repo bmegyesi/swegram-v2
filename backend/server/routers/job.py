@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from server.database.handler import DatabaseHandler
+from server.database.handler import get_db
 from server.models.job import Job
 from server.schemas.job_schema import JobCreate, JobUpdate, JobResponse
 
@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.post("/", response_model=JobResponse)
-def create_job(job: JobCreate, db: Session = Depends(DatabaseHandler().get_db)):
+def create_job(job: JobCreate, db: Session = Depends(get_db)):
     db_job = Job(language=job.language, filename=job.filename, state=job.state, verdict=job.verdict)  # pylint: disable=unexpected-keyword-arg
     db.add(db_job)
     db.commit()
@@ -20,12 +20,12 @@ def create_job(job: JobCreate, db: Session = Depends(DatabaseHandler().get_db)):
 
 
 @router.get("/", response_model=List[JobResponse])
-def get_jobs(db: Session = Depends(DatabaseHandler().get_db)):
+def get_jobs(db: Session = Depends(get_db)):
     return db.query(Job).all()
 
 
 @router.get("/{job_id}", response_model=JobResponse)
-def get_job(job_id: int, db: Session = Depends(DatabaseHandler().get_db)):
+def get_job(job_id: int, db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -33,7 +33,7 @@ def get_job(job_id: int, db: Session = Depends(DatabaseHandler().get_db)):
 
 
 @router.put("/{job_id}", response_model=JobResponse)
-def update_job(job_id: int, job: JobUpdate, db: Session = Depends(DatabaseHandler().get_db)):
+def update_job(job_id: int, job: JobUpdate, db: Session = Depends(get_db)):
     db_job = db.query(Job).filter(Job.id == job_id).first()
     if not db_job:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -47,7 +47,7 @@ def update_job(job_id: int, job: JobUpdate, db: Session = Depends(DatabaseHandle
 
 
 @router.delete("/{job_id}")
-def delete_job(job_id: int, db: Session = Depends(DatabaseHandler().get_db)):
+def delete_job(job_id: int, db: Session = Depends(get_db)):
     db_job = db.query(Job).filter(Job.id == job_id).first()
     if not db_job:
         raise HTTPException(status_code=404, detail="Job not found")

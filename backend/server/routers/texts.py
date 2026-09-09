@@ -7,8 +7,7 @@ from sqlalchemy.orm import Session
 
 from server.config import MAX_DAYS, DATE_FORMAT
 from server.lib.fetch_data import fetch_data
-# from server.routers.database import get_db
-from server.database.handler import DatabaseHandler
+from server.database.handler import get_db
 from server.models import Text
 
 router = APIRouter()
@@ -18,7 +17,7 @@ def remove_texts():
     """Delete text which is stored longer than one week"""
     current_time = datetime.now()
     print(f"Database cleanup {current_time}")
-    db = next(DatabaseHandler.get_db())
+    db = next(get_db())
     text: Text
     for text in db.query(Text).all():
         saved_time = current_time - datetime.strptime(text.date, DATE_FORMAT)
@@ -30,13 +29,13 @@ def remove_texts():
 
 
 @router.get("/")
-async def read_texts(db: Session = Depends(DatabaseHandler.get_db)) -> JSONResponse:
+async def read_texts(db: Session = Depends(get_db)) -> JSONResponse:
     return JSONResponse([item.as_dict() for item in db.query(Text).all()])
 
 
 @router.put("/{language}")
 async def update_texts(
-    language: str = Path(...), data: Dict[str, Any] = Body(...), db: Session = Depends(DatabaseHandler.get_db)
+    language: str = Path(...), data: Dict[str, Any] = Body(...), db: Session = Depends(get_db)
 ) -> JSONResponse:
     texts = db.query(Text).filter(Text.language == language)
     return JSONResponse(fetch_data(metadata=data, texts=texts))
