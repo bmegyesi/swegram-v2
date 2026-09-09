@@ -5,30 +5,37 @@ from typing import Optional
 from server.config import Config
 from server.models.job import Job
 from server.models.task import Task
-from server.database.handler import DatabaseHandler
+from server.database.handler import get_db
 from swegram_main.lib.logger import get_logger
 
 
 logger = get_logger(__name__)
 
+
 class JobDecorator:
-    """Decorator for creating and managing jobs."""
-    db = next(DatabaseHandler().get_db())
+    """Decorator for creating and managing jobs."""        
 
     def create_job(self, language: str, filename: str, job_name: Optional[str] = None, parent_id: Optional[int] = None) -> None:
         self.db_job = Job(language=language, filename=filename, job_name=job_name, parent_id=parent_id, state=0, verdict=0)  # pylint: disable=unexpected-keyword-arg
-        self.db.add(self.db_job)
-        self.db.commit()
-        self.db.refresh(self.db_job)
+        try:
+            self.db.add(self.db_job)
+            self.db.commit()
+            self.db.refresh(self.db_job)
+        except Exception:
+            self.db.rollback()
+            raise
 
     def update_job(self, state: Optional[int] = None, verdict: Optional[int] = None) -> None:
         if state is not None:
             self.db_job.state = state
         if verdict is not None:
             self.db_job.verdict = verdict
-
-        self.db.commit()
-        self.db.refresh(self.db_job)
+        try:
+            self.db.commit()
+            self.db.refresh(self.db_job)
+        except Exception:
+            self.db.rollback()
+            raise
 
     def __call__(self, func: callable) -> callable:
         @wraps(func)
@@ -36,6 +43,7 @@ class JobDecorator:
             if not kwargs.get("config"):
                 raise ValueError("Configuration must be provided as keyword arguments to the decorated function.")
             config: Config = kwargs["config"]
+            self.db = next(get_db())
             self.create_job(
                 language=config.language, filename=config.filename,
                 parent_id=kwargs.get("parent_id"), job_name=kwargs.get("job_name")
@@ -56,26 +64,34 @@ class JobDecorator:
             finally:
                 logger.info("Terminating job...")
                 self.update_job(state=2)
+                self.db.close()
         return wrapper
 
 
 class TaskDecorator:
     """Decorator for creating and managing tasks."""
-    db = next(DatabaseHandler().get_db())
 
     def create_task(self, name: str, job_id: int) -> None:
         self.db_task = Task(state=0, verdict=0, name=name, job_id=job_id)  # pylint: disable=unexpected-keyword-arg
-        self.db.add(self.db_task)
-        self.db.commit()
-        self.db.refresh(self.db_task)
+        try:
+            self.db.add(self.db_task)
+            self.db.commit()
+            self.db.refresh(self.db_task)
+        except Exception:
+            self.db.rollback()
+            raise
 
     def update_task(self, state: Optional[int] = None, verdict: Optional[int] = None) -> None:
         if state is not None:
             self.db_task.state = state
         if verdict is not None:
             self.db_task.verdict = verdict
-        self.db.commit()
-        self.db.refresh(self.db_task)
+        try:
+            self.db.commit()
+            self.db.refresh(self.db_task)
+        except Exception:
+            self.db.rollback()
+            raise
 
     def __init__(self, task_name: Optional[str] = None) -> None:
         self.task_name = task_name
@@ -86,6 +102,7 @@ class TaskDecorator:
             if kwargs.get("job_id") is None:
                 raise ValueError("job_id must be provided as a keyword argument to the decorated function.")
             logger.info("Creating task...")
+            self.db = next(get_db())
             self.create_task(name=self.task_name or func.__name__, job_id=kwargs.get("job_id"))
             try:
                 response = func(*args, **kwargs)
@@ -100,5 +117,6 @@ class TaskDecorator:
             finally:
                 logger.info("Terminating task...")
                 self.update_task(state=2)
+                self.db.close()
                 logger.info("Task terminated.")
         return wrapper
