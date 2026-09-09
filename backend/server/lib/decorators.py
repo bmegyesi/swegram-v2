@@ -1,6 +1,6 @@
 # decorators module to create job and task
 from functools import wraps
-from typing import Any, Optional
+from typing import Optional
 
 from server.config import Config
 from server.models.job import Job

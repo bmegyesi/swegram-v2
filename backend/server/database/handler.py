@@ -4,7 +4,7 @@ import threading
 import time
 from typing import Optional
 from sqlalchemy import create_engine, text
-from sqlalchemy.exc import DBAPIError, OperationalError
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import declarative_base, sessionmaker
 from swegram_main.lib.logger import get_logger
 
@@ -151,9 +151,9 @@ class DatabaseHandler:
             with self.engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
             return True
-        except (OperationalError, DBAPIError) as error:
+        except DBAPIError as error:
             logger.info(f"Lost connection to database: {error}")
-        except Exception as error:
+        except Exception as error:  # pylint: disable=broad-exception-caught
             logger.info(f"Lost connection due to {error}")
         return False 
 
